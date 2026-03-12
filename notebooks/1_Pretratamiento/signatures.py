@@ -3,6 +3,29 @@ import pandas as pd
 from scipy.interpolate import interp1d
 
 
+def annual_runoff(discharge: pd.Series, area: float) -> float:
+    """Average annual runoff (in mm).
+
+    Parameters:
+    -----------
+    discharge: pd.Series
+        Time series of discharge (m³/s). Index are dates and values are discharge
+    area: float
+        Catchment area (km²)
+
+    Returns:
+    --------
+    float
+        Annual runoff (mm)
+    """
+
+    # average specific discharge (m/s)
+    avg_q = discharge.mean(skipna=True) / (area * 1e6)
+    # convert to mm
+    avg_q *= 1000 * 3600 * 24 * 365
+    return  avg_q 
+
+
 def flashiness_index(discharge: pd.Series) -> float:
     """Richards-Baker Flashiness Index (RBI)
     
@@ -20,7 +43,7 @@ def flashiness_index(discharge: pd.Series) -> float:
     diff = discharge.diff().abs()
     volume = discharge.loc[diff.notnull()].sum()
 
-    return diff.sum() / volume
+    return diff.sum() / volume if volume > 0 else np.nan
 
 
 def flow_duration_curve(discharge: pd.Series) -> pd.Series:
@@ -37,13 +60,14 @@ def flow_duration_curve(discharge: pd.Series) -> pd.Series:
         Flow duration curve. Index is the probability of exceedance and values are the asscociated discharge
     """
     # sorted discharge
-    sorted_q = discharge.sort_values(ascending=False).values
+    Q = discharge.copy()
+    Q = Q.dropna().sort_values(ascending=False).values
     
     # probability of exceedance
-    n = len(sorted_q) + 1
+    n = len(Q) + 1
     probs = np.arange(1, n) / n
 
-    fdc = pd.Series(data=sorted_q, index=probs, name='discharge')
+    fdc = pd.Series(data=Q, index=probs, name='discharge')
     fdc.index.name = 'probability'
 
     return fdc
@@ -95,6 +119,7 @@ def baseflow_index(discharge: pd.Series, alpha: float = 0.925) -> float:
         
     Returns:
     --------
+    pd.DataFrame: time series of total and base flow
     float: Baseflow Index (0 to 1)
     """
 
@@ -108,19 +133,24 @@ def baseflow_index(discharge: pd.Series, alpha: float = 0.925) -> float:
     for t in range(1, n):
         # Calculate quickflow
         q_val = alpha * quick[t-1] + factor * (total[t] - total[t-1])
-        
+        q_val = 0 if np.isnan(q_val) else q_val
+
         # Apply constraints: 0 <= quickflow <= total_flow
         if q_val < 0:
             q_val = 0
         elif q_val > total[t]:
             q_val = total[t]
-            
-        quick[t] = q_val
         
-    base = total - quick
+        quick[t] = q_val
+            
+    # Concatenate series
+    series = pd.DataFrame({
+        'total': pd.Series(total, index=discharge.index),
+        'base': pd.Series(total - quick, index=discharge.index)
+    })
+
+    # Calculate BFI    # Compute BFI
+    cumulative = series.dropna(axis=0, how='any').sum()
+    bfi = cumulative.base / cumulative.total if cumulative.total > 0 else np.nan
     
-    # Calculate BFI
-    total_sum = np.sum(total)
-    bfi = np.sum(base) / total_sum if total_sum > 0 else 0.0
-    
-    return float(bfi)
+    return series, float(bfi)
