@@ -1,43 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset='utf-8'>
-<title>camels-es</title>
-
+    <title>CAMELS-ES</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            line-height: 1.6; 
-            color: #333; 
-            max-width: 800px; 
-            margin: 40px auto; 
-            padding: 0 20px;
-            background-color: #f8f9fa;
-        }
-        h1 { color: #2c3e50; border-bottom: 2px solid steelblue; padding-bottom: 10px; }
-        .back-link { display: inline-block; margin-bottom: 20px; color: steelblue; text-decoration: none; font-weight: bold; }
-        .back-link:hover { text-decoration: underline; }
-        ul { list-style: none; padding: 0; }
-        li { background: white; margin: 5px 0; padding: 10px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: 0.2s; }
-        li:hover { transform: translateX(5px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        a.station-link { text-decoration: none; color: #2980b9; display: block; width: 100%; }
-        a.station-link:hover { color: steelblue; }
+        #map { height: 600px; width: 100%; border-radius: 8px; }
+        body { font-family: sans-serif; margin: 20px; }
     </style>
-    
 </head>
 <body>
-<h1>Cuencas</h1>
-<ul>
-  <li><a class='station-link' href='./Cantabrico/index.html' target='_self'>Cantabrico</a></li>
-  <li><a class='station-link' href='./Duero/index.html' target='_self'>Duero</a></li>
-  <li><a class='station-link' href='./Ebro/index.html' target='_self'>Ebro</a></li>
-  <li><a class='station-link' href='./Galicia Costa/index.html' target='_self'>Galicia costa</a></li>
-  <li><a class='station-link' href='./Guadalquivir/index.html' target='_self'>Guadalquivir</a></li>
-  <li><a class='station-link' href='./Guadiana/index.html' target='_self'>Guadiana</a></li>
-  <li><a class='station-link' href='./Jucar/index.html' target='_self'>Jucar</a></li>
-  <li><a class='station-link' href='./Miño-Sil/index.html' target='_self'>Miño-sil</a></li>
-  <li><a class='station-link' href='./Segura/index.html' target='_self'>Segura</a></li>
-  <li><a class='station-link' href='./Tajo/index.html' target='_self'>Tajo</a></li>
-</ul>
+    <h1>CAMELS-ES Explorer</h1>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize map centered on Spain
+        var map = L.map('map').setView([40.4167, -3.7037], 6);
+
+        // Add a clean base map
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // Load your GeoJSON file
+        fetch('./estaciones.geojson')
+            .then(res => {
+				if (!res.ok) throw new Error("Could not load GeoJSON file");
+				return res.json();
+			})
+            .then(data => {
+                L.geoJSON(data, {
+                    onEachFeature: function (feature, layer) {
+                        // Create a popup with a link
+                        let name = feature.properties.lugar || "Station " + feature.properties.indroea;
+                        let popupContent = `
+                            <strong>${name}</strong><br>
+                            <a href="${feature.properties.url_link}">View Hydrograph</a>
+                        `;
+                        layer.bindPopup(popupContent);
+                        
+                        // Optional: Open link on double click
+                        layer.on('dblclick', function() {
+                            window.location.href = feature.properties.url_link;
+                        });
+                    }
+                }).addTo(map);
+            });
+    </script>
 </body>
 </html>
