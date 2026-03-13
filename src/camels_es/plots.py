@@ -158,27 +158,16 @@ def plot_discharge_timeseries(
         template="plotly_white",
         height=550,
         showlegend=False,
-        annotations=[
-            dict(
-                text=signature_text,
-                xref="paper", yref="paper",
-                x=1.02, xanchor="left",
-                y=1, yanchor="top",
-                showarrow=False,
-                align="left",
-                font=dict(size=12),
-                bgcolor="rgba(255, 255, 255, 0.9)",
-            ),
-        #     dict(
-        #     text="<a href='../index.html'>← Back to stations</a>",
-        #     xref="paper", yref="paper",
-        #     x=1.02, xanchor="left",
-        #     y=0, yanchor="bottom",
-        #     showarrow=False,
-        #     font=dict(size=14, color="steelblue"),
-        #     align="left"
-        # )
-        ],
+        annotations=[dict(
+            text=signature_text,
+            xref="paper", yref="paper",
+            x=1.02, xanchor="left",
+            y=1, yanchor="top",
+            showarrow=False,
+            align="left",
+            font=dict(size=12),
+            bgcolor="rgba(255, 255, 255, 0.9)",
+        )],
         updatemenus=[
             dict(
                 type="buttons",
