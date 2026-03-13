@@ -1,5 +1,6 @@
 from typing import Optional, Union
 from pathlib import Path
+from typing import Literal, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -38,6 +39,7 @@ def plot_stations(
     alpha = kwargs.get('alpha', .7)
     size = kwargs.get('size', 12)
     color = kwargs.get('color', 'steelblue')
+    marker = kwargs.get('marker', 'o')
     
     # set up plot
     proj = ccrs.PlateCarree()
@@ -68,6 +70,7 @@ def plot_stations(
         geometry.y,
         s=s,
         c=color,
+        marker=marker,
         alpha=alpha,
         zorder=2
     )  
@@ -89,13 +92,35 @@ def plot_stations(
         plt.savefig(save, dpi=300, bbox_inches='tight')
 
 
-def plot_timeseries_interactive(
+def plot_discharge_timeseries(
     ts: pd.Series, 
     area: float,
     regime: Optional[str] = None,
     save: Optional[str] = None, 
     **kwargs
     ):
+    """Creates an interactive figure with two plots: the hydrograph and the flow duration curve.
+    Interactive buttons allow to transform the discharge data to logarithmic or square root scales
+    to identify issues in the low flows.
+    
+    Parameters:
+    -----------
+    ts: pandas.Series
+        Discharge time series
+    area: float
+        Catchment area (km²)
+    regime: string (optional)
+        Flow regime (if provided by the Ministry)
+    save: string
+        HTML file where the figure will be saved
+    
+    Keyword arguments:
+    ------------------
+    c: string
+        Line colour
+    title: string
+        Figure title
+    """
 
     # Extract keywords
     c = kwargs.get('c', 'steelblue')
@@ -118,23 +143,18 @@ def plot_timeseries_interactive(
     )
 
     # 2. Create Subplots 
-    fig = make_subplots(
-        rows=1, cols=2, 
-        shared_yaxes=True, 
-        column_widths=[0.7, 0.25], 
-        horizontal_spacing=0.03,
-        subplot_titles=("Hydrograph", "Flow Duration Curve")
-    )
+    fig = make_subplots(rows=1, cols=2, shared_yaxes=True, column_widths=[0.7, 0.25], horizontal_spacing=0.03,
+                        subplot_titles=("Hydrograph", "Flow Duration Curve"))
 
     # 3. Add traces
-    fig.add_trace(go.Scatter(x=ts.index, y=ts.values, line=dict(color=c, width=1)), row=1, col=1)
-    fig.add_trace(go.Scatter(x=fdc.index * 100, y=fdc.values, line=dict(color=c, width=2)), row=1, col=2)    
+    fig.add_trace(go.Scatter(x=ts.index, y=ts.values, line=dict(color=c, width=1), showlegend=False), row=1, col=1)
+    fig.add_trace(go.Scatter(x=fdc.index * 100, y=fdc.values, line=dict(color=c, width=2), showlegend=False), row=1, col=2)    
 
     # 4. Update Layout
     fig.update_layout(
-        title_text=f"<b>{title if title else ''}</b>", # Global figure title
-        title_x=0.5,                                   # Center the title
-        margin=dict(l=50, r=250, t=100, b=50),         # LARGE right margin (250px)
+        title_text=f"<b>{title if title else ''}</b>",
+        title_x=0.5,
+        margin=dict(l=50, r=250, t=100, b=50),
         template="plotly_white",
         height=550,
         showlegend=False,
@@ -142,30 +162,44 @@ def plot_timeseries_interactive(
             dict(
                 text=signature_text,
                 xref="paper", yref="paper",
-                x=1.02,            # Starts at 105% of the plot width
-                xanchor="left",    # Anchor box to its own left edge
-                y=1,             # Center vertically
-                yanchor="top",
+                x=1.02, xanchor="left",
+                y=1, yanchor="top",
                 showarrow=False,
                 align="left",
                 font=dict(size=12),
-                bgcolor="rgba(255, 255, 255, 0.9)", # Semi-transparent white
-                # bordercolor="black",
-                # borderwidth=1
-            )
+                bgcolor="rgba(255, 255, 255, 0.9)",
+            ),
+        #     dict(
+        #     text="<a href='../index.html'>← Back to stations</a>",
+        #     xref="paper", yref="paper",
+        #     x=1.02, xanchor="left",
+        #     y=0, yanchor="bottom",
+        #     showarrow=False,
+        #     font=dict(size=14, color="steelblue"),
+        #     align="left"
+        # )
         ],
         updatemenus=[
             dict(
                 type="buttons",
-                direction="down",
+                direction="right",
                 active=0,
-                x=0.0, 
-                y=1.25,
+                x=0.0, xanchor="left",
+                y=1.15,
+                # aligh="left",
                 buttons=[
-                    dict(label="Linear Scale", method="relayout", 
-                         args=[{"yaxis.type": "linear", "yaxis2.type": "linear"}]),
-                    dict(label="Log Scale", method="relayout", 
-                         args=[{"yaxis.type": "log", "yaxis2.type": "log"}]),
+                    dict(label="Linear Scale", method="update", 
+                         args=[{"y": [ts.values, fdc.values]}, 
+                               {"yaxis.type": "linear", "yaxis2.type": "linear", 
+                                "yaxis.title.text": "Discharge (m³/s)"}]),
+                    dict(label="Log Scale", method="update",
+                         args=[{"y": [ts.values, fdc.values]}, 
+                               {"yaxis.type": "log", "yaxis2.type": "log", 
+                                "yaxis.title.text": "Discharge (log m³/s)"}]),
+                    dict(label="Sqrt Scale", method="update",
+                         args=[{"y": [ts.values**0.5, fdc.values**0.5]},
+                               {"yaxis.type": "linear", "yaxis2.type": "linear", 
+                                "yaxis.title.text": "Discharge (√m³/s)"}])
                 ],
             )
         ]
@@ -178,5 +212,103 @@ def plot_timeseries_interactive(
 
     if save:
         fig.write_html(str(save))
+
+        # Add backward button
+        back_button_html = """
+            <div style="position: absolute;
+                top: 20px;
+                left: 20px;
+                z-index: 9999;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                <a href="../index.html" 
+                style="text-decoration: none; 
+                        color: steelblue; 
+                        font-size: 14px; 
+                        font-weight: bold;
+                        background-color: rgba(255, 255, 255, 0.8);
+                        padding: 5px;
+                        border-radius: 3px;">
+                ← Back to stations
+                </a>
+            </div>
+            """
+
+        with open(save, "r+", encoding="utf-8") as f:
+            content = f.read()
+            new_content = content.replace("<body>", f"<body>{back_button_html}")
+            f.seek(0)
+            f.write(new_content)
+            f.truncate()
     else:
         fig.show()
+
+
+def create_index(
+        path: str, 
+        title: str, 
+        header: str, 
+        index: List[Tuple],
+        target: Literal['_self', '_blank'] = '_self',
+        parent: Optional[str] = None
+    ):
+    """
+    Crea un archivo 'index.html' en la ruta definida que permite el acceso a gráficos de las estaciones
+
+    Parámetros:
+    -----------
+    path: str
+        Ruta donde se guardará el archivo 'index.html'
+    title: str
+        Nombre que aparecerá en la pestaña del navegador
+    header: str
+        Título de la página
+    index: list of tuples
+        Lista de pares de valores: etiqueta que aparece en la página, enlace al archivo
+    target: str
+        Si se quiere que se abra una nueva pestaña ('_blank') o en la misma ('_self')
+    parent: str
+        Nombre de la página superior (en caso de existir)
+    """
+    
+
+    # CSS for a modern, clean look
+    css = """
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            max-width: 800px; 
+            margin: 40px auto; 
+            padding: 0 20px;
+            background-color: #f8f9fa;
+        }
+        h1 { color: #2c3e50; border-bottom: 2px solid steelblue; padding-bottom: 10px; }
+        .back-link { display: inline-block; margin-bottom: 20px; color: steelblue; text-decoration: none; font-weight: bold; }
+        .back-link:hover { text-decoration: underline; }
+        ul { list-style: none; padding: 0; }
+        li { background: white; margin: 5px 0; padding: 10px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: 0.2s; }
+        li:hover { transform: translateX(5px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        a.station-link { text-decoration: none; color: #2980b9; display: block; width: 100%; }
+        a.station-link:hover { color: steelblue; }
+    </style>
+    """
+
+    file = path / "index.html"
+    with open(file, "w") as f:
+        f.write("<!DOCTYPE html>\n<html>\n<head>\n")
+        f.write(f"<meta charset='utf-8'>\n<title>{title}</title>\n{css}\n</head>\n")
+        f.write("<body>\n")
+
+        # link to parent folder
+        if parent:
+            f.write(f"<a href='../index.html' class='back-link'>← {parent}</a>\n")
+
+        # header
+        f.write(f"<h1>{header}</h1>\n")
+
+        # list of links
+        f.write("<ul>\n")
+        for link, label in index:
+            f.write(f"  <li><a class='station-link' href='{link}' target='{target}'>{label}</a></li>\n")
+        f.write("</ul>\n</body>\n</html>")

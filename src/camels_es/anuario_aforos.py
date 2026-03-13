@@ -1,12 +1,10 @@
 import numpy as np
 import pandas as pd
 import geopandas as gpd
-import xarray as xr
 from shapely.geometry import Point
-import matplotlib.pyplot as plt
 from pathlib import Path
 from typing import Dict, List, Union
-from tqdm.notebook import tqdm
+
 
 
 def extraer_caudal_estaciones(
@@ -73,18 +71,25 @@ def extraer_series_embalses(
         start: Union[str, pd.Timestamp] = None, 
         end: Union[str, pd.Timestamp] = None
         ) -> Dict[str, pd.DataFrame]:
-    """Extrae las series diarias de caudal del archivo 'afliq.csv' del Anuario de Aforos. La serie se puede recortar al periodo y estaciones de interés
+    """Extrae las series diarias de caudal del archivo 'afliq.csv' del Anuario de Aforos. La serie 
+    se puede recortar al periodo y estaciones de interés.
 
     Parámetros:
     -----------
-    file:      str. Ruta del archivo original con las series de caudal
-    ref_ceh:   str or list. Listado con el ID de los embalses ROEA (Red Oficial de Estaciones de Aforo) cuyas series  se quieren extraer
-    start:     str or datetime.date. Fecha de inicio del periodo de estudio
-    end:       str or datetime.date. Fecha final del periodo de estudio
+    file: str
+        Ruta del archivo original con las series de caudal
+    ref_ceh: str or list
+        Listado con el ID de los embalses ROEA (Red Oficial de Estaciones de Aforo) 
+        cuyas series  se quieren extraer
+    start: str or datetime.date
+        Fecha de inicio del periodo de estudio
+    end: str or datetime.date
+        Fecha final del periodo de estudio
 
     Salida:
     -------
-    dct:    Dct[str: pandas.DataFrame]. Tabla con las series de cada embalse
+    dct: Dct[str: pandas.DataFrame]
+        Tabla con las series de cada embalse
     """
 
     if isinstance(ref_ceh, str):
@@ -133,18 +138,26 @@ def extraer_caudal_embalses(
         start: Union[str, pd.Timestamp] = None, 
         end: Union[str, pd.Timestamp] = None
         ) -> pd.DataFrame:
-    """Calcula las series diarias de caudal de entrada en el embalse a partir de las series de volumen y caudal de salida del archivo 'afliqe.csv' del Anuario de Aforos. La serie se puede recortar al periodo y embalses de interés
+    """Calcula las series diarias de caudal de entrada en el embalse a partir de las series de volumen y caudal 
+    de salida del archivo 'afliqe.csv' del Anuario de Aforos. La serie se puede recortar al periodo y embalses 
+    de interés.
 
     Parámetros:
     -----------
-    file:      str. Ruta del archivo original con las series de caudal
-    ref_ceh:   str or list. Listado con el ID de las estaciones ROEA (Red Oficial de Estaciones de Aforo) cuya serie de caudal se quiere extraer
-    start:     str or datetime.date. Fecha de inicio del periodo de estudio
-    end:       str or datetime.date. Fecha final del periodo de estudio
+    file: str
+        Ruta del archivo original con las series de caudal
+    ref_ceh: str or list
+        Listado con el ID de las estaciones ROEA (Red Oficial de Estaciones de Aforo) cuya 
+        serie de caudal se quiere extraer
+    start: str or datetime.date
+        Fecha de inicio del periodo de estudio
+    end: str or datetime.date
+        Fecha final del periodo de estudio
 
     Salida:
     -------
-    caudal:    pandas.DataFrame. Tabla con las series de caudal diario
+    caudal: pandas.DataFrame
+        Tabla con las series de caudal diario
     """
 
     if isinstance(ref_ceh, str):
@@ -317,56 +330,56 @@ def extraer_embalses(
     return data
 
 
-def plot_caudal(
-        serie: pd.Series, 
-        inicios: List[pd.Timestamp] = None, 
-        finales: List[pd.Timestamp] = None, 
-        save: str = None, 
-        **kwargs
-        ):
-    """Crea un gráfico de línea con el hidrograma de una estación de aforo.
+# def plot_caudal(
+#         serie: pd.Series, 
+#         inicios: List[pd.Timestamp] = None, 
+#         finales: List[pd.Timestamp] = None, 
+#         save: str = None, 
+#         **kwargs
+#         ):
+#     """Crea un gráfico de línea con el hidrograma de una estación de aforo.
 
-    Parámetros:
-    -----------
-    serie:     pd.Series
-        Serie de caudal
-    inicios:   List (3,)
-        Lista de fechas de inicio del periodo de entrenamiento, validación y evaluación
-    finales:   List (3,)
-        Lista de fechas de fin del periodo de entrenamiento, validación y evaluación
-    save:      str
-        Ruta donde guardar el gráfico. Por defecto es None y el gráfico no se guarda
+#     Parámetros:
+#     -----------
+#     serie:     pd.Series
+#         Serie de caudal
+#     inicios:   List (3,)
+#         Lista de fechas de inicio del periodo de entrenamiento, validación y evaluación
+#     finales:   List (3,)
+#         Lista de fechas de fin del periodo de entrenamiento, validación y evaluación
+#     save:      str
+#         Ruta donde guardar el gráfico. Por defecto es None y el gráfico no se guarda
 
-    kwargs:
-    -------
-    figsize:   tuple (2,)
-        Tamaño del gráfico
-    lw:        tuple (2,)
-        Grosor de línea
-    """
+#     kwargs:
+#     -------
+#     figsize:   tuple (2,)
+#         Tamaño del gráfico
+#     lw:        tuple (2,)
+#         Grosor de línea
+#     """
 
-    lw = kwargs.get('lw', .8)
+#     lw = kwargs.get('lw', .8)
 
-    fig, ax = plt.subplots(figsize=kwargs.get('figsize', (16, 4)))
-    if (inicios is None) or (finales is None):
-        ax.plot(serie, lw=lw)
-        ax.set_xlim(serie.first_valid_index(), serie.last_valid_index())
-    else:
-        assert len(inicios) == len(
-            finales), 'La longitud de las listas "inicios" y "finales" ha de ser la misma.'
-        for ini, fin in zip(inicios, finales):
-            if np.isnan(ini) or np.isnan(fin):
-                continue
-            ax.plot(serie[ini:fin], lw=lw)
-        ax.set_xlim(np.nanmin(inicios), np.nanmax(finales))
+#     fig, ax = plt.subplots(figsize=kwargs.get('figsize', (16, 4)))
+#     if (inicios is None) or (finales is None):
+#         ax.plot(serie, lw=lw)
+#         ax.set_xlim(serie.first_valid_index(), serie.last_valid_index())
+#     else:
+#         assert len(inicios) == len(
+#             finales), 'La longitud de las listas "inicios" y "finales" ha de ser la misma.'
+#         for ini, fin in zip(inicios, finales):
+#             if np.isnan(ini) or np.isnan(fin):
+#                 continue
+#             ax.plot(serie[ini:fin], lw=lw)
+#         ax.set_xlim(np.nanmin(inicios), np.nanmax(finales))
 
-    ax.set(ylim=(0, None),
-           ylabel=kwargs.get('ylabel', 'Q (m3/s)'),
-           title=kwargs.get('title', None))
+#     ax.set(ylim=(0, None),
+#            ylabel=kwargs.get('ylabel', 'Q (m3/s)'),
+#            title=kwargs.get('title', None))
 
-    if save is not None:
-        plt.savefig(save, dpi=300, bbox_inches='tight')
-        plt.close(fig)
+#     if save is not None:
+#         plt.savefig(save, dpi=300, bbox_inches='tight')
+#         plt.close(fig)
 
 
 def periodo_estudio(
@@ -374,7 +387,8 @@ def periodo_estudio(
         disponibilidad: float = .9, 
         min_años: int = 8
         ) -> pd.DataFrame:
-    """Dadas un conjunto de series temporales, define el año de inicio y fin de la serie más larga con una disponibilidad de datos superior a la indicada
+    """Dadas un conjunto de series temporales, define el año de inicio y fin de la serie más larga con una disponibilidad 
+    de datos superior a la indicada.
 
     Parámetros:
     -----------
@@ -383,12 +397,14 @@ def periodo_estudio(
     disponibilidad: float
         Proporción de datos disponibles en un año para ser considerado éste como bueno
     min_años: int
-        Longitud mínima en años de la serie necesaria para considerar la serie como buena. Si no se alcanza este número de años, se descarta la serie 
+        Longitud mínima en años de la serie necesaria para considerar la serie como buena. Si no se alcanza este número 
+        de años, se descarta la serie 
 
     Devuelve:
     ---------
     pd.DataFrame
-        Tabla donde el índice son las columnas de "series" y las columnas las fechas de inicio y final de la serie consecutiva más larga de dicha estación
+        Tabla donde el índice son las columnas de "series" y las columnas las fechas de inicio y final de la serie 
+        consecutiva más larga de dicha estación
     """
 
     assert 0 < disponibilidad <= 1, 'La "disponibilidad" debe de tener un valor mayor a 0 y menor o igual a 1.'
@@ -429,3 +445,5 @@ def periodo_estudio(
             continue
 
     return pd.DataFrame(periodos)
+
+
