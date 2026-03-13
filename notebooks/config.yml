@@ -2,7 +2,7 @@
 rutas:
     anuario_aforos:
         orig: /mnt/c/Datasets/CAMELS-ES/raw/2020-2021
-        repo: ../../data/anuario_aforos
+        repo: /mnt/c/Datasets/CAMELS-ES/
     EFAS: 
         orig: /mnt/c/Datasets/EFASv/maps/Iberia
         repo: ../../data/EFAS5
@@ -22,7 +22,7 @@ CAMELS-ES:
         final: 2021-09-30
     # límites de área de cuenca
     area:
-        min: 50
+        min: 
         max:
     # disponibilidad mínima de datos de caudal
     caudal:
