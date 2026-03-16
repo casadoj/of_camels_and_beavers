@@ -305,7 +305,7 @@
             let email = localStorage.getItem('userEmail');
             
             if (!email) {
-                email = prompt("Welcome to the CAMELS-ES Explorer\nPlease enter your email to begin contriguting:");
+                email = prompt("Welcome to the CAMELS-ES Explorer!\nPlease enter your email to begin contributing:");
                 if (email && email.includes('@')) {
                     localStorage.setItem('userEmail', email.trim());
                 } else {
