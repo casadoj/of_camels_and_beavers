@@ -272,17 +272,39 @@
                         let name = toTitleCase(props.lugar || props.LUGAR || "Name");
                         let id = props.indroea || props.INDROEA || "ID";
                         let river = toTitleCase(props.rio || props.RIO || "River");
+                        let system = toTitleCase(props.sistema || props.SISTEMA || "System");
                         let basin = toTitleCase(props.cuenca || props.CUENCA || "Basin");
                         let link = props.url_link || props.URL_LINK || "#";
                         layer.bindPopup(`
                             <strong>${id} - ${name}</strong><br>
                             River: ${river}<br>
                             Basin: ${basin}<br>
-                            <a href="${link}">View Hydrograph</a>
+                            <a href="./${basin}/${system}/plots/${id}.html">View Hydrograph</a>
                         `);
                     }
                 }).addTo(map);
             });
     </script>
+
+    <script>
+        // Place it here, at the end of your script section
+        function checkUserEmail() {
+            let email = localStorage.getItem('userEmail');
+            
+            if (!email) {
+                email = prompt("Welcome to the CAMELS-ES Explorer\nPlease enter your email to begin (used for tracking contributions):");
+                if (email && email.includes('@')) {
+                    localStorage.setItem('userEmail', email.trim());
+                } else {
+                    alert("A valid email is required to save your work.");
+                    checkUserEmail(); 
+                }
+            }
+        }
+
+        // Initialize the check
+        checkUserEmail();
+    </script>
+    
 </body>
 </html>
