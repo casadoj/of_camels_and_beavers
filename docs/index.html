@@ -17,8 +17,33 @@
         // Initialize map centered on Spain
         var map = L.map('map').setView([40.4167, -3.7037], 6);
 
-        // Add a clean base map
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        // // Add a clean base map
+        // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // 1. Define the base layers
+        var standard = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        });
+
+        var relief = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: USGS, Esri, TANA, DeLorme, and NPS',
+            maxZoom: 13
+        });
+
+        // 2. Initialize map with the relief layer as default
+        var map = L.map('map', {
+            center: [40.4167, -3.7037],
+            zoom: 6,
+            layers: [relief] // Set relief as the starting layer
+        });
+
+        // 3. Add a layer toggle (Top Right corner)
+        var baseMaps = {
+            "Relief (DEM)": relief,
+            "Standard Map": standard
+        };
+
+        L.control.layers(baseMaps).addTo(map);
 
         // Load your GeoJSON file
         fetch('./estaciones.geojson')
@@ -27,22 +52,28 @@
 				return res.json();
 			})
             .then(data => {
+                console.log("Data loaded successfully:", data);
                 L.geoJSON(data, {
-                    onEachFeature: function (feature, layer) {
-                        // Create a popup with a link
-                        let name = feature.properties.lugar || "Station " + feature.properties.indroea;
-                        let popupContent = `
-                            <strong>${name}</strong><br>
-                            <a href="${feature.properties.url_link}">View Hydrograph</a>
-                        `;
-                        layer.bindPopup(popupContent);
-                        
-                        // Optional: Open link on double click
-                        layer.on('dblclick', function() {
-                            window.location.href = feature.properties.url_link;
-                        });
-                    }
-                }).addTo(map);
+                pointToLayer: function (feature, latlng) {
+                    // This ensures points are visible even if CSS/Icons are missing
+                    return L.circleMarker(latlng, {
+                        radius: 7,
+                        color: 'white',
+                        weight: 2,
+                        fillColor: 'steelblue',
+                        fillOpacity: 1
+                    });
+                },
+                onEachFeature: function (feature, layer) {
+                    // Handle potential case-sensitivity in property names
+                    let props = feature.properties;
+                    let name = props.lugar || props.LUGAR || "Station";
+                    let id = props.indroea || props.INDROEA || "Unknown";
+                    let link = props.url_link || props.URL_LINK || "#";
+
+                    layer.bindPopup(`<strong>${name}</strong> (${id})<br><a href="${link}">View Hydrograph</a>`);
+                }
+            }).addTo(map);
             });
     </script>
 </body>

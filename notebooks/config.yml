@@ -22,7 +22,7 @@ CAMELS-ES:
         final: 2021-09-30
     # límites de área de cuenca
     area:
-        min: 
+        min: 20
         max:
     # disponibilidad mínima de datos de caudal
     caudal:

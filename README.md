@@ -1,5 +1,7 @@
 # Simulación del caudal en España utilizando redes Long Short-Term Memory
 
+![Python_3.12](https://img.shields.io/badge/Python-%3E%3D3.12-blue?labelColor=343b41) &nbsp; [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) &nbsp; [![Docs](https://img.shields.io/badge/docs-online-blue.svg)](https://casadoj.github.io/CAMELS-ES/index.html)
+
 ## Introducción
 
 Trabajo final del Máster en Ciencia de Datos de la Universidad de Alcalá de Henares en el curso 2022-2023.
