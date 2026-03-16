@@ -5,27 +5,23 @@
         body { 
             margin: 0; 
             padding: 0;
+            height: 100 vh;
             display: flex; 
             flex-direction: column; 
             font-family: sans-serif;
-            height: 100 vh;
+            
         }
 
-        .plot-container { 
-            order: 1; 
+        .hydrograph { 
+            flex: 1;
             height: 40vh;
-            /* width: 100%; */
-            /* margin-top: 50px; */
-        }
-        .plot-container > div {
-            height: 100% !important;
+            width: 100%;
+            overflow: hidden;
         }
 
         .google-form {
             order: 2;
-            height: 55vh;
-            display: flex;
-            justify-content: center;
+            height: 60vh;
         }
 
         iframe {
@@ -43,7 +39,7 @@
         </a>
     </div>
 
-    <div class="plot-container"></div>
+    <div class="hydrograph"></div>
 
     <!-- <div class="google-form">
         <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdMDms_IAwkhPwOVqLvU0oVghG9Xti1LMhTsPoujm2w2uXF9A/viewform?embedded=true&entry.1301492004=1292" 
