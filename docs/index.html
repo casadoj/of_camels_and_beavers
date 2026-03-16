@@ -147,7 +147,7 @@
                     },
                     interactive: true,
                     onEachFeature: function(feature, layer) {
-                        let name = toTitleCase(feature.properties.NOM_DEMAR || "Unknown Basin");
+                        let name = feature.properties.NOM_DEMAR || "Unknown Basin";
                         
                         // 1. Click polygon to zoom
                         const zoomOptions = {
@@ -199,6 +199,19 @@
         // Helper function for Title Case
         function toTitleCase(str) {
             return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
+        }
+
+        // Helper function to remove strange characters
+        function slugify(str) {
+            return str
+                .toString()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .trim()
+                .replace(/\s+/g, '-')
+                .replace(/[^\w-]+/g, '')
+                .replace(/--+/g, '-');
         }
 
         // Load Reservoirs GeoJSON file
@@ -269,17 +282,17 @@
                     },
                     onEachFeature: function (feature, layer) {
                         let props = feature.properties;
-                        let name = toTitleCase(props.lugar || props.LUGAR || "Name");
+                        let name = props.lugar || props.LUGAR || "Name";
                         let id = props.indroea || props.INDROEA || "ID";
-                        let river = toTitleCase(props.rio || props.RIO || "River");
-                        let system = toTitleCase(props.sistema || props.SISTEMA || "System");
-                        let basin = toTitleCase(props.cuenca || props.CUENCA || "Basin");
+                        let river = props.rio || props.RIO || "River";
+                        let system = props.sistema || props.SISTEMA || "System";
+                        let basin = props.cuenca || props.CUENCA || "Basin";
                         let link = props.url_link || props.URL_LINK || "#";
                         layer.bindPopup(`
                             <strong>${id} - ${name}</strong><br>
                             River: ${river}<br>
                             Basin: ${basin}<br>
-                            <a href="./${basin}/${system}/plots/${id}.html">View Hydrograph</a>
+                            <a href="./${slugify(basin)}/${slugify(system)}/plots/${id}.html">View Hydrograph</a>
                         `);
                     }
                 }).addTo(map);
@@ -292,7 +305,7 @@
             let email = localStorage.getItem('userEmail');
             
             if (!email) {
-                email = prompt("Welcome to the CAMELS-ES Explorer\nPlease enter your email to begin (used for tracking contributions):");
+                email = prompt("Welcome to the CAMELS-ES Explorer\nPlease enter your email to begin contriguting:");
                 if (email && email.includes('@')) {
                     localStorage.setItem('userEmail', email.trim());
                 } else {
