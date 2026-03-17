@@ -231,192 +231,94 @@ def plot_stations(
 #     else:
 #         fig.show()
 
-
 def create_station_html(
-    ts: pd.Series,
-    area: float,
-    regime: Optional[str] = None,
-    save: Optional[str] = None,
-    **kwargs
-    ):
-    """Creates an interactive figure with two plots: the hydrograph and the flow duration curve.
-    Interactive buttons allow to transform the discharge data to logarithmic or square root scales
-    to identify issues in the low flows.
+    fig, 
+    path: str,
+    start: str,
+    end: str
+):
+    """Wraps a Plotly figure into the full validation HTML template.
     
     Parameters:
     -----------
-    ts: pandas.Series
-        Discharge time series
-    area: float
-        Catchment area (km²)
-    regime: string (optional)
-        Flow regime (if provided by the Ministry)
-    save: string
-        HTML file where the figure will be saved
-    
-    Keyword arguments:
-    ------------------
-    c: string
-        Line colour
-    title: string
-        Figure title
+    fig:
+        Result of `plot_discharge_timeseries()`
+    path: string
+        Name of the HTML file where the figure wil be saved
+    start: string
+        Start date of the time series. Format YYYY-mm-dd
+    end: string
+        End date of the time series. Format YYYY-mm-dd
     """
 
-    # Extract keywords
-    c = kwargs.get('c', 'steelblue')
-    title = kwargs.get('title', None)
-
-    # 1. Compute hydrological signatures
-    ar = annual_runoff(ts, area)
-    _, bfi = baseflow_index(ts)
-    fi = flashiness_index(ts)
-    fdc, slope = slope_fdc(ts)
-    signature_text = (
-        f"<b>Catchment Properties</b><br>"
-        f"Area: {area:.0f} km²<br>"
-        f"Regime: {regime}<br><br>"
-        f"<b>Hydrological Signatures</b><br>"
-        f"Baseflow Index: {bfi:.2f}<br>"
-        f"Flashiness Index: {fi:.2f}<br>"
-        f"Slope Flow Duration Curve: {slope:.2f}<br>"
-        f"Annual Runoff: {ar:.0f} mm"
+    # Convert figure to HTML div string
+    plotly_html = fig.to_html(
+        full_html=False, 
+        include_plotlyjs='cdn',
+        config={'responsive': True}
     )
 
-    # 2. Create Subplots 
-    fig = make_subplots(rows=1, cols=2, shared_yaxes=True, column_widths=[0.8, 0.2], horizontal_spacing=0.03,
-                        subplot_titles=("Hydrograph", "Flow Duration Curve"))
+    full_page_html = f"""
+        <html>
+        <head>
+            <meta charset="utf-8" />
+            <style>
+                body {{ 
+                    margin: 0; padding: 0; height: 100vh; display: flex; 
+                    flex-direction: column; font-family: sans-serif;
+                }}
+                .hydrograph {{ flex: 1; height: 50vh; width: 100%; overflow: hidden; }}
+                .google-form {{ order: 2; height: 50vh; display: flex; }}
+                iframe {{ width: 100%; height: 100%; border: none; }}
+                .back-nav {{ position: fixed; top: 12px; left: 8px; z-index: 9999; }}
+                .back-btn {{
+                    text-decoration: none; color: steelblue; font-size: 14px; font-weight: bold; 
+                    background-color: rgba(255, 255, 255, 0.9); padding: 8px 12px; 
+                    border-radius: 5px; border: 1px solid #ccc;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="back-nav">
+                <a href="../../../index.html" class="back-btn">← Back to map</a>
+            </div>
+            <div class="hydrograph">{plotly_html}</div>
+            <div class="google-form" id="form-container"></div>
 
-    # 3. Add traces
-    fig.add_trace(go.Scatter(x=ts.index, y=ts.values, line=dict(color=c, width=1), name="Discharge"), row=1, col=1)
-    fig.add_trace(go.Scatter(x=fdc.index * 100, y=fdc.values, line=dict(color=c, width=2), name="Flow Duration"), row=1, col=2)    
+            <script>
+                (function() {{
+                    const baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdMDms_IAwkhPwOVqLvU0oVghG9Xti1LMhTsPoujm2w2uXF9A/viewform?embedded=true";
+                    const emailEntryId = "2010975770";
+                    const stationEntryId = "1301492004";
+                    const startEntryId = "598747998";
+                    const endEntryId = "2001326573";
 
-    # 4. Update Layout
-    fig.update_layout(
-        title_text=f"<b>{title if title else ''}</b>",
-        title_x=0.5,
-        margin=dict(l=50, r=250, t=100, b=50),
-        template="plotly_white",
-        autosize=True,
-        height=None,
-        showlegend=False,
-        annotations=[dict(
-            text=signature_text,
-            xref="paper", yref="paper",
-            x=1.02, xanchor="left",
-            y=1, yanchor="top",
-            showarrow=False,
-            align="left",
-            font=dict(size=12),
-            bgcolor="rgba(255, 255, 255, 0.9)",
-        )],
-        updatemenus=[
-            dict(
-                type="buttons",
-                direction="right",
-                active=0,
-                x=0.0, xanchor="left",
-                y=1.15,
-                # aligh="left",
-                buttons=[
-                    dict(label="Linear Scale", method="update", 
-                         args=[{"y": [ts.values, fdc.values]}, 
-                               {"yaxis.type": "linear", "yaxis2.type": "linear", 
-                                "yaxis.title.text": "Discharge (m³/s)"}]),
-                    dict(label="Log Scale", method="update",
-                         args=[{"y": [ts.values, fdc.values]}, 
-                               {"yaxis.type": "log", "yaxis2.type": "log", 
-                                "yaxis.title.text": "Discharge (log m³/s)"}]),
-                    dict(label="Sqrt Scale", method="update",
-                         args=[{"y": [ts.values**0.5, fdc.values**0.5]},
-                               {"yaxis.type": "linear", "yaxis2.type": "linear", 
-                                "yaxis.title.text": "Discharge (√m³/s)"}])
-                ],
-            )
-        ]
-    )
+                    const userEmail = localStorage.getItem('userEmail') || "";
+                    const filename = window.location.pathname.split('/').pop();
+                    const stationId = filename.replace('.html', '');
+                    const start = "{start}";
+                    const end = "{end}";
 
-    # Update Axes Titles
-    fig.update_yaxes(title_text="Discharge (m³/s)", row=1, col=1)
-    fig.update_xaxes(title_text="Date", row=1, col=1)
-    fig.update_xaxes(title_text="Exceedance Prob. (%)", row=1, col=2)
+                    const finalUrl = baseUrl + 
+                        "&entry." + stationEntryId + "=" + stationId + 
+                        "&entry." + emailEntryId + "=" + encodeURIComponent(userEmail) + 
+                        "&entry." + startEntryId + "=" + start + 
+                        "&entry." + endEntryId + "=" + end;
 
-    if save:
-        plotly_html = fig.to_html(
-            full_html=False, 
-            include_plotlyjs='cdn',
-            # output_type='div',
-            config={'responsive': True}
-            )
+                    document.getElementById('form-container').innerHTML = 
+                        '<iframe src="' + finalUrl + '" frameborder="0">Loading form…</iframe>';
+                }})();
 
-        full_page_html = f"""
-            <html>
-                <head>
-                    <meta charset="utf-8" />
-                    <style>
-                        body {{ 
-                            margin: 0; padding: 0; height: 100vh; display: flex; 
-                            flex-direction: column; font-family: sans-serif;
-                        }}
-                        .hydrograph {{ 
-                            flex: 1; height: 50vh; width: 100%; overflow: hidden; 
-                        }}
-                        .google-form {{ 
-                            order: 2; height: 50vh; display: flex;
-                        }}
-                        iframe {{ width: 100%; height: 100%; border: none; }}
-                        .back-nav {{
-                            position: fixed; top: 12px; left: 8px; z-index: 9999;
-                        }}
-                        .back-btn {{
-                            text-decoration: none; color: steelblue; font-size: 14px; font-weight: bold; 
-                            background-color: rgba(255, 255, 255, 0.9); padding: 8px 12px; 
-                            border-radius: 5px; border: 1px solid #ccc;
-                        }}
-                    </style>
-                </head>
-                <body>
-                    <div class="back-nav">
-                        <a href="../../../index.html" class="back-btn">← Back to map</a>
-                    </div>
-
-                    <div class="hydrograph">
-                        {plotly_html}
-                    </div>
-
-                    <div class="google-form" id="form-container"></div>
-
-                    <script>
-                        (function() {{
-                            const baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdMDms_IAwkhPwOVqLvU0oVghG9Xti1LMhTsPoujm2w2uXF9A/viewform?embedded=true";
-                            const emailEntryId = "2010975770";
-                            const stationEntryId = "1301492004";
-
-                            const userEmail = localStorage.getItem('userEmail') || "";
-                            const filename = window.location.pathname.split('/').pop();
-                            const stationId = filename.replace('.html', '');
-
-                            const finalUrl = baseUrl + "&entry." + stationEntryId + "=" + stationId + "&entry." + emailEntryId + "=" + encodeURIComponent(userEmail);
-
-                            const container = document.getElementById('form-container');
-                            container.innerHTML = '<iframe src="' + finalUrl + '" frameborder="0" marginheight="0" marginwidth="0">Loading form…</iframe>';
-                        }})();
-                    </script>
-
-                    <script>
-                        // Force a resize event after the page has loaded
-                        window.addEventListener('load', function() {{
-                            setTimeout(function() {{
-                                window.dispatchEvent(new Event('resize'));
-                            }}, 100); 
-                        }});
-                    </script>
-                </body>
-                </html>
+                window.addEventListener('load', function() {{
+                    setTimeout(function() {{ window.dispatchEvent(new Event('resize')); }}, 100); 
+                }});
+            </script>
+        </body>
+        </html>
         """
-        with open(save, "w", encoding="utf-8") as f:
-            f.write(full_page_html)
-    else:
-        fig.show()
+    
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(full_page_html)
 
 
 def create_index(
