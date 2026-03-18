@@ -92,144 +92,117 @@ def plot_stations(
         plt.savefig(save, dpi=300, bbox_inches='tight')
 
 
-# def plot_discharge_timeseries(
-#     ts: pd.Series,
-#     area: float,
-#     regime: Optional[str] = None,
-#     save: Optional[str] = None,
-#     **kwargs
-#     ):
-#     """Creates an interactive figure with two plots: the hydrograph and the flow duration curve.
-#     Interactive buttons allow to transform the discharge data to logarithmic or square root scales
-#     to identify issues in the low flows.
+def plot_discharge(
+    ts: pd.Series,
+    area: float,
+    regime: Optional[str] = None,
+    save: bool = False,
+    **kwargs
+    ):
+    """Creates an interactive figure with two plots: the hydrograph and the flow duration curve.
+    Interactive buttons allow to transform the discharge data to logarithmic or square root scales
+    to identify issues in the low flows.
     
-#     Parameters:
-#     -----------
-#     ts: pandas.Series
-#         Discharge time series
-#     area: float
-#         Catchment area (km²)
-#     regime: string (optional)
-#         Flow regime (if provided by the Ministry)
-#     save: string
-#         HTML file where the figure will be saved
+    Parameters:
+    -----------
+    ts: pandas.Series
+        Discharge time series
+    area: float
+        Catchment area (km²)
+    regime: string (optional)
+        Flow regime (if provided by the Ministry)
+    save: boolean
+        If True, return an object with the Plotly figure. If false, show the figure
     
-#     Keyword arguments:
-#     ------------------
-#     c: string
-#         Line colour
-#     title: string
-#         Figure title
-#     """
+    Keyword arguments:
+    ------------------
+    c: string
+        Line colour
+    title: string
+        Figure title
+    """
 
-#     # Extract keywords
-#     c = kwargs.get('c', 'steelblue')
-#     title = kwargs.get('title', None)
+    # Extract keywords
+    c = kwargs.get('c', 'steelblue')
+    title = kwargs.get('title', None)
 
-#     # 1. Compute hydrological signatures
-#     ar = annual_runoff(ts, area)
-#     _, bfi = baseflow_index(ts)
-#     fi = flashiness_index(ts)
-#     fdc, slope = slope_fdc(ts)
-#     signature_text = (
-#         f"<b>Catchment Properties</b><br>"
-#         f"Area: {area:.0f} km²<br>"
-#         f"Regime: {regime}<br><br>"
-#         f"<b>Hydrological Signatures</b><br>"
-#         f"Baseflow Index: {bfi:.2f}<br>"
-#         f"Flashiness Index: {fi:.2f}<br>"
-#         f"Slope Flow Duration Curve: {slope:.2f}<br>"
-#         f"Annual Runoff: {ar:.0f} mm"
-#     )
+    # 1. Compute hydrological signatures
+    ar = annual_runoff(ts, area)
+    _, bfi = baseflow_index(ts)
+    fi = flashiness_index(ts)
+    fdc, slope = slope_fdc(ts)
+    signature_text = (
+        f"<b>Catchment Properties</b><br>"
+        f"Area: {area:.0f} km²<br>"
+        f"Regime: {regime}<br><br>"
+        f"<b>Hydrological Signatures</b><br>"
+        f"Baseflow Index: {bfi:.2f}<br>"
+        f"Flashiness Index: {fi:.2f}<br>"
+        f"Slope Flow Duration Curve: {slope:.2f}<br>"
+        f"Annual Runoff: {ar:.0f} mm"
+    )
 
-#     # 2. Create Subplots 
-#     fig = make_subplots(rows=1, cols=2, shared_yaxes=True, column_widths=[0.7, 0.25], horizontal_spacing=0.03,
-#                         subplot_titles=("Hydrograph", "Flow Duration Curve"))
+    # 2. Create Subplots 
+    fig = make_subplots(rows=1, cols=2, shared_yaxes=True, column_widths=[0.7, 0.25], horizontal_spacing=0.03,
+                        subplot_titles=("Hydrograph", "Flow Duration Curve"))
 
-#     # 3. Add traces
-#     fig.add_trace(go.Scatter(x=ts.index, y=ts.values, line=dict(color=c, width=1), showlegend=False), row=1, col=1)
-#     fig.add_trace(go.Scatter(x=fdc.index * 100, y=fdc.values, line=dict(color=c, width=2), showlegend=False), row=1, col=2)    
+    # 3. Add traces
+    fig.add_trace(go.Scatter(x=ts.index, y=ts.values, line=dict(color=c, width=1), showlegend=False), row=1, col=1)
+    fig.add_trace(go.Scatter(x=fdc.index * 100, y=fdc.values, line=dict(color=c, width=2), showlegend=False), row=1, col=2)    
 
-#     # 4. Update Layout
-#     fig.update_layout(
-#         title_text=f"<b>{title if title else ''}</b>",
-#         title_x=0.5,
-#         margin=dict(l=50, r=250, t=100, b=50),
-#         template="plotly_white",
-#         height=550,
-#         showlegend=False,
-#         annotations=[dict(
-#             text=signature_text,
-#             xref="paper", yref="paper",
-#             x=1.02, xanchor="left",
-#             y=1, yanchor="top",
-#             showarrow=False,
-#             align="left",
-#             font=dict(size=12),
-#             bgcolor="rgba(255, 255, 255, 0.9)",
-#         )],
-#         updatemenus=[
-#             dict(
-#                 type="buttons",
-#                 direction="right",
-#                 active=0,
-#                 x=0.0, xanchor="left",
-#                 y=1.15,
-#                 # aligh="left",
-#                 buttons=[
-#                     dict(label="Linear Scale", method="update", 
-#                          args=[{"y": [ts.values, fdc.values]}, 
-#                                {"yaxis.type": "linear", "yaxis2.type": "linear", 
-#                                 "yaxis.title.text": "Discharge (m³/s)"}]),
-#                     dict(label="Log Scale", method="update",
-#                          args=[{"y": [ts.values, fdc.values]}, 
-#                                {"yaxis.type": "log", "yaxis2.type": "log", 
-#                                 "yaxis.title.text": "Discharge (log m³/s)"}]),
-#                     dict(label="Sqrt Scale", method="update",
-#                          args=[{"y": [ts.values**0.5, fdc.values**0.5]},
-#                                {"yaxis.type": "linear", "yaxis2.type": "linear", 
-#                                 "yaxis.title.text": "Discharge (√m³/s)"}])
-#                 ],
-#             )
-#         ]
-#     )
+    # 4. Update Layout
+    fig.update_layout(
+        title_text=f"<b>{title if title else ''}</b>",
+        title_x=0.5,
+        margin=dict(l=50, r=250, t=100, b=50),
+        template="plotly_white",
+        height=550,
+        showlegend=False,
+        annotations=[dict(
+            text=signature_text,
+            xref="paper", yref="paper",
+            x=1.02, xanchor="left",
+            y=1, yanchor="top",
+            showarrow=False,
+            align="left",
+            font=dict(size=12),
+            bgcolor="rgba(255, 255, 255, 0.9)",
+        )],
+        updatemenus=[
+            dict(
+                type="buttons",
+                direction="right",
+                active=0,
+                x=0.0, xanchor="left",
+                y=1.15,
+                # aligh="left",
+                buttons=[
+                    dict(label="Linear Scale", method="update", 
+                         args=[{"y": [ts.values, fdc.values]}, 
+                               {"yaxis.type": "linear", "yaxis2.type": "linear", 
+                                "yaxis.title.text": "Discharge (m³/s)"}]),
+                    dict(label="Log Scale", method="update",
+                         args=[{"y": [ts.values, fdc.values]}, 
+                               {"yaxis.type": "log", "yaxis2.type": "log", 
+                                "yaxis.title.text": "Discharge (log m³/s)"}]),
+                    dict(label="Sqrt Scale", method="update",
+                         args=[{"y": [ts.values**0.5, fdc.values**0.5]},
+                               {"yaxis.type": "linear", "yaxis2.type": "linear", 
+                                "yaxis.title.text": "Discharge (√m³/s)"}])
+                ],
+            )
+        ]
+    )
 
-#     # Update Axes Titles
-#     fig.update_yaxes(title_text="Discharge (m³/s)", row=1, col=1)
-#     fig.update_xaxes(title_text="Date", row=1, col=1)
-#     fig.update_xaxes(title_text="Exceedance Prob. (%)", row=1, col=2)
+    # Update Axes Titles
+    fig.update_yaxes(title_text="Discharge (m³/s)", row=1, col=1)
+    fig.update_xaxes(title_text="Date", row=1, col=1)
+    fig.update_xaxes(title_text="Exceedance Prob. (%)", row=1, col=2)
 
-#     if save:
-#         fig.write_html(str(save))
-
-#         # Add backward button
-#         back_button_html = """
-#             <div style="position: absolute;
-#                 top: 20px;
-#                 left: 20px;
-#                 z-index: 9999;
-#                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-#                 <a href="../index.html" 
-#                 style="text-decoration: none; 
-#                         color: steelblue; 
-#                         font-size: 14px; 
-#                         font-weight: bold;
-#                         background-color: rgba(255, 255, 255, 0.8);
-#                         padding: 5px;
-#                         border-radius: 3px;">
-#                 ← Back to stations
-#                 </a>
-#             </div>
-#             """
-
-#         with open(save, "r+", encoding="utf-8") as f:
-#             content = f.read()
-#             new_content = content.replace("<body>", f"<body>{back_button_html}")
-#             f.seek(0)
-#             f.write(new_content)
-#             f.truncate()
-#     else:
-#         fig.show()
+    if save:
+        return fig
+    else:
+        fig.show()
 
 def create_station_html(
     fig, 
@@ -242,7 +215,7 @@ def create_station_html(
     Parameters:
     -----------
     fig:
-        Result of `plot_discharge_timeseries()`
+        Result of `plot_discharge()`
     path: string
         Name of the HTML file where the figure wil be saved
     start: string
