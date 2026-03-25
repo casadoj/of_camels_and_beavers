@@ -8,28 +8,42 @@ class Config:
         with open(config_file, "r", encoding='utf8') as ymlfile:
             self.cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
         
-        # Rutas de entrada y salida de datos
-        self.path_in = Path(self.cfg['rutas']['anuario_aforos']['orig'])
-        self.path_out = Path(self.cfg['rutas']['anuario_aforos'].get('repo', '../../data/anuario_aforos'))
-        self.path_GIS = self.path_out / 'GIS'
-        self.path_plots = self.path_out / 'plots'
+        # DATASET CONFIGURATION
+
+        cfg_dataset = self.cfg['dataset']
+        
+        # name and version
+        self.name = cfg_dataset['name']
+        self.version = cfg_dataset['version']
+
+        # Start and end of the study period
+        self.start = pd.to_datetime(cfg_dataset['period'].get('start', None))
+        self.end = pd.to_datetime(cfg_dataset['period'].get('end', None))
+
+        # Minimum and maximun catchment size
+        self.area_min = cfg_dataset['area'].get('min', 100)  # km²
+        self.area_max = cfg_dataset['area'].get('max', None)  # km²
+
+        # Data availability in the study period
+        self.availability = cfg_dataset['discharge'].get('availability', .8)
+        self.min_years = cfg_dataset['discharge'].get('years', 10)
+
+        # Coordinate system
+        self.crs = cfg_dataset.get('crs', 4326)
+
+        # PATH CONFIGURATION
+
+        paths = self.cfg['paths']
+
+        # Input and output paths
+        self.path_records = Path(paths['records'])
+        self.path_dataset = Path(paths['dataset']) / self.name / f'v{'_'.join(self.version.split('.'))}'
+        self.path_gis = self.path_dataset / 'GIS'
+        self.path_plots = self.path_dataset / 'plots'
+        self.path_efas = paths.get('EFAS', None)
+        self.path_merit = paths.get('MERIT', None)
+        self.path_emo = paths.get('EMO', None)
 
         # Ensure directories exist
-        for path in [self.path_out, self.path_GIS, self.path_plots]:
+        for path in [self.path_gis, self.path_plots]:
             path.mkdir(parents=True, exist_ok=True)
-
-        # Inicio y fin del periodo de estudio
-        cfg_camels = self.cfg['CAMELS-ES']
-        self.start = pd.to_datetime(cfg_camels['periodo'].get('inicio', None))
-        self.end = pd.to_datetime(cfg_camels['periodo'].get('final', None))
-
-        # Tamaño mínimo y máximo de la cuenca
-        self.area_min = cfg_camels['area'].get('min', 100)  # km²
-        self.area_max = cfg_camels['area'].get('max', None)  # km²
-
-        # Disponibilidad mínima de datos durante el periodo de estudio
-        self.disponibilidad = cfg_camels['caudal'].get('disponibilidad', .8)
-        self.min_años = cfg_camels['caudal'].get('n_años', 10)
-
-        # Sistema de coordenadas
-        self.crs = self.cfg.get('crs', 4326)
