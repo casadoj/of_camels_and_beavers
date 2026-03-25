@@ -1,0 +1,34 @@
+# working paths
+paths:
+    records: /mnt/c/Datasets/CAMELS-ES/raw/2020-2021
+    dataset: /home/casadoj/Data
+    EFAS: /mnt/c/Datasets/EFASv/maps/Iberia
+    MERIT: /home/casadoj/Data/MERIT/ES
+    EMO: /mnt/c/Datasets/EMO1
+        
+# dataset configuration
+dataset:
+    name: BEAVER-ES
+    version: 1.0.0
+    # study period
+    period:
+        start: 1991-10-01
+        end: 2021-09-30
+    # catchment size
+    area:
+        min: 20
+        max:
+    # minimum data availability
+    discharge:
+        availability: 0.9
+        years: 4
+    # coordinate reference system
+    crs: 4326 #'epsg:4326'
+
+# LSTM model configuration
+modelo:
+    train_size: .6
+    val_size: .2
+    seed: 123
+
+
