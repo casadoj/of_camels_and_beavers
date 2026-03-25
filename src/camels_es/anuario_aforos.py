@@ -230,27 +230,36 @@ def extraer_estaciones(
         max_area: int = None, 
         years: int = None, 
         epsg: int = 4326
-        ) -> gpd.GeoDataFrame:
-    """Extrae la tabla de atributos de las estaciones del ROEA del archivo 'estaf.csv' del Anuario de Aforos. Se pueden filtrar las estaciones por área, por número de años con datos y si están aún activas
+    ) -> gpd.GeoDataFrame:
+    """Extrae la tabla de atributos de las estaciones del ROEA del archivo 'estaf.csv' del Anuario de Aforos. 
+    Se pueden filtrar las estaciones por área, por número de años con datos y si están aún activas.
 
     Parámetros:
     -----------
-    file:      str. Ruta del archivo original con las estaciones
-    active:    boolean. Si True, se queda sólo con estaciones activas
-    min_area:  int or float. Área mínima de la cuenca (km²) para incluir la estación en la extracción
-    max_area:  int or float. Área máxima de la cuenca (km²) para incluir la estación en la extracción
-    years:     int. Número mínimo de años con dato
-    epsg:      int. Código EPSG del sistema de coordenadas en el que se quieren projectar los puntos: 4326 (WGS84) ó 25830 (ETRS89-UTM 30N)
+    file:      str
+        Ruta del archivo original con las estaciones
+    active:    boolean
+        Si True, se queda sólo con estaciones activas
+    min_area:  int or float
+        Área mínima de la cuenca (km²) para incluir la estación en la extracción
+    max_area:  int or float
+        Área máxima de la cuenca (km²) para incluir la estación en la extracción
+    years:     int
+        Número mínimo de años con dato
+    epsg:      int
+        Código EPSG del sistema de coordenadas en el que se quieren projectar los puntos. Las coordinadas
+        originales están en 25830 (ETRS89-UTM 30N), pero por defecto se genera la capa en 4326 (WGS84) 
 
     Salida:
     -------
-    estaciones:    geopandas.GeoDataFrame. Capa de puntos con las estaciones
+    estaciones:    geopandas.GeoDataFrame
+        Capa de puntos con las estaciones
     """
 
     # cargar datos
     estaciones = pd.read_csv(
         file, sep=';', index_col='indroea', encoding='latin1')
-    estaciones.index = estaciones.index.astype(str)
+    estaciones.index = estaciones.index.astype(int)#str)
     estaciones.index.name = 'indroea'
     estaciones.lugar = estaciones.lugar.str.strip()
     estaciones.dropna(axis=1, how='all', inplace=True)
@@ -277,15 +286,15 @@ def extraer_estaciones(
             print('"years" debe ser un número entero positivo')
 
     # convertir en GeoDataFrame
-    assert epsg in [
-        4326, 25830], '"epsg" debe ser 4326 (WGS84) ó 25830 (ETRS89-UTM 30N)'
-    geometry = [Point(x, y)
-                for x, y in zip(estaciones.xetrs89, estaciones.yetrs89)]
-    if epsg == 4326:
-        estaciones = gpd.GeoDataFrame(
-            estaciones, geometry=geometry, crs=25830).to_crs(4326)
-    elif epsg == 25830:
-        estaciones = gpd.GeoDataFrame(estaciones, geometry=geometry, crs=epsg)
+    # assert epsg in [4326, 25830], '"epsg" debe ser 4326 (WGS84) ó 25830 (ETRS89-UTM 30N)'
+    
+    estaciones = gpd.GeoDataFrame(
+        estaciones,
+        geometry=gpd.points_from_xy(estaciones.xetrs89, estaciones.yetrs89),
+        crs=25830
+        )
+    if epsg != 25830:
+        estaciones = estaciones.to_crs(epsg)
 
     return estaciones
 
@@ -295,21 +304,27 @@ def extraer_embalses(
         active: bool = False, 
         epsg: int = 4326
         ) -> gpd.GeoDataFrame:
-    """Extrae la tabla de atributos de los embalses del archivo 'embalse.csv' del Anuario de Aforos. Se pueden filtrar para mantener sólo embalses activos
+    """Extrae la tabla de atributos de los embalses del archivo 'embalse.csv' del Anuario de Aforos.
+    Se pueden filtrar para mantener sólo embalses activos
 
     Parámetros:
     -----------
-    file:      str. Ruta del archivo original con los embalses
-    active:    boolean. Si True, se queda sólo con estaciones activas
-    epsg:      int. Código EPSG del sistema de coordenadas en el que se quieren projectar los puntos: 4326 (WGS84) ó 25830 (ETRS89-UTM 30N)
+    file:      str
+        Ruta del archivo original con los embalses
+    active:    boolean
+        Si True, se queda sólo con estaciones activas
+    epsg:      int
+        Código EPSG del sistema de coordenadas en el que se quieren projectar los puntos. Las coordinadas
+        originales están en 25830 (ETRS89-UTM 30N), pero por defecto se genera la capa en 4326 (WGS84) 
 
     Salida:
     -------
-    data:       geopandas.GeoDataFrame. Capa de puntos con los embalses
+    data:       geopandas.GeoDataFrame
+        Capa de puntos con los embalses
     """
 
     data = pd.read_csv(file, sep=';', index_col='ref_ceh', encoding='latin1')
-    data.index = data.index.astype(str)
+    data.index = data.index.astype(int)#str)
     data.dropna(axis=1, how='all', inplace=True)
     for col in ['long', 'lat', 'longwgs84', 'latwgs84']:
         data[col] /= 1e4
@@ -318,16 +333,75 @@ def extraer_embalses(
     if active:
         data = data[data.serv == 2]
 
-    assert epsg in [
-        4326, 25830], '"epsg" debe ser 4326 (WGS84) ó 25830 (ETRS89-UTM 30N)'
-    geometry = [Point(x, y) for x, y in zip(data.xetrs89, data.yetrs89)]
-    if epsg == 4326:
-        data = gpd.GeoDataFrame(data, geometry=geometry,
-                                crs=25830).to_crs(4326)
-    elif epsg == 25830:
-        data = gpd.GeoDataFrame(data, geometry=geometry, crs=epsg)
+    # assert epsg in [4326, 25830], '"epsg" debe ser 4326 (WGS84) ó 25830 (ETRS89-UTM 30N)'
+
+    data = gpd.GeoDataFrame(
+        data, 
+        geometry=gpd.points_from_xy(data.xetrs89, data.yetrs89),
+        crs=25830
+    )
+    if epsg != 25830:
+        data = data.to_crs(epsg)
 
     return data
+
+
+def extraer_evaporimetros(
+        file: Path, 
+        active: bool = False, 
+        years: int = None, 
+        epsg: int = 4326
+    ) -> gpd.GeoDataFrame:
+    """Extrae la tabla de atributos de las estaciones evaporimétricas del Anuario de Aforos (archivo 'estev.csv'). 
+    Se pueden filtrar las estaciones por número de años con datos y si están aún activas.
+
+    Parámetros:
+    -----------
+    file:      str
+        Ruta del archivo original con las estaciones
+    active:    boolean
+        Si True, se queda sólo con estaciones activas
+    years:     int
+        Número mínimo de años con dato
+    epsg:      int
+        Código EPSG del sistema de coordenadas en el que se quieren projectar los puntos. Las coordinadas
+        originales están en 25830 (ETRS89-UTM 30N), pero por defecto se genera la capa en 4326 (WGS84) 
+
+    Salida:
+    -------
+    geopandas.GeoDataFrame
+        Capa de puntos con las estaciones
+    """
+
+    # cargar datos
+    estaciones = pd.read_csv(file, encoding='latin-1', sep=';', index_col='ref_evap')
+    estaciones['ref_ceh'] = estaciones['ref_ceh'].astype('Int64')
+    estaciones.lugar = estaciones.lugar.str.strip()
+    estaciones.dropna(axis=1, how='all', inplace=True)
+    for col in ['long', 'lat', 'longwgs84', 'latwgs84']:
+        if col not in estaciones.columns:
+            continue
+        estaciones[col] /= 1e4
+
+    # filtros
+    if active:
+        estaciones = estaciones[estaciones.serv == 1]
+    if years is not None:
+        if isinstance(years, int):
+            estaciones = estaciones[estaciones.nae >= years]
+        else:
+            print('"years" debe ser un número entero positivo')
+
+    # convertir en GeoDataFrame   
+    estaciones = gpd.GeoDataFrame(
+        estaciones,
+        geometry=gpd.points_from_xy(estaciones.xetrs89, estaciones.yetrs89),
+        crs=25830
+        )
+    if epsg != 25830:
+        estaciones = estaciones.to_crs(epsg)
+
+    return estaciones
 
 
 # def plot_caudal(
