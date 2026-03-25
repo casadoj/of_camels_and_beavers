@@ -79,7 +79,6 @@ dependencies = [
     { name = "geopandas" },
     { name = "ipykernel" },
     { name = "ipywidgets" },
-    { name = "lisflood-preprocessing" },
     { name = "matplotlib" },
     { name = "nbformat" },
     { name = "netcdf4" },
@@ -88,6 +87,7 @@ dependencies = [
     { name = "pandas" },
     { name = "plotly" },
     { name = "pyarrow" },
+    { name = "pyflwdir" },
     { name = "pyyaml" },
     { name = "rechunker" },
     { name = "rioxarray" },
@@ -105,7 +105,6 @@ requires-dist = [
     { name = "geopandas", specifier = ">=1.1.2" },
     { name = "ipykernel", specifier = ">=7.2.0" },
     { name = "ipywidgets", specifier = ">=8.1.8" },
-    { name = "lisflood-preprocessing", git = "https://github.com/casadoj/lisflood-preprocessing.git" },
     { name = "matplotlib", specifier = ">=3.10.8" },
     { name = "nbformat", specifier = ">=5.10.4" },
     { name = "netcdf4", specifier = ">=1.7.4" },
@@ -114,6 +113,7 @@ requires-dist = [
     { name = "pandas", specifier = ">=3.0.1" },
     { name = "plotly", specifier = ">=6.6.0" },
     { name = "pyarrow", specifier = ">=23.0.1" },
+    { name = "pyflwdir", specifier = ">=0.5.10" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "rechunker", specifier = ">=0.5.2" },
     { name = "rioxarray", specifier = ">=0.21.0" },
@@ -787,22 +787,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/99/dd/841e9a66c4715477ea0abc78da039832fbb09dac5c35c58dc4c41a407b8a/kiwisolver-1.4.9-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:aedff62918805fb62d43a4aa2ecd4482c380dc76cd31bd7c8878588a61bd0369", size = 2391835, upload-time = "2025-08-10T21:27:34.23Z" },
     { url = "https://files.pythonhosted.org/packages/0c/28/4b2e5c47a0da96896fdfdb006340ade064afa1e63675d01ea5ac222b6d52/kiwisolver-1.4.9-cp314-cp314t-win_amd64.whl", hash = "sha256:1fa333e8b2ce4d9660f2cda9c0e1b6bafcfb2457a9d259faa82289e73ec24891", size = 79988, upload-time = "2025-08-10T21:27:35.587Z" },
     { url = "https://files.pythonhosted.org/packages/80/be/3578e8afd18c88cdf9cb4cffde75a96d2be38c5a903f1ed0ceec061bd09e/kiwisolver-1.4.9-cp314-cp314t-win_arm64.whl", hash = "sha256:4a48a2ce79d65d363597ef7b567ce3d14d68783d2b2263d98db3d9477805ba32", size = 70260, upload-time = "2025-08-10T21:27:36.606Z" },
-]
-
-[[package]]
-name = "lisflood-preprocessing"
-version = "0.7.2"
-source = { git = "https://github.com/casadoj/lisflood-preprocessing.git#f84e92f47a2724eb998c4468d896daae256fa1d4" }
-dependencies = [
-    { name = "geopandas" },
-    { name = "numpy" },
-    { name = "pandas" },
-    { name = "pyflwdir" },
-    { name = "pyyaml" },
-    { name = "rioxarray" },
-    { name = "shapely" },
-    { name = "tqdm" },
-    { name = "xarray" },
 ]
 
 [[package]]
