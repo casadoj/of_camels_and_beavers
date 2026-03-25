@@ -1,0 +1,13 @@
+input:
+    points: ./stations.csv
+    ldd_fine: ../data/MERIT/dir.tif
+    upstream_fine: ../data/MERIT/upa.tif
+    # points_fine: ./output/stations_outlets_3sec.geojson
+    # basins_fine: ./output/stations_basins_3sec.geojson
+    ldd_coarse: ../data/EFAS/ldd.tif
+    upstream_coarse: ../data/EFAS/uparea.tif
+output_folder: ./output/
+conditions:
+    min_area: 20 # km2
+    abs_error: 100000 # km2
+    pct_error: 50 # %
