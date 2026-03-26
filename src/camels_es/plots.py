@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 # import geopandas as gpd
 from shapely.geometry import box
-import networkx as nx
 
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
@@ -91,76 +90,6 @@ def plot_stations(
     # save
     if save is not None:
         plt.savefig(save, dpi=300, bbox_inches='tight')
-
-
-def plot_graph(graph, nodes, labels=False, **kwargs):
-    """
-    Plots a specific set of nodes from the graph onto a real-world map.
-    """
-
-    figsize = kwargs.get('figsize', (12, 10))
-    title = kwargs.get('title', None)
-    alpha = kwargs.get('alpha', .7)
-    size = kwargs.get('size', 50)
-    fontsize = kwargs.get('fontsize', 7)
-
-    # Create the subgraph
-    sub = graph.subgraph(nodes)
-
-    # Define positions from our node attributes
-    pos = {n: (data['lon'], data['lat']) for n, data in sub.nodes(data=True)}
-
-    # Separate nodes by type for different styling
-    stns = [n for n, d in sub.nodes(data=True) if d.get('kind') == 'station']
-    color = [data['strahler'] for n, data in sub.nodes(data=True) if data.get('kind') == 'station']
-    outs = [n for n, d in sub.nodes(data=True) if d.get('kind') == 'outlet']
-
-    # set up plot
-    proj = ccrs.PlateCarree()
-    fig, ax = plt.subplots(
-        figsize=figsize, 
-        subplot_kw={'projection': proj}
-    )
-    ax.add_feature(
-        cfeature.NaturalEarthFeature('physical', 'land', '10m', edgecolor='face', facecolor='wheat'),#'lightgray'),
-        alpha=.5,
-        zorder=0
-    )
-    ax.add_feature(
-        cfeature.NaturalEarthFeature('physical', 'rivers_lake_centerlines', '10m', edgecolor='lightslategrey', facecolor='none', linewidth=.5),
-        alpha=0.7,
-        zorder=1
-    )
-    if 'extent' in kwargs:
-            ax.set_extent(kwargs['extent'], crs=proj)
-    if title is not None:
-        ax.text(.5, 1.025, title, horizontalalignment='center', verticalalignment='bottom', transform=ax.transAxes, fontsize=12)
-    ax.axis('off')
-
-    # Draw Edges
-    nx.draw_networkx_edges(sub, pos, ax=ax, edge_color='dimgrey', 
-                            width=1, arrows=True, arrowsize=8, alpha=alpha)
-
-    # Draw Outlets
-    nx.draw_networkx_nodes(sub, pos, nodelist=outs, ax=ax, 
-                            node_color='indianred',# edgecolors='white', 
-                            node_shape='x', node_size=size,
-                            label='Basin Outlets')
-    
-    # Draw Stations
-    nx.draw_networkx_nodes(sub, pos, nodelist=stns, ax=ax, 
-                            node_color=color, cmap='viridis', edgecolors='white' , 
-                            node_shape='o', node_size=size,
-                            label='Gauging Stations')
-
-    # Add Labels
-    if labels:
-        nx.draw_networkx_labels(sub, pos, font_size=fontsize, verticalalignment='bottom')
-
-    ax.legend(frameon=False)
-    plt.tight_layout()
-
-    plt.show()
 
 
 def plot_discharge(
