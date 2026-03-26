@@ -40,9 +40,9 @@ class Config:
         self.path_dataset = Path(paths['dataset']) / self.name / f'v{'_'.join(self.version.split('.'))}'
         self.path_gis = self.path_dataset / 'GIS'
         self.path_plots = self.path_dataset / 'plots'
-        self.path_efas = paths.get('EFAS', None)
-        self.path_merit = paths.get('MERIT', None)
-        self.path_emo = paths.get('EMO', None)
+        self.path_efas = Path(paths.get('EFAS', None))
+        self.path_merit = Path(paths.get('MERIT', None))
+        self.path_emo = Path(paths.get('EMO', None))
 
         # Ensure directories exist
         for path in [self.path_gis, self.path_plots]:

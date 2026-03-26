@@ -19,7 +19,7 @@ dataset:
         min: 20
         max:
     # minimum data availability
-    caudal:
+    discharge:
         availability: 0.9
         years: 4
     # coordinate reference system
