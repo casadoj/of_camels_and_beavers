@@ -1,30 +1,19 @@
-"""
-Copyright 2019-2023 European Union
-Licensed under the EUPL, Version 1.2 or as soon they will be approved by the European Commission  subsequent versions of the EUPL (the "Licence");
-You may not use this work except in compliance with the Licence.
-You may obtain a copy of the Licence at:
-https://joinup.ec.europa.eu/sites/default/files/inline-files/EUPL%20v1_2%20EN(1).txt
-Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an "AS IS" basis,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the Licence for the specific language governing permissions and limitations under the Licence.
-"""
-
 import argparse
 import os
 from pathlib import Path
-# import pandas as pd
 import sys
 import time
-import geopandas as gpd
-import xarray as xr
 from typing import Dict, List, Literal, Union, Optional
 from tqdm.auto import tqdm
+
+import geopandas as gpd
+import xarray as xr
 
 
 def read_data(
         input_path: Union[str, Path], 
         engine: Literal['netcdf4', 'zarr'],
-        chunks: Optional[dict] = None
+        chunks: Optional[Dict] = None
     ) -> xr.Dataset:
     """Reads input maps in either NetCDF or Zarr format.
 
@@ -90,50 +79,6 @@ def read_data(
 
     return ds
 
-# def read_masks(mask: Union[str, Path]) -> Dict[int, xr.DataArray]:
-#     """It loads the catchment masks in NetCDF format from the input directory
-
-#     Parameters:
-#     -----------
-#     mask: str or pathlib.Path
-#         directory that contains the NetCDF files that define the catchment boundaries. 
-#         These files can be the output of the `cutmaps` tool
-
-#     Returns:
-#     --------
-#     masks: dictionary of xr.DataArray
-#         keys represent the catchment ID and the values boolean maps of the catchment
-#     """
-
-#     # check masks
-#     mask = Path(mask)
-#     if not mask.is_dir():
-#         print(f'ERROR: {mask} is not a directory!')
-#         sys.exit(1)
-
-#     maskpaths = list(mask.glob('*.nc'))
-#     if not maskpaths:
-#         print(f'ERROR: No NetCDF files found in "{mask}"')
-#         sys.exit(2)
-        
-#     print(f'{len(maskpaths)} mask NetCDF files found in "{mask}"')
-
-#     # load masks
-#     masks = {}
-#     for maskpath in maskpaths:  
-#         ID = int(maskpath.stem)
-#         try:
-#             try:
-#                 aoi = xr.open_dataset(maskpath, engine='netcdf4')['Band1']
-#             except:
-#                 aoi = xr.open_dataarray(maskpath, engine='netcdf4')
-#             aoi = xr.where(aoi.notnull(), 1, aoi)
-#             masks[ID] = aoi
-#         except Exception as e:
-#             print(f'ERROR: The mask {maskpath} could not be read: {e}')
-#             continue
-
-#     return masks
 
 def read_pixarea(pixarea: Union[str, Path]) -> xr.DataArray:
     """It reads the LISFLOOD pixel area static map.
@@ -171,6 +116,32 @@ def catchment_statistics(
         overwrite: bool = False,
         decimals: int = 6
     ) -> Optional[xr.Dataset]:
+    """
+    It computes catchment polygon statistics of the input data.
+    
+    Parameters:
+    -----------
+    data: xarray.DataArray or xarray.Dataset
+        Input data.
+    basins: gpd.GeoDataFrame
+        The polygons of the catchments.
+    statistic: string or list of strings
+        Statistics to be computed. Only some statistics are available: 'mean', 'sum', 'std', 'var', 'min', 'max', 
+        'median', 'count'
+    weight: optional or xr.DataArray
+        Map used to weight each pixel in "data" before computing the statistics. It is meant to take into account 
+        the different pixel area in geographic projections.
+    output: optional, str or pathlib.Path
+        Directory where the resulting Parquet files will be saved. If not provided, the results are returned as a 
+        xr.Dataset.
+    overwrite: boolean
+        Whether to overwrite or skip catchments whose output file already exists. By default is False, so the 
+        catchment will be skipped.
+    
+    Returns:
+    --------
+    A xr.Dataset of all catchment statistics or a parquet file for each catchment in the "output" directory.
+    """
 
     start_time = time.perf_counter()
 
@@ -198,7 +169,7 @@ def catchment_statistics(
     if weight is not None:
         weight = weight.rio.set_spatial_dims(x_dim=x_dim, y_dim=y_dim)
 
-    # ansure CRS matches
+    # ensure CRS matches
     if basins.crs != data.rio.crs:
         basins = basins.to_crs(data.rio.crs)
 
