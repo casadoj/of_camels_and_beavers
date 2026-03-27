@@ -17,8 +17,9 @@ import matplotlib as mpl
 
 
 
-def dict2da(dictionary, dim):
-    """It converts a dictionary of xarray.Datarray into a single xarray.DataArray combining the keys in the dictionary in a new dimension
+def dict2da(dictionary: dict, dim: str) -> xr.DataArray:
+    """It converts a dictionary of xarray.Datarray into a single xarray.DataArray combining the 
+    keys in the dictionary in a new dimension.
     
     Inputs:
     -------
@@ -40,7 +41,13 @@ def dict2da(dictionary, dim):
 
 
 
-def read_static_map(path: Union[Path, str], x_dim: str = 'lon', y_dim: str = 'lat', crs: str = 'epsg:4326', var: str = 'Band1') -> xr.DataArray:
+def read_static_map(
+        path: Union[Path, str], 
+        x_dim: str = 'lon', 
+        y_dim: str = 'lat', 
+        crs: str = 'epsg:4326', 
+        var: str = 'Band1'
+    ) -> xr.DataArray:
     """Lee el archivo NetCDF de un mapa estático de LISFLOOD y lo carga como un xarray.DataArray.
 
     Parámetros:
@@ -74,24 +81,37 @@ def read_static_map(path: Union[Path, str], x_dim: str = 'lon', y_dim: str = 'la
     return da
 
 
-
-def polygon_statistics(mapa: Union[xr.DataArray, xr.Dataset], poligonos: gpd.GeoDataFrame, func: str = Union[str, List[str]], x_dim: str = 'lon', y_dim: str = 'lat', ponderacion: xr.DataArray = None) -> xr.Dataset:
-    """Dado un mapa en formato Rioxarray y una capa de polígonos, calcula el estadístico agregado de cada cuenca. Es imprescindible que tanto el mapa como los polígonos estén en el mismo sistema de referencia.
+def polygon_statistics(
+        mapa: Union[xr.DataArray, xr.Dataset], 
+        poligonos: gpd.GeoDataFrame, 
+        func: str = Union[str, List[str]], 
+        x_dim: str = 'lon', 
+        y_dim: str = 'lat', 
+        ponderacion: xr.DataArray = None
+    ) -> xr.Dataset:
+    """
+    Dado un mapa en formato Rioxarray y una capa de polígonos, calcula el estadístico agregado
+    de cada cuenca. Es imprescindible que tanto el mapa como los polígonos estén en el mismo 
+    sistema de referencia.
 
     Parámetros:
     ----------
     mapa:        xarray.DataArray o xarray.Dataset
-        Mapa o serie de mapas a recortar. Debe de haberse utilizado la librería Rioxarray para definir el sistema de referencia de coordenadas y las dimensiones que definen las coordenadas
+        Mapa o serie de mapas a recortar. Debe de haberse utilizado la librería Rioxarray para 
+        definir el sistema de referencia de coordenadas y las dimensiones que definen las coordenadas
     poligonos:   geopandas.GeoDataFrame
         Tabla con los polígonos.
     func:        str o list.
-        Funciones estadísticas a aplicar sobre el recorte del mapa de cada polígono. Los nombres han de ser los utilizados en Xarray: 'mean', 'median', 'std', 'min', 'max'
+        Funciones estadísticas a aplicar sobre el recorte del mapa de cada polígono. Los nombres han 
+        de ser los utilizados en Xarray: 'mean', 'median', 'std', 'min', 'max'
     x_dim:       str
         Nombre de la dimensión de "mapa" correspondiente a la dimensión X
     y_dim:       str
         Nombre de la dimensión de "mapa" correspondiente a la dimensión Y
     ponderacion: xr.DataArray
-        Mapa utilizado para ponderar el peso de cada celda en el cálculo del estadístico. Está específicamente pensado para ponderar las celdas por su área en el caso de que ésta no sea idéntica (coordenadas geográficas)
+        Mapa utilizado para ponderar el peso de cada celda en el cálculo del estadístico. Está 
+        específicamente pensado para ponderar las celdas por su área en el caso de que ésta no sea 
+        idéntica (coordenadas geográficas)
 
     Devuelve:
     ---------
@@ -166,15 +186,23 @@ def polygon_statistics(mapa: Union[xr.DataArray, xr.Dataset], poligonos: gpd.Geo
     return ds
 
 
-
-def point_polygon_statistics(puntos: gpd.GeoDataFrame, poligonos: gpd.GeoDataFrame, func: str = 'mean') -> pd.DataFrame:
-    """Dadas una capa de puntos y una capa de polígonos, calcula el estadístico agregado de cada cuenca. Es imprescindible que ambas capas estén en el mismo sistema de referencia.
+def point_polygon_statistics(
+        puntos: gpd.GeoDataFrame, 
+        poligonos: gpd.GeoDataFrame, 
+        func: str = 'mean'
+    ) -> pd.DataFrame:
+    """
+    Dadas una capa de puntos y una capa de polígonos, calcula el estadístico agregado de cada cuenca. 
+    Es imprescindible que ambas capas estén en el mismo sistema de referencia.
 
     Atributos:
     ----------
-    puntos:      geopandas.GeoDataFrame. Tabla con los puntos.
-    poligonos:   geopandas.GeoDataFrame. Tabla con los polígonos.
-    func:        str o list. Funciones estadísticas a aplicar sobre la selección de puntos de cada polígono. Los nombres han de ser los utilizados en Pandas: 'mean', 'median', 'std', 'min', 'max'
+    puntos:      geopandas.GeoDataFrame. 
+        Tabla con los puntos.
+    poligonos:   geopandas.GeoDataFrame. 
+        Tabla con los polígonos.
+    func:        str o list. 
+        Funciones estadísticas a aplicar sobre la selección de puntos de cada polígono. Los nombres han de ser los utilizados en Pandas: 'mean', 'median', 'std', 'min', 'max'
     """
 
     try:
@@ -227,8 +255,15 @@ def point_polygon_statistics(puntos: gpd.GeoDataFrame, poligonos: gpd.GeoDataFra
 
 
 
-def dividir_estaciones(ids: List[str], cal: float = .7, val: float = .3, path: Path = None, seed: int = 0) -> Dict:
-    """Dada una lista de estaciones, divide la muestra en dos (tres) submuestras: entrenamiento, validación (test). Las submuestras se pueden guardar como archivos TXT.
+def dividir_estaciones(
+        ids: List[str], 
+        cal: float = .7, 
+        val: float = .3, 
+        path: Path = None, 
+        seed: int = 0
+    ) -> Dict:
+    """Dada una lista de estaciones, divide la muestra en dos (tres) submuestras: entrenamiento,
+      validación (test). Las submuestras se pueden guardar como archivos TXT.
 
     Parámetros:
     -----------
@@ -237,7 +272,8 @@ def dividir_estaciones(ids: List[str], cal: float = .7, val: float = .3, path: P
     cal: float
         Proporción de estaciones a incluir en la submuestra de entrenamiento
     val: float
-        Proporción de estaciones a incluir en la submuestra de validación. Si la suma de 'cal' y 'val' es inferior a 1, las estaciones restantes son la submuestra de test
+        Proporción de estaciones a incluir en la submuestra de validación. Si la suma de 'cal' y 
+        'val' es inferior a 1, las estaciones restantes son la submuestra de test
     ruta: Path
         Directorio donde guardar los archivos de texto con las submuestras de estaciones
     seed: int
@@ -301,8 +337,15 @@ def dividir_estaciones(ids: List[str], cal: float = .7, val: float = .3, path: P
 
 
 
-def dividir_periodo_estudio(serie: pd.Series, ini: int = None, fin: int = None, cal: float = .6, val: float = .2) -> xr.DataArray:
-    """Dada una serie temporal, se definen las fechas de inicio y fin de los periodos de calibración ('train'), validación ('validation') y evaluación ('test').
+def dividir_periodo_estudio(
+        serie: pd.Series, 
+        ini: int = None, 
+        fin: int = None, 
+        cal: float = .6, 
+        val: float = .2
+    ) -> xr.DataArray:
+    """Dada una serie temporal, se definen las fechas de inicio y fin de los periodos de calibración
+     ('train'), validación ('validation') y evaluación ('test').
 
     Parámetros:
     -----------
@@ -313,9 +356,12 @@ def dividir_periodo_estudio(serie: pd.Series, ini: int = None, fin: int = None, 
     fin: int
         Año de fin del periodo de estudio
     cal: float
-        Proporción de los datos a incluir en el periodo de calibración. Estos datos se tomarán de la parte final de la serie.
+        Proporción de los datos a incluir en el periodo de calibración. Estos datos se tomarán de la 
+        parte final de la serie.
     val: float
-        Proporción de los datos a incluir en el periodo de validación. Estos datos se tomarán de los años inmediatamente anteriores al periodo de calibración. Si la suma de "cal" y "val" es menor a 1, el resto de los datos serán el periodo de evaluación 
+        Proporción de los datos a incluir en el periodo de validación. Estos datos se tomarán de los 
+        años inmediatamente anteriores al periodo de calibración. Si la suma de "cal" y "val" es menor 
+        a 1, el resto de los datos serán el periodo de evaluación 
 
     Devuelve:
     ---------
