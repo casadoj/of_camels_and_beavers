@@ -42,7 +42,7 @@ class Config:
         self.path_plots = self.path_dataset / 'plots'
         self.path_efas = Path(paths.get('EFAS', None))
         self.path_merit = Path(paths.get('MERIT', None))
-        self.path_emo = Path(paths.get('EMO', None))
+        self.path_meteo = Path(paths.get('meteo', None))
 
         # Ensure directories exist
         for path in [self.path_gis, self.path_plots]:

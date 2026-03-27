@@ -2,9 +2,9 @@
 paths:
     records: /mnt/c/Datasets/CAMELS-ES/raw/2020-2021
     dataset: /home/casadoj/Data
-    EFAS: /mnt/c/Datasets/EFASv/maps/Iberia
+    EFAS: /home/casadoj/Data/EFAS5/Iberia
     MERIT: /home/casadoj/Data/MERIT/ES
-    EMO: /mnt/c/Datasets/EMO1
+    meteo: /home/casadoj/Data/EMO1/Iberia/
     
 # dataset configuration
 dataset:
