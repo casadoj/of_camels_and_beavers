@@ -1,7 +1,7 @@
 [project]
-name = "camels-es"
+name = "ocab"
 version = "0.1.0"
-description = "Hydrological data processing for CAMELS-ES"
+description = "Hydrological data processing for CAMELS-ES and BEAVERS-ES"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -41,9 +41,9 @@ reservoirs-lshm = { git = "https://github.com/casadoj/reservoirs-LSHM.git" }
 # lisflood-preprocessing = { git = "https://github.com/casadoj/lisflood-preprocessing.git" }
 
 [project.scripts]
-zarrify = "camels_es.zarrify:main"
-basin-delineation = "camels_es.basins.delineate.main:main"
-basin-stats = "camels_es.basins.stats.main:main_script"
+zarrify = "ocab.zarrify:main"
+basin-delineation = "ocab.basins.delineate.main:main"
+basin-stats = "ocab.basins.stats.main:main_script"
 
 [build-system]
 requires = ["hatchling"]

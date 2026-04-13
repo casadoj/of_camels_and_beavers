@@ -3,10 +3,10 @@ from pathlib import Path
 import geopandas as gpd
 from geopandas.testing import assert_geodataframe_equal
 
-from camels_es.basins.delineate import Config
-from camels_es.basins.delineate.io import read_shapefiles
-from camels_es.basins.delineate.fine_grid import coordinates_fine
-from camels_es.basins.delineate.coarse_grid import coordinates_coarse
+from ocab.basins.delineate import Config
+from ocab.basins.delineate.io import read_shapefiles
+from ocab.basins.delineate.fine_grid import coordinates_fine
+from ocab.basins.delineate.coarse_grid import coordinates_coarse
 
 @pytest.fixture
 def base_path():
