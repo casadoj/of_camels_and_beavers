@@ -1,0 +1,701 @@
+Open in
+app<https://rsci.app.link/?%24canonical_url=https%3A%2F%2Fmedium.com%2Fp%2F23119598b66b&%7Efeature=LiOpenInAppButton&%7Echannel=ShowPostUnderCollection&source=---two_column_layout_nav---------------------------------->
+
+<https://medium.com/?source=---two_column_layout_nav---------------------------------->
+
+Write
+ <https://medium.com/new-story?source=---two_column_layout_nav---------------------------------->
+
+<https://medium.com/search?source=---two_column_layout_nav---------------------------------->
+
+<https://medium.com/me/notifications?source=---two_column_layout_nav---------------------------------->
+Chus Casado
+
+Get unlimited access to the best of Medium for less than $1/week.Become
+a member
+Become a member
+ <https://medium.com/plans?source=upgrade_membership---post_top_nav_upsell---------------------------------->
+
+
+  Long Short-Term Memory Networks
+
+Vinithavn
+<https://medium.com/@vinithavn?source=post_page-----23119598b66b-------------------------------->
+Analytics Vidhya
+<https://medium.com/analytics-vidhya?source=post_page-----23119598b66b-------------------------------->
+
+Vinithavn
+<https://medium.com/@vinithavn?source=post_page-----23119598b66b-------------------------------->
+
+·
+
+Follow
+
+Published in
+
+Analytics Vidhya
+
+ <https://medium.com/analytics-vidhya?source=post_page-----23119598b66b-------------------------------->
+·
+8 min read
+·
+Nov 30, 2021
+
+79
+
+1
+
+Listen
+
+<https://medium.com/plans?dimension=post_audio_button&postId=23119598b66b&source=upgrade_membership---post_audio_button---------------------------------->
+
+Share
+
+More
+
+
+  Introduction
+
+Neural networks are designed to mimic the behavior of human brains, to
+understand various relationships in the data. These networks have the
+power to understand complex non-linear relationships and can help us to
+make more intelligent decisions. Neural networks are used in fields like
+image processing, natural language processing, etc., and can outperform
+the traditional machine learning algorithms. But one basic drawback with
+the traditional neural network is that it cannot memorize things.
+
+Let’s say, we are playing a game and we need a model to predict the next
+move of a player. This depends a lot on the previous moves and
+traditional neural networks will not perform well here. In this case, we
+need some model that can memorize the previous events and takes smart
+decisions accordingly. This is where Recurrent Neural Networks (RNN)
+came into the picture. RNNs can store the previous state information. It
+can then use it to predict the next event, which in this case, is the
+next move of the player.
+
+On the left side of the above figure, you can see there is an input Xt
+and output ht. The loop indicates that this network is repeated for t
+times, as shown in the right figure. The neural network A takes the
+input X at a time t = 0 and produces the output h0. Now the information
+from A at t=0 and input X1 is passed to the next timestamp t=1 to
+generate output h1. Seems like a complete solution to the memorization
+problem.
+
+RNNs have been used in a lot of sequence modeling tasks like image
+captioning, machine translation, speech recognition, etc.
+
+
+  Drawbacks of RNN
+
+As we see, RNNs were gaining popularity and were used in most
+sequence-related tasks. But there were some disadvantages to this model.
+
+
+    Vanishing Gradients
+
+RNNs are trained through Backpropagation through time (BPTT). Like
+Backpropagation, here also the weights of the neural network get updated
+through the gradients. But in RNN, we backpropagate through time and the
+layers. If the sequence is very large (many time steps) and if the
+neural network has more than one hidden layer, then there is a high
+chance that the gradients will become smaller and smaller as we
+backpropagate. This will eventually lead to the vanishing gradient
+problem. Once this problem occurs, the weight will be updated very
+slowly, preventing the network from learning. The vanishing gradient
+problem can occur in Deep neural networks also. But this effect is very
+common and much worse in RNN because here we need to backpropagate
+through time as well.
+
+
+    Handling long term dependencies
+
+RNNs can make use of the previous states to predict the next event. This
+will be very useful in NLP, where the prediction of a particular word
+depends upon the context or the previous words. Consider the sentence
+“Apple is a fruit”. Now let’s say we are predicting each of the words
+through an RNN network. For predicting the word “fruit”, we need the
+context word “Apple”. Here since the context word is just before the
+event. So, in this case, RNNs will perform well.
+
+But consider the sentence “I grew up in France and I speak fluent
+French”. Here to predict the word “French”, the context word is
+“France”. These are called long-term dependencies and are very common in
+language models. It is found that RNNs poorly handle long-term
+dependencies. The performance of RNNs will drop as the gap between the
+event and context increases.
+
+
+  Introduction of LSTM
+
+Long Short-Term Memory networks or LSTMs are specifically designed to
+overcome the disadvantages of RNN. LSTMs can preserve information for
+longer periods when compared to RNN. LSTMs can also solve the vanishing
+gradient problem. Let us see how LSTM can achieve these.
+
+When we consider RNN, it has a neural network layer or a module that
+repeats for t time steps. Inside this module, RNN has a neural network
+with a simple activation layer. The activation layer can be tanh or
+sigmoid or any other function. This will be better understood from the
+below figure.
+
+In LSTMS, however, the architecture is not that simple. Consider the
+figure below that shows the architecture of an LSTM network.
+
+Don’t stress out. We will try to understand each of these units one by
+one in the next session.
+
+Now let us go back to our first example of predicting the next move in a
+game. The next move can be considered as an event that we need to
+predict. Obviously, there are various long-term and short-term
+dependencies associated with this event. You can consider these
+dependencies as context, or in this case, the tools, and accessories
+that we collected from the previous levels, or the previous incidents
+that occurred during the game, etc.
+
+Let’s say we have a current event occurring and we need to predict the
+next event in the game. We also have the long-term and short-term
+information which we collected during the game. Long-term memories are
+the memory that is collected from a long time back and short-term
+memories are the information that is collected a few timestamps back.
+For predicting the next event obviously, we need the current event. But
+only some long-term and short-term memories will be useful. How do we
+get this?
+
+In LSTMs, we will use this long-term memory and short-term memory, and
+the current event, to generate a new modified long-term memory. While
+doing this, we will only remember those things which will be useful, and
+we will discard all the irrelevant information. Similarly, we will
+update the short-term memory by using some information and discarding
+others. In short, at each time step, we will filter the memory which
+needs to be passed to the next time step. This modified information is
+used to predict the next event. This will be clearer once you go through
+the next session.
+
+
+  Architecture of LSTM
+
+Now let us dive deep into the LSTM model architecture and try to
+understand how it will handle the long-term and short-term dependencies.
+Consider the figure below.
+
+You can see there are two outputs from one LSTM unit. Ct and ht. If you
+remember in RNN we only had one output, which is ht. The hidden state ht
+is the short-term memory that is obtained from the immediately previous
+steps. Now, what is this additional output in LSTM? The vector Ct is
+known as the cell state.
+
+Now cell state in an LSTM is responsible for storing the long-term
+memory events. LSTMs will make use of a mechanism called gates to add
+and remove certain information into this cell state. Let us try to
+understand this in detail.
+
+
+    Forget Gate
+
+As we discussed earlier, we can add and remove information to the cell
+state using gates. The below figure is nothing but the forget gate which
+filters only the required information and removes the rest. How is this
+achieved?
+
+In the figure, the cell state or the long-term memory from the previous
+time step is multiplied with a function ft to get the new filtered
+memory where ft is the forget-factor. The forget -factor is calculated
+using the formula as shown below.
+
+The short-term memory or ht-1 from the previous timestamp and the
+current event is used to calculate the forget-factor. The short-term
+memory and the current event are concatenated, and a sigmoid layer is
+applied on top of that vector. The sigmoid function will produce an
+output ranging from 0 to 1 which will then get multiplied with each
+value in the previous cell state. A 0 value indicates that the
+information will be completely discarded and a value of 1 indicates that
+the information is kept as it is.
+
+
+    Learn gate
+
+Now that we know what information to discard, our next goal is to find
+what new information we need to add. This is done through the learn
+gate. Now learn gate has two parts
+
+1. The previous short-term memory and the current event are concatenated
+and then passed through a tan h layer. This will generate new values c~t
+which is the new information. Now here also we don’t require the whole
+new information. How do we ignore some part of this?
+
+2. How much each of the new candidates gets updated is determined
+through another Forget gate. The output from forget gate will get
+multiplied with our new information and generate the final output
+
+Now, why are we using tanh activation function in some places? Tanh
+activation function will output vectors (in range -1 to 1) which are
+centered around 0. This will distribute the gradients very well and
+allow the cell states to run longer. This eventually will solve the
+vanishing or exploding gradients problem.
+
+
+    *Remember Gate*
+
+Now that we know what to keep and what to discard, it is time for us to
+update the new cell state or long-term memory. How do we do this? We
+just take the output from forget-gate and learn gate and we will add them.
+
+We are almost there. Now the only step remaining is to calculate the output.
+
+
+    Output Gate
+
+The output is a filtered version of the cell state. The cell state value
+from the remember gate is multiplied with a tanh activation function.
+The output from tanh will be between -1 and 1. We then multiply the
+output through a sigmoid function again, to forget some of the values.
+
+That’s it! We are done with the architecture.
+
+
+  Other variations of LSTM architecture
+
+Apart from the above architecture, there are some other networks that
+will also work well in sequence data. Some of them are
+
+· Gated Recurrent Unit (GRU)
+<https://en.wikipedia.org/wiki/Gated_recurrent_unit>
+
+· Peephole LSTMs
+<https://www.tensorflow.org/api_docs/python/tf/keras/experimental/PeepholeLSTMCell>
+
+· Depth Gated RNNs <https://arxiv.org/abs/1508.03790>
+
+· Clockwork RNNs <https://arxiv.org/abs/1402.3511>
+
+I will not go into the details of these models. But you can always read
+about them in the above links.
+
+
+  Final thoughts
+
+LSTM is a great milestone in the field of NLP and sequence models. But
+like all other models, LSTMs are also not perfect. The longer training
+times, large memory requirements, unable to parallel training, etc. are
+some of the drawbacks of LSTMs. New improved models and techniques were
+then developed, and one popular approach was Attention. Let us hope more
+and more interesting works will come around RNNs and sequence data.
+
+I hope you enjoyed the blog. For any queries or clarifications, please
+feel free to connect through my LinkedIn
+<https://www.linkedin.com/in/vinitha-v-n-5a0560179/>
+
+Machine Learning
+ <https://medium.com/tag/machine-learning?source=post_page-----23119598b66b---------------machine_learning----------------->
+Data Science
+ <https://medium.com/tag/data-science?source=post_page-----23119598b66b---------------data_science----------------->
+Rnn
+ <https://medium.com/tag/rnn?source=post_page-----23119598b66b---------------rnn----------------->
+Lstm
+ <https://medium.com/tag/lstm?source=post_page-----23119598b66b---------------lstm----------------->
+
+79
+
+79
+
+1
+
+Vinithavn
+<https://medium.com/@vinithavn?source=post_page-----23119598b66b-------------------------------->
+Analytics Vidhya
+<https://medium.com/analytics-vidhya?source=post_page-----23119598b66b-------------------------------->
+Follow
+
+
+    Written by Vinithavn
+
+<https://medium.com/@vinithavn?source=post_page-----23119598b66b-------------------------------->
+194 Followers
+<https://medium.com/@vinithavn/followers?source=post_page-----23119598b66b-------------------------------->
+·Writer for 
+
+Analytics Vidhya
+
+ <https://medium.com/analytics-vidhya?source=post_page-----23119598b66b-------------------------------->
+
+Machine Learning| Data science
+
+Follow
+
+
+    More from Vinithavn and Analytics Vidhya
+
+A Chatbot Application by finetuning GPT-3
+ <https://medium.com/geekculture/a-chatbot-application-by-finetuning-gpt-3-2682aad25356?source=author_recirc-----23119598b66b----0---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+Vinithavn
+<https://medium.com/@vinithavn?source=author_recirc-----23119598b66b----0---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+
+Vinithavn
+
+<https://medium.com/@vinithavn?source=author_recirc-----23119598b66b----0---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+
+in
+
+Geek Culture
+
+<https://medium.com/geekculture?source=author_recirc-----23119598b66b----0---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+
+
+    A Chatbot Application by finetuning GPT-3
+
+
+      You might have seen chatbots in many customer services. Have a
+      look at a similar kind of bot here.
+
+<https://medium.com/geekculture/a-chatbot-application-by-finetuning-gpt-3-2682aad25356?source=author_recirc-----23119598b66b----0---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+7 min read·Jul 8, 2022
+ <https://medium.com/geekculture/a-chatbot-application-by-finetuning-gpt-3-2682aad25356?source=author_recirc-----23119598b66b----0---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+
+221
+
+5
+
+<https://medium.com/geekculture/a-chatbot-application-by-finetuning-gpt-3-2682aad25356?responsesOpen=true&sortBy=REVERSE_CHRON&source=author_recirc-----23119598b66b----0---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+
+How to create a Python library
+ <https://medium.com/analytics-vidhya/how-to-create-a-python-library-7d5aea80cc3f?source=author_recirc-----23119598b66b----1---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+Kia Eisinga
+<https://medium.com/@kiaeisinga?source=author_recirc-----23119598b66b----1---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+
+Kia Eisinga
+
+<https://medium.com/@kiaeisinga?source=author_recirc-----23119598b66b----1---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+
+in
+
+Analytics Vidhya
+
+<https://medium.com/analytics-vidhya?source=author_recirc-----23119598b66b----1---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+
+
+    How to create a Python library
+
+
+      Ever wanted to create a Python library, albeit for your team at
+      work or for some open source project online? In this blog you will
+      learn…
+
+<https://medium.com/analytics-vidhya/how-to-create-a-python-library-7d5aea80cc3f?source=author_recirc-----23119598b66b----1---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+7 min read·Jan 26, 2020
+ <https://medium.com/analytics-vidhya/how-to-create-a-python-library-7d5aea80cc3f?source=author_recirc-----23119598b66b----1---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+
+1.99K
+
+23
+
+<https://medium.com/analytics-vidhya/how-to-create-a-python-library-7d5aea80cc3f?responsesOpen=true&sortBy=REVERSE_CHRON&source=author_recirc-----23119598b66b----1---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+
+Confusion Matrix, Accuracy, Precision, Recall, F1 Score
+ <https://medium.com/analytics-vidhya/confusion-matrix-accuracy-precision-recall-f1-score-ade299cf63cd?source=author_recirc-----23119598b66b----2---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+Harikrishnan N B
+<https://medium.com/@harikrishnannb?source=author_recirc-----23119598b66b----2---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+
+Harikrishnan N B
+
+<https://medium.com/@harikrishnannb?source=author_recirc-----23119598b66b----2---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+
+in
+
+Analytics Vidhya
+
+<https://medium.com/analytics-vidhya?source=author_recirc-----23119598b66b----2---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+
+
+    Confusion Matrix, Accuracy, Precision, Recall, F1 Score
+
+
+      Binary Classification Metric
+
+<https://medium.com/analytics-vidhya/confusion-matrix-accuracy-precision-recall-f1-score-ade299cf63cd?source=author_recirc-----23119598b66b----2---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+6 min read·Dec 10, 2019
+ <https://medium.com/analytics-vidhya/confusion-matrix-accuracy-precision-recall-f1-score-ade299cf63cd?source=author_recirc-----23119598b66b----2---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+
+680
+
+6
+
+<https://medium.com/analytics-vidhya/confusion-matrix-accuracy-precision-recall-f1-score-ade299cf63cd?responsesOpen=true&sortBy=REVERSE_CHRON&source=author_recirc-----23119598b66b----2---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+
+Defect Detection in Products using Image Segmentation
+ <https://medium.com/analytics-vidhya/defect-detection-in-products-using-image-segmentation-a87a8863a9e5?source=author_recirc-----23119598b66b----3---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+Vinithavn
+<https://medium.com/@vinithavn?source=author_recirc-----23119598b66b----3---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+
+Vinithavn
+
+<https://medium.com/@vinithavn?source=author_recirc-----23119598b66b----3---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+
+in
+
+Analytics Vidhya
+
+<https://medium.com/analytics-vidhya?source=author_recirc-----23119598b66b----3---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+
+
+    Defect Detection in Products using Image Segmentation
+
+
+      Table of contents
+
+<https://medium.com/analytics-vidhya/defect-detection-in-products-using-image-segmentation-a87a8863a9e5?source=author_recirc-----23119598b66b----3---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+9 min read·May 7, 2021
+ <https://medium.com/analytics-vidhya/defect-detection-in-products-using-image-segmentation-a87a8863a9e5?source=author_recirc-----23119598b66b----3---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+
+127
+
+2
+
+<https://medium.com/analytics-vidhya/defect-detection-in-products-using-image-segmentation-a87a8863a9e5?responsesOpen=true&sortBy=REVERSE_CHRON&source=author_recirc-----23119598b66b----3---------------------2f3f5682_31a1_4152_8ce5_e47fb552072d------->
+
+See all from Vinithavn
+ <https://medium.com/@vinithavn?source=post_page-----23119598b66b-------------------------------->
+See all from Analytics Vidhya
+ <https://medium.com/analytics-vidhya?source=post_page-----23119598b66b-------------------------------->
+
+
+    Recommended from Medium
+
+Plotted predictions after successful analysis and forecasting.
+ <https://medium.com/@prajjwalchauhan94017/stock-prediction-and-forecasting-using-lstm-long-short-term-memory-9ff56625de73?source=read_next_recirc-----23119598b66b----0---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+Prajjwal Chauhan
+<https://medium.com/@prajjwalchauhan94017?source=read_next_recirc-----23119598b66b----0---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+Prajjwal Chauhan
+
+<https://medium.com/@prajjwalchauhan94017?source=read_next_recirc-----23119598b66b----0---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+
+    Stock Prediction and Forecasting Using LSTM(Long-Short-Term-Memory)
+
+
+      In an ever-evolving world of finance, accurately predicting stock
+      market movements has long been an elusive goal for investors and
+      traders…
+
+<https://medium.com/@prajjwalchauhan94017/stock-prediction-and-forecasting-using-lstm-long-short-term-memory-9ff56625de73?source=read_next_recirc-----23119598b66b----0---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+6 min read·Jul 8
+ <https://medium.com/@prajjwalchauhan94017/stock-prediction-and-forecasting-using-lstm-long-short-term-memory-9ff56625de73?source=read_next_recirc-----23119598b66b----0---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+183
+
+7
+
+<https://medium.com/@prajjwalchauhan94017/stock-prediction-and-forecasting-using-lstm-long-short-term-memory-9ff56625de73?responsesOpen=true&sortBy=REVERSE_CHRON&source=read_next_recirc-----23119598b66b----0---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+Time and Series Forecasting with LSTM- Recurrent Neural Networks
+ <https://medium.com/gitconnected/time-and-series-forecasting-6a96bd89dd07?source=read_next_recirc-----23119598b66b----1---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+Utsav Poudel
+<https://medium.com/@utsavpoudel?source=read_next_recirc-----23119598b66b----1---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+Utsav Poudel
+
+<https://medium.com/@utsavpoudel?source=read_next_recirc-----23119598b66b----1---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+in
+
+Level Up Coding
+
+<https://medium.com/gitconnected?source=read_next_recirc-----23119598b66b----1---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+
+    Time and Series Forecasting with LSTM- Recurrent Neural Networks
+
+
+      Every day, humans make passive predictions when performing tasks
+      such as crossing a road, where they estimate the speed of cars and
+      their…
+
+<https://medium.com/gitconnected/time-and-series-forecasting-6a96bd89dd07?source=read_next_recirc-----23119598b66b----1---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+10 min read·May 10
+ <https://medium.com/gitconnected/time-and-series-forecasting-6a96bd89dd07?source=read_next_recirc-----23119598b66b----1---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+290
+
+2
+
+<https://medium.com/gitconnected/time-and-series-forecasting-6a96bd89dd07?responsesOpen=true&sortBy=REVERSE_CHRON&source=read_next_recirc-----23119598b66b----1---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+
+    Lists
+
+
+    Predictive Modeling w/ Python
+
+20 stories·342 saves
+ <https://medium.com/@ben.putney/list/predictive-modeling-w-python-e3668ea008e1?source=read_next_recirc-----23119598b66b-------------------------------->
+Principal Component Analysis for ML
+Time Series Analysis
+deep learning cheatsheet for beginner
+
+
+    Practical Guides to Machine Learning
+
+10 stories·382 saves
+ <https://medium.com/@destingong/list/practical-guides-to-machine-learning-a877c2a39884?source=read_next_recirc-----23119598b66b-------------------------------->
+Self-made image.
+
+
+    Natural Language Processing
+
+569 stories·190 saves
+ <https://medium.com/@AMGAS14/list/natural-language-processing-0a856388a93a?source=read_next_recirc-----23119598b66b-------------------------------->
+Databricks role-based and specialty certification line-up.
+
+
+    New_Reading_List
+
+174 stories·93 saves
+ <https://medium.com/@william.dai/list/newreadinglist-d8e941a8265f?source=read_next_recirc-----23119598b66b-------------------------------->
+NLP: Zero To Hero [Part 2: Vanilla RNN, LSTM, GRU & Bi-Directional LSTM]
+ <https://medium.com/@prateekgaurav/nlp-zero-to-hero-part-2-vanilla-rnn-lstm-gru-bi-directional-lstm-77fd60fc0b44?source=read_next_recirc-----23119598b66b----0---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+Prateek Gaurav
+<https://medium.com/@prateekgaurav?source=read_next_recirc-----23119598b66b----0---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+Prateek Gaurav
+
+<https://medium.com/@prateekgaurav?source=read_next_recirc-----23119598b66b----0---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+
+    NLP: Zero To Hero [Part 2: Vanilla RNN, LSTM, GRU & Bi-Directional LSTM]
+
+
+      Link to Part 1of this article: NLP: Zero To Hero [Part 1:
+      Introduction, BOW, TF-IDF & Word2Vec] Link to Part 3 of this
+      article: NLP: Zero…
+
+<https://medium.com/@prateekgaurav/nlp-zero-to-hero-part-2-vanilla-rnn-lstm-gru-bi-directional-lstm-77fd60fc0b44?source=read_next_recirc-----23119598b66b----0---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+8 min read·Mar 23
+ <https://medium.com/@prateekgaurav/nlp-zero-to-hero-part-2-vanilla-rnn-lstm-gru-bi-directional-lstm-77fd60fc0b44?source=read_next_recirc-----23119598b66b----0---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+522
+
+<https://medium.com/@prateekgaurav/nlp-zero-to-hero-part-2-vanilla-rnn-lstm-gru-bi-directional-lstm-77fd60fc0b44?responsesOpen=true&sortBy=REVERSE_CHRON&source=read_next_recirc-----23119598b66b----0---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+Support Vector Machines (SVM): An Intuitive Explanation
+ <https://medium.com/@keshavtibrewal2/support-vector-machines-svm-an-intuitive-explanation-b084d6238106?source=read_next_recirc-----23119598b66b----1---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+Tasmay Pankaj Tibrewal
+<https://medium.com/@keshavtibrewal2?source=read_next_recirc-----23119598b66b----1---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+Tasmay Pankaj Tibrewal
+
+<https://medium.com/@keshavtibrewal2?source=read_next_recirc-----23119598b66b----1---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+
+    Support Vector Machines (SVM): An Intuitive Explanation
+
+
+      Support Vector Machines (SVMs) are a type of supervised machine
+      learning algorithm used for classification and regression tasks.
+      They are…
+
+<https://medium.com/@keshavtibrewal2/support-vector-machines-svm-an-intuitive-explanation-b084d6238106?source=read_next_recirc-----23119598b66b----1---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+17 min read·Jul 1
+ <https://medium.com/@keshavtibrewal2/support-vector-machines-svm-an-intuitive-explanation-b084d6238106?source=read_next_recirc-----23119598b66b----1---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+437
+
+2
+
+<https://medium.com/@keshavtibrewal2/support-vector-machines-svm-an-intuitive-explanation-b084d6238106?responsesOpen=true&sortBy=REVERSE_CHRON&source=read_next_recirc-----23119598b66b----1---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+“Activation Functions” in Deep learning models. How to Choose?
+ <https://medium.com/@MrBam44/activation-functions-in-deep-learning-models-how-to-choose-3ad007eaf998?source=read_next_recirc-----23119598b66b----2---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+Shubham Koli
+<https://medium.com/@MrBam44?source=read_next_recirc-----23119598b66b----2---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+Shubham Koli
+
+<https://medium.com/@MrBam44?source=read_next_recirc-----23119598b66b----2---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+
+    “Activation Functions” in Deep learning models. How to Choose?
+
+
+      Sigmoid, tanh, Softmax, ReLU, Leaky ReLU EXPLAINED !!!
+
+<https://medium.com/@MrBam44/activation-functions-in-deep-learning-models-how-to-choose-3ad007eaf998?source=read_next_recirc-----23119598b66b----2---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+11 min read·Mar 9
+ <https://medium.com/@MrBam44/activation-functions-in-deep-learning-models-how-to-choose-3ad007eaf998?source=read_next_recirc-----23119598b66b----2---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+9
+
+<https://medium.com/@MrBam44/activation-functions-in-deep-learning-models-how-to-choose-3ad007eaf998?responsesOpen=true&sortBy=REVERSE_CHRON&source=read_next_recirc-----23119598b66b----2---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+A Brief Introduction to Recurrent Neural Networks
+ <https://medium.com/towards-data-science/a-brief-introduction-to-recurrent-neural-networks-638f64a61ff4?source=read_next_recirc-----23119598b66b----3---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+Jonte Dancker
+<https://medium.com/@jodancker?source=read_next_recirc-----23119598b66b----3---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+Jonte Dancker
+
+<https://medium.com/@jodancker?source=read_next_recirc-----23119598b66b----3---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+in
+
+Towards Data Science
+
+<https://medium.com/towards-data-science?source=read_next_recirc-----23119598b66b----3---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+
+    A Brief Introduction to Recurrent Neural Networks
+
+
+      An introduction to RNN, LSTM, and GRU and their implementation
+
+<https://medium.com/towards-data-science/a-brief-introduction-to-recurrent-neural-networks-638f64a61ff4?source=read_next_recirc-----23119598b66b----3---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+12 min read·Dec 26, 2022
+ <https://medium.com/towards-data-science/a-brief-introduction-to-recurrent-neural-networks-638f64a61ff4?source=read_next_recirc-----23119598b66b----3---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+319
+
+4
+
+<https://medium.com/towards-data-science/a-brief-introduction-to-recurrent-neural-networks-638f64a61ff4?responsesOpen=true&sortBy=REVERSE_CHRON&source=read_next_recirc-----23119598b66b----3---------------------dce0d54b_ed2a_4311_ba66_c0a3723c7327------->
+
+See more recommendations
+ <https://medium.com/?source=post_page-----23119598b66b-------------------------------->
+
+Help
+
+<https://help.medium.com/hc/en-us?source=post_page-----23119598b66b-------------------------------->
+
+Status
+
+<https://medium.statuspage.io/?source=post_page-----23119598b66b-------------------------------->
+
+Writers
+
+<https://about.medium.com/creators/?source=post_page-----23119598b66b-------------------------------->
+
+Blog
+
+<https://blog.medium.com/?source=post_page-----23119598b66b-------------------------------->
+
+Careers
+
+<https://medium.com/jobs-at-medium/work-at-medium-959d1a85284e?source=post_page-----23119598b66b-------------------------------->
+
+Privacy
+
+<https://policy.medium.com/medium-privacy-policy-f03bf92035c9?source=post_page-----23119598b66b-------------------------------->
+
+Terms
+
+<https://policy.medium.com/medium-terms-of-service-9db0094a1e0f?source=post_page-----23119598b66b-------------------------------->
+
+About
+
+<https://medium.com/about?autoplay=1&source=post_page-----23119598b66b-------------------------------->
+
+Text to speech
+
+<https://speechify.com/medium?source=post_page-----23119598b66b-------------------------------->
+
+Teams
+
+<https://medium.com/business?source=post_page-----23119598b66b-------------------------------->

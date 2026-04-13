@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CAMELS-ES</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body, html { 
+            /* display: flex;  */
+            margin: 0; 
+            gap: 0; 
+            height: 100%;
+            width: 100%;
+            font-family: sans-serif
+        }
+        #sidebar {
+            width: 300px;
+            height: 700px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        #map { 
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%; 
+            z-index: 1; 
+        }
+        #ui-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000; /* Must be higher than map's z-index */
+            pointer-events: none; /* Allows clicking the map through the empty spaces */
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 90vh;
+        }
+        h1 {
+            /* margin: 0; */
+            width: 250px;
+            /* background:rgba(255, 255, 255, 0.9); */
+            padding: 10px 35px;
+            border-radius: 8px;
+            /* box-shadow: 0 2px 10px rgba(0,0,0,0.2); */
+            font-size: 1.5rem;
+            pointer-events: auto;
+            width: fit-content;
+        }
+        #sidebar { 
+            width: 250px; 
+            max-height: 60vh;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px; 
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            overflow-y: auto;
+            pointer-events: auto;
+        }
+        .basin-item { 
+            padding: 10px; 
+            cursor: pointer; 
+            border-bottom: 1px solid #ddd; 
+            font-size: 0.9rem;
+        }
+        .basin-item:hover { 
+            background: #e9f5ff; 
+            color: #007bff;
+        }
+        .triangle-marker {
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 10px solid dimgrey;
+            filter: drop-shadow(1px 0 0 white) 
+                drop-shadow(-1px 0 0 white) 
+                drop-shadow(0 1px 0 white) 
+                drop-shadow(0 -1px 0 white);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui-container">
+        <h1>CAMELS-ES Explorer</h1>
+        <div id="sidebar">
+            <h3>Basins</h3>
+            <div id="basin-list">Loading basins...</div>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize map centered on Spain
+        var map = L.map('map').setView([40.4167, -3.7037], 6);
+
+        // Add a clean base map
+        var standard = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        });
+        standard.addTo(map);
+
+        // Add the Relief Map (OpenTopoMap)
+        var relief = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            maxZoom: 17,
+            attribution: 'Map data: &copy; OSM, SRTM | Style: &copy; OpenTopoMap'
+        });
+        
+        // Create a specific pane for basins & rivers to keep them at the bottom
+        map.createPane('basinPane');
+        map.getPane('basinPane').style.zIndex = 200;
+        map.createPane('riverPane');
+        map.getPane('riverPane').style.zIndex = 390;
+        map.createPane('reservoirPane');
+        map.getPane('reservoirPane').style.zIndex = 450;
+
+        // Add a layer toggle (Top Right corner)
+        var baseMaps = {
+            "Relief (DEM)": relief,
+            "Standard Map": standard
+        };
+        L.control.layers(baseMaps).addTo(map);
+        
+        // Load Basins GeoJSON
+        fetch('./demarcaciones.geojson')
+            .then(res => {
+                if (!res.ok) throw new Error("Could not load Basins GeoJSON file");
+                return res.json();
+            })
+            .then(data => {
+                const basinListDiv = document.getElementById('basin-list');
+                basinListDiv.innerHTML = ''; // Clear loading text
+
+                const basinsLayer = L.geoJSON(data, {
+                    style: {
+                        color: 'black',
+                        weight: 1.5,
+                        fillColor: 'transparent',
+                        fillOpacity: 0.1, // Small opacity makes it easier to click
+                        lineJoin: 'round',
+                        pane: 'basinPane'
+                    },
+                    interactive: true,
+                    onEachFeature: function(feature, layer) {
+                        let name = feature.properties.NOM_DEMAR || "Unknown Basin";
+                        
+                        // 1. Click polygon to zoom
+                        const zoomOptions = {
+                            paddingTopLeft: [320, 20],
+                            paddingBottomRight: [20, 20],
+                            duration: 1.5
+                        };
+                        layer.on('click', function() {
+                            map.fitBounds(layer.getBounds(), zoomOptions);
+                        });
+
+                        // 2. Add to sidebar list
+                        const item = document.createElement('div');
+                        item.className = 'basin-item';
+                        item.innerText = name;
+                        item.onclick = function() {
+                            map.fitBounds(layer.getBounds(), zoomOptions);
+                            layer.bringToFront();
+                        };
+                        basinListDiv.appendChild(item);
+
+                        // Optional: show name on hover
+                        layer.bindTooltip(name, { sticky: true });
+                    }
+                }).addTo(map);
+            });
+
+        // Load Rivers GeoJSON
+        fetch('./rios.geojson')
+            .then(res => {
+                if (!res.ok) throw new Error("Could not load Rivers GeoJSON file");
+                return res.json();
+            })
+            .then(data => {
+                L.geoJSON(data, {
+                    style: function(feature) {
+                        return {
+                            color: 'steelblue',
+                            weight: 1.2,
+                            opacity: 0.7,
+                            lineJoin: 'round',
+                            pane: 'riverPane'
+                        };
+                    },
+                    interactive: false
+                }).addTo(map);
+            });
+        
+        // Helper function for Title Case
+        function toTitleCase(str) {
+            return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
+        }
+
+        // Helper function to remove strange characters
+        function slugify(str) {
+            return str
+                .toString()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .trim()
+                .replace(/\s+/g, '-')
+                .replace(/[^\w-]+/g, '')
+                .replace(/--+/g, '-');
+        }
+
+        // Load Reservoirs GeoJSON file
+        let reservoirLayer;
+        fetch('./embalses.geojson')
+            .then(res => {
+                if (!res.ok) throw new Error("Could not load Reservoirs GeoJSON file");
+                return res.json();
+            })
+            .then(data => {
+                reservoirLayer = L.geoJSON(data, {
+                    pointToLayer: function (feature, latlng) {
+                        var triangleIcon = L.divIcon({
+                            className: 'custom-div-icon',
+                            html: '<div class="triangle-marker"></div>',
+                            iconSize: [9, 6],
+                            iconAnchor: [6, 10]
+                        });
+                        return L.marker(latlng, { 
+                            icon: triangleIcon,
+                            pane: 'reservoirPane'
+                        });
+                    },
+                    onEachFeature: function (feature, layer) {
+                        let props =  feature.properties;
+                        let name = toTitleCase(props.nombre || props.NOMBRE || "Reservoir");
+                        let basin = toTitleCase(props.cuenca || props.CUENCA || "Basin");
+                        layer.bindPopup(`
+                            <strong>${name} Reservoir</strong><br>
+                            Basin: ${basin}<br>
+                        `);
+                    }
+                });
+                // Initial check: Only add if already zoomed in
+                if (map.getZoom() >= 9) {
+                    reservoirLayer.addTo(map);
+                }
+            });
+
+        // Listen for zoom changes
+        map.on('zoomend', function() {
+            if (reservoirLayer) {
+                if (map.getZoom() >= 9) {
+                    if (!map.hasLayer(reservoirLayer)) map.addLayer(reservoirLayer);
+                } else {
+                    if (map.hasLayer(reservoirLayer)) map.removeLayer(reservoirLayer);
+                }
+            }
+        });
+
+        // Load Stations GeoJSON file
+        fetch('./estaciones.geojson')
+            .then(res => {
+				if (!res.ok) throw new Error("Could not load stations GeoJSON file");
+				return res.json();
+			})
+            .then(data => {
+                console.log("Data loaded successfully:", data);
+                L.geoJSON(data, {
+                    pointToLayer: function (feature, latlng) {
+                        return L.circleMarker(latlng, {
+                            radius: 5,
+                            color: 'white',
+                            weight: 2,
+                            fillColor: 'maroon',
+                            fillOpacity: 1
+                        });
+                    },
+                    onEachFeature: function (feature, layer) {
+                        let props = feature.properties;
+                        let name = props.lugar || props.LUGAR || "Name";
+                        let id = props.indroea || props.INDROEA || "ID";
+                        let river = props.rio || props.RIO || "River";
+                        let system = props.sistema || props.SISTEMA || "System";
+                        let basin = props.cuenca || props.CUENCA || "Basin";
+                        let link = props.url_link || props.URL_LINK || "#";
+                        layer.bindPopup(`
+                            <strong>${id} - ${name}</strong><br>
+                            River: ${river}<br>
+                            Basin: ${basin}<br>
+                            <a href="./${slugify(basin)}/${slugify(system)}/plots/${id}.html">View Hydrograph</a>
+                        `);
+                    }
+                }).addTo(map);
+            });
+    </script>
+
+    <script>
+        // Place it here, at the end of your script section
+        function checkUserEmail() {
+            let email = localStorage.getItem('userEmail');
+            
+            if (!email) {
+                email = prompt("Welcome to the CAMELS-ES Explorer!\nPlease enter your email to begin contributing:");
+                if (email && email.includes('@')) {
+                    localStorage.setItem('userEmail', email.trim());
+                } else {
+                    alert("A valid email is required to save your work.");
+                    checkUserEmail(); 
+                }
+            }
+        }
+
+        // Initialize the check
+        checkUserEmail();
+    </script>
+    
+</body>
+</html>

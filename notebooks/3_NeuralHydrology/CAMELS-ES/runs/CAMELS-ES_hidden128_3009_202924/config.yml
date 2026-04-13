@@ -1,0 +1,82 @@
+batch_size: 256
+clip_gradient_norm: 1
+clip_targets_to_zero:
+- streamflow
+commit_hash:
+data_dir: ../../../data/CAMELS-ES
+dataset: generic
+device: cuda:0
+dynamic_inputs:
+- total_precipitation_sum
+- temperature_2m_min
+- temperature_2m_max
+- potential_evaporation_sum
+- surface_net_solar_radiation_mean
+- surface_pressure_mean
+epochs: 30
+experiment_name: CAMELS-ES_hidden128
+head: regression
+hidden_size: 128
+img_log_dir: 
+  /content/drive/MyDrive/TFM/notebook/models/CAMELS-ES/runs/CAMELS-ES_hidden128_3009_202924/img_log
+initial_forget_bias: 3
+learning_rate:
+  0: 0.01
+  10: 0.005
+  20: 0.001
+log_interval: 1
+log_n_figures: 1
+log_tensorboard: true
+loss: NSE
+metrics:
+- KGE
+model: cudalstm
+num_workers: 2
+number_of_basins: 163
+optimizer: Adam
+output_activation: linear
+output_dropout: 0.4
+package_version: 1.9.0
+per_basin_test_periods_file: periods_test.pkl
+per_basin_train_periods_file: periods_train.pkl
+per_basin_validation_periods_file: periods_validation.pkl
+predict_last_n: 1
+run_dir: 
+  /content/drive/MyDrive/TFM/notebook/models/CAMELS-ES/runs/CAMELS-ES_hidden128_3009_202924
+save_validation_results: true
+save_weights_every: 1
+seed: 123
+seq_length: 365
+static_attributes:
+- ele_mt_sav
+- ele_mt_smn
+- ele_mt_smx
+- slp_dg_sav
+- for_pc_sse
+- crp_pc_sse
+- ire_pc_sse
+- lka_pc_sse
+- pst_pc_sse
+- swc_pc_syr
+- snd_pc_sav
+- cly_pc_sav
+- kar_pc_sse
+- p_mean
+- pet_mean
+- aridity
+- snw_pc_syr
+- moisture_index
+- seasonality
+- high_prec_freq
+- high_prec_dur
+- low_prec_freq
+- low_prec_dur
+target_variables:
+- streamflow
+test_basin_file: basins_test.txt
+train_basin_file: basins_train.txt
+train_dir: 
+  /content/drive/MyDrive/TFM/notebook/models/CAMELS-ES/runs/CAMELS-ES_hidden128_3009_202924/train_data
+validate_every: 1
+validate_n_random_basins: 100
+validation_basin_file: basins_validation.txt
