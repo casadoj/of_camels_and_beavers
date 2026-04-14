@@ -1,0 +1,36 @@
+# working paths
+paths:
+    records: /home/casadoj/Data/CEDEX/2020-2021
+    dataset: /home/casadoj/Data
+    EFAS: /home/casadoj/Data/EFAS5/Iberia
+    MERIT: /home/casadoj/Data/MERIT/ES
+    meteo: /home/casadoj/Data/EMO1/Iberia/
+    
+# dataset configuration
+dataset:
+    name: CAMELS-ES
+    version: 2.0.0
+    # study period
+    period:
+        start: 1991-01-01
+        end: 2021-09-30
+    # catchment size
+    area:
+        min: 10
+        max:
+    # minimum data availability
+    data:
+        availability: 0.9
+        years: 4
+    # coordinate reference system
+    crs: 4326 #'epsg:4326'
+
+# LSTM model configuration
+modelo:
+    train_size: .6
+    val_size: .2
+    seed: 123
+
+
+
+
