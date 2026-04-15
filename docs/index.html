@@ -122,10 +122,12 @@
         map.getPane('basinPane').style.zIndex = 200;
         map.createPane('riverPane');
         map.getPane('riverPane').style.zIndex = 390;
-        map.createPane('reservoirPane');
-        map.getPane('reservoirPane').style.zIndex = 450;
         map.createPane('subbasinPane');
         map.getPane('subbasinPane').style.zIndex = 300;
+        map.createPane('reservoirPane');
+        map.getPane('reservoirPane').style.zIndex = 450;
+        map.createPane('stationPane');
+        map.getPane('stationPane').style.zIndex = 500;
 
         // Add a layer toggle (Top Right corner)
         var baseMaps = {
@@ -212,7 +214,7 @@
                     style: function(feature) {
                         return {
                             color: 'steelblue',
-                            weight: 1.2,
+                            weight: 1.5,
                             opacity: 0.7,
                             lineJoin: 'round',
                             pane: 'riverPane'
@@ -227,18 +229,106 @@
             return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
         }
 
-        // Helper function to remove strange characters
-        function slugify(str) {
-            return str
-                .toString()
-                .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '')
-                .toLowerCase()
-                .trim()
-                .replace(/\s+/g, '-')
-                .replace(/[^\w-]+/g, '')
-                .replace(/--+/g, '-');
-        }
+        // // Helper function to remove strange characters
+        // function slugify(str) {
+        //     return str
+        //         .toString()
+        //         .normalize('NFD')
+        //         .replace(/[\u0300-\u036f]/g, '')
+        //         .toLowerCase()
+        //         .trim()
+        //         .replace(/\s+/g, '-')
+        //         .replace(/[^\w-]+/g, '')
+        //         .replace(/--+/g, '-');
+        // }
+
+        // Load Stations GeoJSON file
+        fetch('./layers/stations.geojson')
+            .then(res => {
+				if (!res.ok) throw new Error("Could not load stations GeoJSON file");
+				return res.json();
+			})
+            .then(data => {
+                console.log("Data loaded successfully:", data);
+                L.geoJSON(data, {
+                    pointToLayer: function (feature, latlng) {
+                        return L.circleMarker(latlng, {
+                            radius: 5,
+                            color: 'white',
+                            weight: 2,
+                            fillColor: 'maroon',
+                            fillOpacity: 1,
+                            pane: 'stationPane'
+                        });
+                    },
+                    onEachFeature: function (feature, layer) {
+                        let props = feature.properties;
+                        let id = props.ID || props.id || "ID";
+                        let name = toTitleCase(props.NAME || props.name || "Name");
+                        let river = toTitleCase(props.RIVER || props.river || "River");
+                        let basin = toTitleCase(props.BASIN || props.basin || "Basin");
+                        let catchment = props.catch_skm || props.CATCH_SKM || "Catchment";
+                        
+                        // Pop-up window
+                        layer.bindPopup(`
+                            <strong>${id} - ${name}</strong><br>
+                            River: ${river}<br>
+                            Basin: ${basin}<br>
+                            Catchment: ${catchment} km²<br>
+                            <a href="./timeseries/stations/plots/${id}.html" target="_blank" rel="noopener noreferrer">
+                                View Time Series
+                            </a>
+                        `);
+
+                        // Trigger subbasin drawing when the popup opens
+                        layer.on('popupopen', function() {
+                            // Remove old subbasin
+                            if (subbasinReservoir) {
+                                map.removeLayer(subbasinReservoir);
+                            }
+                            if (subbasinStation) {
+                                map.removeLayer(subbasinStation);
+                            }
+
+                            if (allSubbasinsStations) {
+                                subbasinStation = L.geoJSON(allSubbasinsStations, {
+                                    filter: function(f) {
+                                        // Force both to strings to ensure the comparison works
+                                        let subId = f.properties.id || f.properties.ID;
+                                        return String(subId) === String(id);
+                                    },
+                                    style: {
+                                        color: 'maroon',
+                                        weight: 2,
+                                        fillColor: 'maroon',
+                                        fillOpacity: 0.2,
+                                        pane: 'subbasinPane'
+                                    }
+                                }).addTo(map);
+
+                                // Zoom in to the subbasins
+                                const bounds = subbasinStation.getBounds();
+                                if (bounds.isValid()) {
+                                    map.fitBounds(bounds, {
+                                        padding: [50, 50],
+                                        maxZoom: 12,
+                                        animate: true,
+                                        duration: 1.5
+                                    });
+                                }
+                            }
+                        });
+
+                        // Cleanup: Remove subbasin when popup closes
+                        layer.on('popupclose', function() {
+                            if (subbasinStation) {
+                                map.removeLayer(subbasinStation);
+                                subbasinStation = null;
+                            }
+                        });
+                    }
+                }).addTo(map);
+            });
 
         // Load Reservoirs GeoJSON file
         let reservoirLayer;
@@ -249,7 +339,9 @@
             })
             .then(data => {
                 reservoirLayer = L.geoJSON(data, {
-
+                    style: {
+                        pane: 'reservoirPane'
+                    },
                     onEachFeature: function (feature, layer) {
                         let props =  feature.properties;
                         let id = props.ID || props.id || "ID";
@@ -335,92 +427,6 @@
             }
         });
 
-        // Load Stations GeoJSON file
-        fetch('./layers/stations.geojson')
-            .then(res => {
-				if (!res.ok) throw new Error("Could not load stations GeoJSON file");
-				return res.json();
-			})
-            .then(data => {
-                console.log("Data loaded successfully:", data);
-                L.geoJSON(data, {
-                    pointToLayer: function (feature, latlng) {
-                        return L.circleMarker(latlng, {
-                            radius: 5,
-                            color: 'white',
-                            weight: 2,
-                            fillColor: 'maroon',
-                            fillOpacity: 1
-                        });
-                    },
-                    onEachFeature: function (feature, layer) {
-                        let props = feature.properties;
-                        let id = props.ID || props.id || "ID";
-                        let name = toTitleCase(props.NAME || props.name || "Name");
-                        let river = toTitleCase(props.RIVER || props.river || "River");
-                        let basin = toTitleCase(props.BASIN || props.basin || "Basin");
-                        let catchment = props.catch_skm || props.CATCH_SKM || "Catchment";
-                        
-                        // Pop-up window
-                        layer.bindPopup(`
-                            <strong>${id} - ${name}</strong><br>
-                            River: ${river}<br>
-                            Basin: ${basin}<br>
-                            Catchment: ${catchment} km²<br>
-                            <a href="./timeseries/stations/plots/${id}.html" target="_blank" rel="noopener noreferrer">
-                                View Time Series
-                            </a>
-                        `);
-
-                        // Trigger subbasin drawing when the popup opens
-                        layer.on('popupopen', function() {
-                            // Remove old subbasin
-                            if (subbasinReservoir) {
-                                map.removeLayer(subbasinReservoir);
-                            }
-                            if (subbasinStation) {
-                                map.removeLayer(subbasinStation);
-                            }
-
-                            if (allSubbasinsStations) {
-                                subbasinStation = L.geoJSON(allSubbasinsStations, {
-                                    filter: function(f) {
-                                        // Force both to strings to ensure the comparison works
-                                        let subId = f.properties.id || f.properties.ID;
-                                        return String(subId) === String(id);
-                                    },
-                                    style: {
-                                        color: 'maroon',
-                                        weight: 2,
-                                        fillColor: 'maroon',
-                                        fillOpacity: 0.2,
-                                        pane: 'subbasinPane'
-                                    }
-                                }).addTo(map);
-
-                                // Zoom in to the subbasins
-                                const bounds = subbasinStation.getBounds();
-                                if (bounds.isValid()) {
-                                    map.fitBounds(bounds, {
-                                        padding: [50, 50],
-                                        maxZoom: 12,
-                                        animate: true,
-                                        duration: 1.5
-                                    });
-                                }
-                            }
-                        });
-
-                        // Cleanup: Remove subbasin when popup closes
-                        layer.on('popupclose', function() {
-                            if (subbasinStation) {
-                                map.removeLayer(subbasinStation);
-                                subbasinStation = null;
-                            }
-                        });
-                    }
-                }).addTo(map);
-            });
     </script>
 
     <script>
