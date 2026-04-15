@@ -361,19 +361,26 @@ def plot_reservoir_timeseries(
 
     # Calculate Climatology
     climatology = ts.mean(skipna=True)
+    vars = [var for var in climatology.index if var.endswith('_mm')]
+    climatology[vars] *= 365 # transform to mm/year
+
+    # Degree of regulation
+    dor = attributes.cap_mcm / (climatology.inflow_mm * attributes.catch_skm) * 1e3
 
     signature_text = (
         "<b>Properties</b><br>"
-        f"Capacity: {attributes.cap_mcm:.0f} hm³<br>"
-        f"Surface: {attributes.area_skm:.0f} km²<br>"
-        f"Catchment: {attributes.catch_skm:.0f} km²<br>"
-        # f"Use: {attributes.main_use}<br>"
+        f"Capacity: {attributes.cap_mcm:.1f} hm³<br>"
+        f"Surface: {attributes.area_skm:.1f} km²<br>"
+        f"Catchment: {attributes.catch_skm:.1f} km²<br>"
+        f"Deg. Regulation: {dor:.2f}<br>"
+        f"Deg. Disruptivity: {attributes.dod_m:.2f} m<br>"
+        f"Use: {attributes.main_use}<br>"
         "<br><b>Climatology</b><br>"
         f"Filling: {climatology.filling:.2f}<br>"
-        f"Inflow: {climatology.inflow_mm * 365:.0f} mm/year<br>"
-        f"Outflow: {climatology.outflow_mm * 365:.0f} mm/year<br>"
-        f"Precipitation: {climatology.precip_mm * 365:.0f} mm/year<br>"
-        f"PET: {climatology.pet_mm * 365:.0f} mm/year<br>"
+        f"Inflow: {climatology.inflow_mm:.0f} mm/year<br>"
+        f"Outflow: {climatology.outflow_mm:.0f} mm/year<br>"
+        f"Precipitation: {climatology.precip_mm:.0f} mm/year<br>"
+        f"PET: {climatology.pet_mm:.0f} mm/year<br>"
         f"Temperature: {climatology.temp_degC:.1f} °C<br>"
         "<br><b>Hydrological Signatures</b>"
         f"<br>Baseflow Index: {bfi_outflow:.2f}<br>"
@@ -435,6 +442,8 @@ def plot_reservoir_timeseries(
     )
 
     # 4. Update Layout & Scale Buttons
+    mm_cols = [col for col in ts.columns if col.endswith('_mm')]
+    ymax = ts[mm_cols].max().max() * 1.2
     fig.update_layout(
         title_text=f"<b>{title if title else ''}</b>",
         title_x=0.5,
@@ -461,20 +470,20 @@ def plot_reservoir_timeseries(
                     dict(label="Linear Scale", method="update", 
                          args=[
                              {"y": [ts['precip_mm'], ts['inflow_mm'], ts['outflow_mm'], fdc_precip.values, fdc_inflow.values, fdc_outflow.values]}, 
-                             {"yaxis.type": "linear", "yaxis.title.text": "Water Depth (mm)", "yaxis.position": yaxis_pos},
+                             {"yaxis.type": "linear", "yaxis.range": [0, ymax], "yaxis.title.text": "Water Depth (mm)", "yaxis.position": yaxis_pos},
                              # trace indices
                              [0, 1, 2, 4, 5, 6]
                          ]),
                     dict(label="Log Scale", method="update",
                          args=[
                              {"y": [ts['precip_mm'], ts['inflow_mm'], ts['outflow_mm'], fdc_precip.values, fdc_inflow.values, fdc_outflow.values]}, 
-                             {"yaxis.type": "log", "yaxis.title.text": "Water Depth (log mm)", "yaxis.position": yaxis_pos},
+                             {"yaxis.type": "log", "yaxis.autorange": True, "yaxis.title.text": "Water Depth (log mm)", "yaxis.position": yaxis_pos},
                              [0, 1, 2, 4, 5, 6]
                          ]),
                     dict(label="Sqrt Scale", method="update",
                          args=[
                              {"y": [ts['precip_mm']**0.5, ts['inflow_mm']**0.5, ts['outflow_mm']**0.5, fdc_precip.values**0.5, fdc_inflow.values**0.5, fdc_outflow.values**0.5]},
-                             {"yaxis.type": "linear", "yaxis.title.text": "Water Depth (√mm)", "yaxis.position": yaxis_pos},
+                             {"yaxis.type": "linear", "yaxis.range": [0, ymax**0.5], "yaxis.title.text": "Water Depth (√mm)", "yaxis.position": yaxis_pos},
                              [0, 1, 2, 4, 5, 6]
                          ])
                 ],
@@ -491,7 +500,8 @@ def plot_reservoir_timeseries(
     fig.update_yaxes(
         title_text="Water Depth (mm)",
         row=1, col=1,
-        rangemode="tozero",
+        range=[0, ymax],
+        # rangemode='tozero',
         secondary_y=False,
         side="left",
         anchor="x",
