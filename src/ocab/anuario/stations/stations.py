@@ -202,8 +202,8 @@ def get_gauges_miteco(
         'regulado': 'regulated',
         'muy modificado': 'regulated',
         'alterado': 'altered',
-        '-': 'unkown',
-        pd.NA: 'unkown',
+        '-': 'unknown',
+        pd.NA: 'unknown',
     })
     stations.weir = stations.weir.replace({'Sí': True, 'y': True, pd.NA: False}).astype(bool)
     int_cols = ['start', 'end', 'id', 'id_basin']
