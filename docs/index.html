@@ -254,7 +254,7 @@
                         let props =  feature.properties;
                         let id = props.ID || props.id || "ID";
                         let name = toTitleCase(props.name || props.NAME || "Reservoir");
-                        let river = props.RIVER || props.river || "River";
+                        let river = toTitleCase(props.RIVER || props.river || "River");
                         let basin = toTitleCase(props.basin || props.BASIN || "Basin");
                         let capacity = props.cap_mcm || props.CAP_MCM || "Capacity";
                         let catchment = props.catch_skm || props.CATCH_SKM || "Catchment";
@@ -265,6 +265,9 @@
                             Basin: ${basin}<br>
                             Capacity: ${capacity} hm³<br>
                             Catchment: ${catchment} km²<br>
+                            <a href="./timeseries/reservoirs/plots/${id}.html" target="_blank" rel="noopener noreferrer">
+                                View Time Series
+                            </a>
                         `);
 
                         // Trigger subbasin drawing when the popup opens
@@ -352,10 +355,10 @@
                     },
                     onEachFeature: function (feature, layer) {
                         let props = feature.properties;
-                        let name = props.NAME || props.name || "Name";
                         let id = props.ID || props.id || "ID";
-                        let river = props.RIVER || props.river || "River";
-                        let basin = props.BASIN || props.basin || "Basin";
+                        let name = toTitleCase(props.NAME || props.name || "Name");
+                        let river = toTitleCase(props.RIVER || props.river || "River");
+                        let basin = toTitleCase(props.BASIN || props.basin || "Basin");
                         let catchment = props.catch_skm || props.CATCH_SKM || "Catchment";
                         
                         // Pop-up window
@@ -365,7 +368,7 @@
                             Basin: ${basin}<br>
                             Catchment: ${catchment} km²<br>
                             <a href="./timeseries/stations/plots/${id}.html" target="_blank" rel="noopener noreferrer">
-                                View Hydrograph
+                                View Time Series
                             </a>
                         `);
 
