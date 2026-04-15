@@ -1,6 +1,9 @@
 import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def annual_runoff(discharge: pd.Series, area: float) -> float:
@@ -92,6 +95,10 @@ def slope_fdc(discharge: pd.Series, quantiles=[.333, .666]) -> [pd.Series, float
     """
     if len(quantiles) != 2:
         raise ValueError(f"'quantiles must be a list of two values: {quantiles}")
+    
+    if discharge.isnull().all():
+        logger.warning('Empty time series')
+        return pd.Series, np.nan
     
     # compute the flow duration curve
     fdc = flow_duration_curve(discharge)

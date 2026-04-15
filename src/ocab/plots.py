@@ -303,6 +303,221 @@ def plot_station_timeseries(
     else:
         fig.show()
 
+
+def plot_reservoir_timeseries(
+    ts: pd.DataFrame,
+    attributes: pd.Series,
+    save: bool = False,
+    **kwargs
+    ):
+    """
+    Creates an interactive figure with two plots: the time series and the flow duration curve.
+    Interactive buttons allow to transform the specific discharge and precipitation data to 
+    logarithmic or square root scales to identify issues in the low flows.
+    
+    Parameters:
+    -----------
+    ts: pandas.Series
+        Discharge time series
+    attributes: pd.Series
+        Reservoir and dam attributes
+    save: boolean
+        If True, return an object with the Plotly figure. If false, show the figure
+    
+    Keyword arguments:
+    ------------------
+    c_fill: string
+        Color used to plot reservoir filling
+    c_in: string
+        Color used to plot inflow
+    c_out: string
+        Color used to plot outflow
+    c_precip: string
+        Color used to plot precipitation
+    title: string
+        Figure title
+    """
+
+    # Extract keywords
+    c_fill = kwargs.get('c_fill', 'black')
+    c_in = kwargs.get('c_line', 'seagreen')
+    c_out = kwargs.get('c_line', 'indianred')
+    c_precip = kwargs.get('c_bar', 'steelblue')
+    title = kwargs.get('title', None)
+    yaxis_pos = kwargs.get('yaxis_pos', 0.06)
+
+    # extract time series
+    variables = ['filling', 'inflow_cms', 'inflow_mm', 'outflow_cms', 'outflow_mm', 'precip_mm', 'temp_degC', 'pet_mm']
+    missing_vars = set(variables).difference(ts.columns)
+    if len(missing_vars) > 0:
+        ts[missing_vars] = np.nan
+
+    # 1. Compute hydrological signatures
+    _, bfi_outflow = baseflow_index(ts['outflow_cms'])
+    fi_outflow = flashiness_index(ts['outflow_cms'])
+    fdc_inflow, _ = slope_fdc(ts['inflow_cms'])
+    fdc_outflow, slope_outflow = slope_fdc(ts['outflow_cms'])
+    fdc_precip, _ = slope_fdc(ts['precip_mm'])
+
+    # Calculate Climatology
+    climatology = ts.mean(skipna=True)
+
+    signature_text = (
+        "<b>Properties</b><br>"
+        f"Capacity: {attributes.cap_mcm:.0f} hm³<br>"
+        f"Surface: {attributes.area_skm:.0f} km²<br>"
+        f"Catchment: {attributes.catch_skm:.0f} km²<br>"
+        # f"Use: {attributes.main_use}<br>"
+        "<br><b>Climatology</b><br>"
+        f"Filling: {climatology.filling:.2f}<br>"
+        f"Inflow: {climatology.inflow_mm * 365:.0f} mm/year<br>"
+        f"Outflow: {climatology.outflow_mm * 365:.0f} mm/year<br>"
+        f"Precipitation: {climatology.precip_mm * 365:.0f} mm/year<br>"
+        f"PET: {climatology.pet_mm * 365:.0f} mm/year<br>"
+        f"Temperature: {climatology.temp_degC:.1f} °C<br>"
+        "<br><b>Hydrological Signatures</b>"
+        f"<br>Baseflow Index: {bfi_outflow:.2f}<br>"
+        f"Flashiness Index: {fi_outflow:.2f}<br>"
+        f"Slope FDC: {slope_outflow:.2f}<br>"
+    )
+
+    # 2. Create Subplots (Simple single Y-axis)
+    fig = make_subplots(
+        rows=1, cols=2, 
+        shared_yaxes=True,
+        column_widths=[0.7, 0.25], 
+        horizontal_spacing=0.03,
+        subplot_titles=("Hydrograph", "Flow Duration Curve"),
+        specs=[[{"secondary_y": True}, {"secondary_y": False}]]
+    )
+
+    # 3. Add traces
+    # Trace 0: Precipitation (Background)
+    fig.add_trace(
+        go.Bar(x=ts.index, y=ts['precip_mm'], name="Precipitation", marker_color=c_precip, opacity=0.6, showlegend=True),
+        row=1, col=1
+    )
+
+    # Trace 1: Inflow
+    fig.add_trace(
+        go.Scatter(x=ts.index, y=ts['inflow_mm'], name="Inflow", line=dict(color=c_in, width=1), legendgroup="Inflow", showlegend=True),
+        row=1, col=1
+    )
+
+    # Trace 2: Outflow
+    fig.add_trace(
+        go.Scatter(x=ts.index, y=ts['outflow_mm'], name="Outflow", line=dict(color=c_out, width=1), legendgroup="Outflow", showlegend=True),
+        row=1, col=1,
+    )
+
+    # Trace 3: Storage
+    fig.add_trace(
+        go.Scatter(x=ts.index, y=ts['filling'], name="Filling", line=dict(color=c_fill, width=1), legendgroup="Filling", showlegend=True),
+        row=1, col=1, secondary_y=True
+    )
+
+    # Trace 4: Flow Duration Curve of Precipitation (Background)
+    fig.add_trace(
+        go.Scatter(x=fdc_precip.index * 100, y=fdc_precip, name="Precipitation", line=dict(color=c_precip, width=2), opacity=0.6, showlegend=False),
+        row=1, col=2
+    )
+
+    # Trace 5: Flow Duration Curve of Inflow
+    fig.add_trace(
+        go.Scatter(x=fdc_inflow.index * 100, y=fdc_inflow.values, name="Inflow", line=dict(color=c_in, width=2), showlegend=False),
+        row=1, col=2
+    )
+
+    # Trace 6: Flow Duration Curve of Outflow
+    fig.add_trace(
+        go.Scatter(x=fdc_outflow.index * 100, y=fdc_outflow.values, name="Outflow", line=dict(color=c_out, width=2), showlegend=False),
+        row=1, col=2
+    )
+
+    # 4. Update Layout & Scale Buttons
+    fig.update_layout(
+        title_text=f"<b>{title if title else ''}</b>",
+        title_x=0.5,
+        margin=dict(l=100, r=275, t=100, b=50),
+        template="plotly_white",
+        height=550,
+        showlegend=True,
+        legend=dict(
+            orientation="h",
+            yanchor="top",
+            y=-0.15,
+            xanchor="center",
+            x=0.35,
+            itemclick="toggle",
+            itemdoubleclick="toggleothers",
+            groupclick="togglegroup",
+            bgcolor="rgba(255, 255, 255, 0.5)"
+        ),
+        updatemenus=[
+            # Scale buttons
+            dict(
+                type="buttons", direction="right", active=0, x=yaxis_pos, xanchor="left", y=1.15,
+                buttons=[
+                    dict(label="Linear Scale", method="update", 
+                         args=[
+                             {"y": [ts['precip_mm'], ts['inflow_mm'], ts['outflow_mm'], fdc_precip.values, fdc_inflow.values, fdc_outflow.values]}, 
+                             {"yaxis.type": "linear", "yaxis.title.text": "Water Depth (mm)", "yaxis.position": yaxis_pos},
+                             # trace indices
+                             [0, 1, 2, 4, 5, 6]
+                         ]),
+                    dict(label="Log Scale", method="update",
+                         args=[
+                             {"y": [ts['precip_mm'], ts['inflow_mm'], ts['outflow_mm'], fdc_precip.values, fdc_inflow.values, fdc_outflow.values]}, 
+                             {"yaxis.type": "log", "yaxis.title.text": "Water Depth (log mm)", "yaxis.position": yaxis_pos},
+                             [0, 1, 2, 4, 5, 6]
+                         ]),
+                    dict(label="Sqrt Scale", method="update",
+                         args=[
+                             {"y": [ts['precip_mm']**0.5, ts['inflow_mm']**0.5, ts['outflow_mm']**0.5, fdc_precip.values**0.5, fdc_inflow.values**0.5, fdc_outflow.values**0.5]},
+                             {"yaxis.type": "linear", "yaxis.title.text": "Water Depth (√mm)", "yaxis.position": yaxis_pos},
+                             [0, 1, 2, 4, 5, 6]
+                         ])
+                ],
+            ),
+        ],
+        annotations=[dict(
+            text=signature_text, xref="paper", yref="paper",
+            x=1.02, xanchor="left", y=1, yanchor="top",
+            showarrow=False, align="left", bgcolor="rgba(255, 255, 255, 0.9)"
+        )]
+    )
+
+    # Axis configurations
+    fig.update_yaxes(
+        title_text="Water Depth (mm)",
+        row=1, col=1,
+        rangemode="tozero",
+        secondary_y=False,
+        side="left",
+        anchor="x",
+        position=yaxis_pos
+    )
+    fig.update_yaxes(
+        title_text="Filling (-)",
+        row=1, col=1,
+        secondary_y=True,
+        range=[0, 1.1],
+        showgrid=False,
+        side="left",
+        anchor="free",
+        position=0.0,
+        overlaying="y"
+    )
+    fig.update_yaxes(title_text="", row=1, col=2)
+    fig.update_xaxes(title_text="Date", domain=[yaxis_pos, 0.7], row=1, col=1)
+    fig.update_xaxes(title_text="Exceedance Prob. (%)", domain=[0.75, 1.0], row=1, col=2)
+
+    if save:
+        return fig
+    else:
+        fig.show()
+
+
 def create_station_html(
     fig, 
     path: str,
