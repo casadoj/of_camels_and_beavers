@@ -178,8 +178,8 @@ def plot_station_timeseries(
     """
 
     # Extract keywords
-    c_dis = kwargs.get('c_line', 'indianred')
-    c_precip = kwargs.get('c_bar', 'steelblue')
+    c_dis = kwargs.get('c_dis', 'indianred')
+    c_precip = kwargs.get('c_precip', 'steelblue')
     title = kwargs.get('title', None)
 
     # Extract time series
@@ -192,7 +192,7 @@ def plot_station_timeseries(
     _, bfi = baseflow_index(dis_cms)
     fi = flashiness_index(dis_cms)
     fdc_dis, slope = slope_fdc(dis_mm)
-    fdc_precip, slope = slope_fdc(precip)
+    fdc_precip, _ = slope_fdc(precip)
 
     # Calculate Climatology values
     avg_precip = precip.mean()
