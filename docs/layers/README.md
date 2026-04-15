@@ -65,6 +65,7 @@
 | dam_len_m | m | float | Length of the dam crest |
 | dam_type | - | str | Type of dam |
 | dis_avg_mcm | hm³ | float | Average annual inflow |
+| dod_m | m | float | Degree of disruptivity: capacity by catchment area |
 | elev_masl | m | float | Altitude (meters above sea level) |
 | end | year | int | Year when the time series finish |
 | estate | - | str | Estate where the reservoir is located |

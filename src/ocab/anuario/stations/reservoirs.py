@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import geopandas as gpd
 from pathlib import Path
@@ -9,7 +10,7 @@ from .utils import encode_reservoir_use, _check_names
 logger = logging.getLogger(__name__)
 
 
-def get_reservoirs_basin(
+def get_dams_anuario(
         path: Path, 
         active: bool = False, 
         epsg: int = 4326
@@ -47,7 +48,7 @@ def get_reservoirs_basin(
         'latwgs84': 'lat_wgs84',
         'longwgs84': 'lon_wgs84', 
         'mna': 'mwl_elev_masl', 
-        'mnne': 'nwl_elev_masl', 
+        'mnne': 'elev_masl', 
         'muni_id': 'id_municipality',
         'nae': 'years_annual',
         'naem': 'years_monthly', 
@@ -65,6 +66,8 @@ def get_reservoirs_basin(
     stations.index = stations.index.astype(int)
     
     # handle fields
+    cols = ['elev_masl', 'mwl_elev_masl']
+    stations[cols] = stations[cols].replace(0, np.nan)
     stations.name = _check_names(stations.name)
     # data.dropna(axis=1, how='all', inplace=True)
     stations[['lon_wgs84', 'lat_wgs84']] /= 1e4
@@ -84,7 +87,7 @@ def get_reservoirs_basin(
     return stations
 
 
-def get_reservoirs_miteco(
+def get_dams_miteco(
         file: Path, 
         active: bool = False, 
         min_area: int = None,
@@ -141,7 +144,7 @@ def get_reservoirs_miteco(
         'estado': 'active',
         # 'fotografia',
         'hoja_1_50000': 'sheet',
-        'nmn_e': 'nwl_elev_masl',
+        'nmn_e': 'elev_masl',
         'nom_anuario': 'name',
         'organismo_cuenca_visor': 'administration',
         # 'plano',
@@ -157,12 +160,14 @@ def get_reservoirs_miteco(
     stations = stations[rename_cols.keys()].rename(columns=rename_cols)
 
     # handle data
+    cols = ['cap_mcm', 'catch_skm', 'elev_masl']
+    stations[cols] = stations[cols].replace(0, np.nan)
     stations.name = _check_names(stations.name)
     stations.river = _check_names(stations.river)
     stations.active = stations.active.map({'ALTA': 1, 'BAJA': 0})
     int_cols = ['start', 'end', 'id']
     stations[int_cols] = stations[int_cols].astype('Int64')
-    float_cols = ['catch_skm', 'nwl_elev_masl', 'cap_mcm']
+    float_cols = ['catch_skm', 'elev_masl', 'cap_mcm']
     stations[float_cols] = stations[float_cols].astype(float)
 
     # set index
@@ -194,7 +199,7 @@ rename_IDR = {
     'demarc': 'basin',
     # 'informe': 'link',
     'nmn_capac': 'cap_mcm',
-    'nmn_sup': 'nwl_area_skm',
+    'nmn_sup': 'area_skm',
     'nombre': 'name',
     'provincia': 'province',
     'sup_cuenca': 'catch_skm',
@@ -250,7 +255,7 @@ def get_reservoirs_IDR(
         'dtor_explo': 'operator',
         # 'id_embalse': 'id_idr_res',
         'nae_cota': 'mwl_elev_masl',
-        'nmn_cota': 'nwl_elev_masl',
+        'nmn_cota': 'elev_masl',
         'tipo_embal': 'reservoir_type',
         'tipo_titul': 'owner_type',
     }
@@ -260,6 +265,8 @@ def get_reservoirs_IDR(
     gdf = gpd.GeoDataFrame(df, geometry=geometry, crs=crs)
     
     # handle data
+    cols = ['cap_mcm', 'catch_skm', 'area_skm', 'elev_masl', 'mwl_elev_masl']
+    gdf[cols] = gdf[cols].replace(0, np.nan)
     gdf.name = _check_names(gdf.name)
     gdf = encode_reservoir_use(gdf, col_use='use')
     translate_reservoir_types = {
@@ -328,7 +335,7 @@ def get_dams_IDR(
         'cauce': 'river', 
         'ccaa': 'estate',
         # 'codigo': 'code', 
-        'cota_coron': 'elev_masl',
+        'cota_coron': 'dam_elev_masl',
         'fase': 'timeline',
         'id_infraes': 'id_idr_dam', 
         'long_coron': 'dam_len_m',
@@ -341,6 +348,8 @@ def get_dams_IDR(
     gdf = gpd.GeoDataFrame(df, geometry=geometry, crs=crs)
 
     # handle data
+    cols = ['cap_mcm', 'catch_skm', 'dam_elev_masl', 'dam_len_m', 'area_skm', 'outlet_cms', 'river_elev_masl', 'spillway_cms']
+    gdf[cols] = gdf[cols].replace(0, np.nan)
     gdf.name = _check_names(gdf.name)
     gdf = encode_reservoir_use(gdf, col_use='use')
     translate_dam_types = {
