@@ -105,6 +105,12 @@
         });
         standard.addTo(map);
 
+        // Declare subbasins layers
+        var allSubbasinsStations = null;
+        var subbasinStation = null;
+        var allSubbasinsReservoirs = null;
+        var subbasinReservoir = null;
+        
         // Add the Relief Map (OpenTopoMap)
         var relief = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
             maxZoom: 17,
@@ -118,6 +124,8 @@
         map.getPane('riverPane').style.zIndex = 390;
         map.createPane('reservoirPane');
         map.getPane('reservoirPane').style.zIndex = 450;
+        map.createPane('subbasinPane');
+        map.getPane('subbasinPane').style.zIndex = 300;
 
         // Add a layer toggle (Top Right corner)
         var baseMaps = {
@@ -125,6 +133,24 @@
             "Standard Map": standard
         };
         L.control.layers(baseMaps).addTo(map);
+
+        // Load Subbasins Stations GeoJSON
+        fetch('./layers/stations_basins_3sec.geojson')
+            .then(res => res.json())
+            .then(data => {
+                allSubbasinsStations = data;
+                console.log("Subbasins stations loaded");
+            })
+            .catch(err => console.error("Error loading subbasins stations:", err));
+
+        // Load Subbasins Reservoirs GeoJSON
+        fetch('./layers/reservoirs_basins_3sec.geojson')
+            .then(res => res.json())
+            .then(data => {
+                allSubbasinsReservoirs = data;
+                console.log("Subbasins reservoirs loaded");
+            })
+            .catch(err => console.error("Error loading subbasins reservoirs:", err));
         
         // Load Basins GeoJSON
         fetch('./layers/basin_authorities.geojson')
@@ -223,18 +249,7 @@
             })
             .then(data => {
                 reservoirLayer = L.geoJSON(data, {
-                    pointToLayer: function (feature, latlng) {
-                        var triangleIcon = L.divIcon({
-                            className: 'custom-div-icon',
-                            html: '<div class="triangle-marker"></div>',
-                            iconSize: [9, 6],
-                            iconAnchor: [6, 10]
-                        });
-                        return L.marker(latlng, { 
-                            icon: triangleIcon,
-                            pane: 'reservoirPane'
-                        });
-                    },
+
                     onEachFeature: function (feature, layer) {
                         let props =  feature.properties;
                         let id = props.ID || props.id || "ID";
@@ -243,12 +258,61 @@
                         let basin = toTitleCase(props.basin || props.BASIN || "Basin");
                         let capacity = props.cap_mcm || props.CAP_MCM || "Capacity";
                         let catchment = props.catch_skm || props.CATCH_SKM || "Catchment";
+
+                        // Pop-up window
                         layer.bindPopup(`
                             <strong>${id} - ${name}</strong><br>
                             Basin: ${basin}<br>
                             Capacity: ${capacity} hm³<br>
                             Catchment: ${catchment} km²<br>
                         `);
+
+                        // Trigger subbasin drawing when the popup opens
+                        layer.on('popupopen', function() {
+                            // Remove old subbasin
+                            if (subbasinReservoir) {
+                                map.removeLayer(subbasinReservoir);
+                            }
+                            if (subbasinStation) {
+                                map.removeLayer(subbasinStation);
+                            }
+
+                            if (allSubbasinsReservoirs) {
+                                subbasinReservoir = L.geoJSON(allSubbasinsReservoirs, {
+                                    filter: function(f) {
+                                        // Force both to strings to ensure the comparison works
+                                        let subId = f.properties.id || f.properties.ID;
+                                        return String(subId) === String(id);
+                                    },
+                                    style: {
+                                        color: 'maroon',
+                                        weight: 2,
+                                        fillColor: 'maroon',
+                                        fillOpacity: 0.2,
+                                        pane: 'subbasinPane'
+                                    }
+                                }).addTo(map);
+
+                                // Zoom in to the subbasins
+                                const bounds = subbasinReservoir.getBounds();
+                                if (bounds.isValid()) {
+                                    map.fitBounds(bounds, {
+                                        padding: [50, 50],
+                                        maxZoom: 12,
+                                        animate: true,
+                                        duration: 1.5
+                                    });
+                                }
+                            }
+                        });
+
+                        // Cleanup: Remove subbasin when popup closes
+                        layer.on('popupclose', function() {
+                            if (subbasinReservoir) {
+                                map.removeLayer(subbasinReservoir);
+                                subbasinReservoir = null;
+                            }
+                        });
                     }
                 });
                 // Initial check: Only add if already zoomed in
@@ -293,7 +357,8 @@
                         let river = props.RIVER || props.river || "River";
                         let basin = props.BASIN || props.basin || "Basin";
                         let catchment = props.catch_skm || props.CATCH_SKM || "Catchment";
-                        // let link = props.url_link || props.URL_LINK || "#";
+                        
+                        // Pop-up window
                         layer.bindPopup(`
                             <strong>${id} - ${name}</strong><br>
                             River: ${river}<br>
@@ -303,6 +368,53 @@
                                 View Hydrograph
                             </a>
                         `);
+
+                        // Trigger subbasin drawing when the popup opens
+                        layer.on('popupopen', function() {
+                            // Remove old subbasin
+                            if (subbasinReservoir) {
+                                map.removeLayer(subbasinReservoir);
+                            }
+                            if (subbasinStation) {
+                                map.removeLayer(subbasinStation);
+                            }
+
+                            if (allSubbasinsStations) {
+                                subbasinStation = L.geoJSON(allSubbasinsStations, {
+                                    filter: function(f) {
+                                        // Force both to strings to ensure the comparison works
+                                        let subId = f.properties.id || f.properties.ID;
+                                        return String(subId) === String(id);
+                                    },
+                                    style: {
+                                        color: 'maroon',
+                                        weight: 2,
+                                        fillColor: 'maroon',
+                                        fillOpacity: 0.2,
+                                        pane: 'subbasinPane'
+                                    }
+                                }).addTo(map);
+
+                                // Zoom in to the subbasins
+                                const bounds = subbasinStation.getBounds();
+                                if (bounds.isValid()) {
+                                    map.fitBounds(bounds, {
+                                        padding: [50, 50],
+                                        maxZoom: 12,
+                                        animate: true,
+                                        duration: 1.5
+                                    });
+                                }
+                            }
+                        });
+
+                        // Cleanup: Remove subbasin when popup closes
+                        layer.on('popupclose', function() {
+                            if (subbasinStation) {
+                                map.removeLayer(subbasinStation);
+                                subbasinStation = null;
+                            }
+                        });
                     }
                 }).addTo(map);
             });
