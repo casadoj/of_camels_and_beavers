@@ -85,7 +85,7 @@
 <body>
 
     <div id="ui-container">
-        <h1>CAMELS-ES Explorer</h1>
+        <h1>Of Camels and Beavers</h1>
         <div id="sidebar">
             <h3>Basins</h3>
             <div id="basin-list">Loading basins...</div>
@@ -127,7 +127,7 @@
         L.control.layers(baseMaps).addTo(map);
         
         // Load Basins GeoJSON
-        fetch('./demarcaciones.geojson')
+        fetch('./layers/basin_authorities.geojson')
             .then(res => {
                 if (!res.ok) throw new Error("Could not load Basins GeoJSON file");
                 return res.json();
@@ -176,7 +176,7 @@
             });
 
         // Load Rivers GeoJSON
-        fetch('./rios.geojson')
+        fetch('./layers/rivers.geojson')
             .then(res => {
                 if (!res.ok) throw new Error("Could not load Rivers GeoJSON file");
                 return res.json();
@@ -216,7 +216,7 @@
 
         // Load Reservoirs GeoJSON file
         let reservoirLayer;
-        fetch('./embalses.geojson')
+        fetch('./layers/reservoirs.geojson')
             .then(res => {
                 if (!res.ok) throw new Error("Could not load Reservoirs GeoJSON file");
                 return res.json();
@@ -237,11 +237,17 @@
                     },
                     onEachFeature: function (feature, layer) {
                         let props =  feature.properties;
-                        let name = toTitleCase(props.nombre || props.NOMBRE || "Reservoir");
-                        let basin = toTitleCase(props.cuenca || props.CUENCA || "Basin");
+                        let id = props.ID || props.id || "ID";
+                        let name = toTitleCase(props.name || props.NAME || "Reservoir");
+                        let river = props.RIVER || props.river || "River";
+                        let basin = toTitleCase(props.basin || props.BASIN || "Basin");
+                        let capacity = props.cap_mcm || props.CAP_MCM || "Capacity";
+                        let catchment = props.catch_skm || props.CATCH_SKM || "Catchment";
                         layer.bindPopup(`
-                            <strong>${name} Reservoir</strong><br>
+                            <strong>${id} - ${name}</strong><br>
                             Basin: ${basin}<br>
+                            Capacity: ${capacity} hm³<br>
+                            Catchment: ${catchment} km²<br>
                         `);
                     }
                 });
@@ -263,7 +269,7 @@
         });
 
         // Load Stations GeoJSON file
-        fetch('./estaciones.geojson')
+        fetch('./layers/stations.geojson')
             .then(res => {
 				if (!res.ok) throw new Error("Could not load stations GeoJSON file");
 				return res.json();
@@ -282,17 +288,18 @@
                     },
                     onEachFeature: function (feature, layer) {
                         let props = feature.properties;
-                        let name = props.lugar || props.LUGAR || "Name";
-                        let id = props.indroea || props.INDROEA || "ID";
-                        let river = props.rio || props.RIO || "River";
-                        let system = props.sistema || props.SISTEMA || "System";
-                        let basin = props.cuenca || props.CUENCA || "Basin";
-                        let link = props.url_link || props.URL_LINK || "#";
+                        let name = props.NAME || props.name || "Name";
+                        let id = props.ID || props.id || "ID";
+                        let river = props.RIVER || props.river || "River";
+                        let basin = props.BASIN || props.basin || "Basin";
+                        let catchment = props.catch_skm || props.CATCH_SKM || "Catchment";
+                        // let link = props.url_link || props.URL_LINK || "#";
                         layer.bindPopup(`
                             <strong>${id} - ${name}</strong><br>
                             River: ${river}<br>
                             Basin: ${basin}<br>
-                            <a href="./${slugify(basin)}/${slugify(system)}/plots/${id}.html">View Hydrograph</a>
+                            Catchment: ${catchment} km²<br>
+                            <a href="./timeseries/stations/plots/${id}.html">View Hydrograph</a>
                         `);
                     }
                 }).addTo(map);
@@ -305,7 +312,7 @@
             let email = localStorage.getItem('userEmail');
             
             if (!email) {
-                email = prompt("Welcome to the CAMELS-ES Explorer!\nPlease enter your email to begin contributing:");
+                email = prompt("Welcome to the CAMELS-ES and BEAVERS-ES Explorer!\nPlease enter your email to begin contributing:");
                 if (email && email.includes('@')) {
                     localStorage.setItem('userEmail', email.trim());
                 } else {
