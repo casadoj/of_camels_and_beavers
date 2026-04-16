@@ -12,8 +12,8 @@ dataset:
     version: 2.0.0
     # study period
     period:
-        start: 1991-01-01
-        end: 2021-09-30
+        start: 1979-01-01
+        end: 2021-09-30 # O TU FECHA MÁS RECIENTE
     # catchment size
     area:
         min: 10
