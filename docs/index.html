@@ -137,7 +137,7 @@
         L.control.layers(baseMaps).addTo(map);
 
         // Load Subbasins Stations GeoJSON
-        fetch('./layers/stations_basins_3sec.geojson')
+        fetch('./layers/stations_basins_web.geojson')
             .then(res => res.json())
             .then(data => {
                 allSubbasinsStations = data;
@@ -146,7 +146,7 @@
             .catch(err => console.error("Error loading subbasins stations:", err));
 
         // Load Subbasins Reservoirs GeoJSON
-        fetch('./layers/reservoirs_basins_3sec.geojson')
+        fetch('./layers/reservoirs_basins_web.geojson')
             .then(res => res.json())
             .then(data => {
                 allSubbasinsReservoirs = data;
