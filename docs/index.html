@@ -264,17 +264,21 @@
                     onEachFeature: function (feature, layer) {
                         let props = feature.properties;
                         let id = props.ID || props.id || "ID";
-                        let name = toTitleCase(props.NAME || props.name || "Name");
-                        let river = toTitleCase(props.RIVER || props.river || "River");
-                        let basin = toTitleCase(props.BASIN || props.basin || "Basin");
-                        let catchment = props.catch_skm || props.CATCH_SKM || "Catchment";
+                        let name = toTitleCase(props.name || "Unknown");
+                        let river = toTitleCase(props.river || "Unknown");
+                        let basin = toTitleCase(props.basin || "Unknown");
+                        let catchment = props.catch_skm || "Unknown";
+                        let start = props.start || "Unknown";
+                        let end = props.end || "Unknown";
+                        let regime = (props.regime || "Unknown").toLowerCase();
                         
                         // Pop-up window
                         layer.bindPopup(`
                             <strong>${id} - ${name}</strong><br>
-                            River: ${river}<br>
-                            Basin: ${basin}<br>
+                            River: ${river} (${basin})<br>
                             Catchment: ${catchment} km²<br>
+                            Period: ${start}-${end}<br>
+                            Regime: ${regime}<br>
                             <a href="./timeseries/stations/plots/${id}.html" target="_blank" rel="noopener noreferrer">
                                 View Time Series
                             </a>
@@ -350,13 +354,16 @@
                         let basin = toTitleCase(props.basin || props.BASIN || "Basin");
                         let capacity = props.cap_mcm || props.CAP_MCM || "Capacity";
                         let catchment = props.catch_skm || props.CATCH_SKM || "Catchment";
+                        let start = props.start || "Unknown";
+                        let end = props.end || "Unknown";
 
                         // Pop-up window
                         layer.bindPopup(`
                             <strong>${id} - ${name}</strong><br>
-                            Basin: ${basin}<br>
+                            River: ${river} (${basin})<br>
                             Capacity: ${capacity} hm³<br>
                             Catchment: ${catchment} km²<br>
+                            Period: ${start}-${end}<br>
                             <a href="./timeseries/reservoirs/plots/${id}.html" target="_blank" rel="noopener noreferrer">
                                 View Time Series
                             </a>

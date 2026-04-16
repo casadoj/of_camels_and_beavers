@@ -5,9 +5,11 @@
 * [_basin_authorities.geoson_](./basin_authorities.geojson): polygon layer of the administritative organization.
 * [_reservoirs.geojson_](./reservoirs.geojson): polygon layer of the pre-selected reservoirs.
 * [_reservoirs_basins_3sec.gejson_](./reservoirs_basins_3sec.geojson): polygon layer of the reservoir basins delineated using MERIT digital elevation map (3 arcsecond spatial resolution).
+* [_reservoirs_basins_web.gejson_](./reservoirs_basins_3sec.geojson): polygon layer of the reservoir basins simplified to be shown on the website.
 * [_rivers.geojson_](./rivers.geojson): polyline layer of main rivers.
 * [_stations.geojson_](./stations.geojson): point layer of the pre-selected gauging stations (coordinates reported by the Ministry).
 * [_stations_basins_3sec.gejson_](./stations_basins_3sec.geojson): polygon layer of the station basins delineated using MERIT digital elevation map (3 arcsecond spatial resolution).
+* [_stations_basins_3sec.gejson_](./stations_basins_3sec.geojson): polygon layer of the station basins simplified to be shown on the website.
 
 ## _stations.geojson_
 
