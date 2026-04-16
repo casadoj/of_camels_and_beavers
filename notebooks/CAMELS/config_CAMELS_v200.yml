@@ -12,7 +12,7 @@ dataset:
     version: 2.0.0
     # study period
     period:
-        start: 1991-01-01
+        start: 1980-01-01
         end: 2021-09-30
     # catchment size
     area:
@@ -23,7 +23,7 @@ dataset:
         availability: 0.9
         years: 4
     # coordinate reference system
-    crs: 4326 #'epsg:4326'
+    crs: 4326
 
 # LSTM model configuration
 modelo:
