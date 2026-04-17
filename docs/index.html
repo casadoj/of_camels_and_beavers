@@ -80,6 +80,38 @@
                 drop-shadow(0 1px 0 white) 
                 drop-shadow(0 -1px 0 white);
         }
+        .station-label {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            color: maroon;
+            font-weight: bold;
+            font-size: 13px;
+            text-shadow: -1px -1px 0 #fff, 
+                        1px -1px 0 #fff, 
+                        -1px  1px 0 #fff, 
+                        1px  1px 0 #fff;
+            pointer-events: none; /* Ensures tooltips don't interfere with clicking */
+        }
+        .station-label::before { 
+            display: none !important;
+        }
+        .reservoir-label {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            color: #3388ff;
+            font-weight: bold;
+            font-size: 13px;
+            text-shadow: -1px -1px 0 #fff, 
+                        1px -1px 0 #fff, 
+                        -1px  1px 0 #fff, 
+                        1px  1px 0 #fff;
+            pointer-events: none; /* Ensures tooltips don't interfere with clicking */
+        }
+        .reservoir-label::before { 
+            display: none !important;
+        }
     </style>
 </head>
 <body>
@@ -110,6 +142,7 @@
         var subbasinStation = null;
         var allSubbasinsReservoirs = null;
         var subbasinReservoir = null;
+        var stations = null;
         
         // Add the Relief Map (OpenTopoMap)
         var relief = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
@@ -213,7 +246,7 @@
                 L.geoJSON(data, {
                     style: function(feature) {
                         return {
-                            color: 'steelblue',
+                            color: '#3388ff',
                             weight: 1.5,
                             opacity: 0.7,
                             lineJoin: 'round',
@@ -229,19 +262,6 @@
             return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
         }
 
-        // // Helper function to remove strange characters
-        // function slugify(str) {
-        //     return str
-        //         .toString()
-        //         .normalize('NFD')
-        //         .replace(/[\u0300-\u036f]/g, '')
-        //         .toLowerCase()
-        //         .trim()
-        //         .replace(/\s+/g, '-')
-        //         .replace(/[^\w-]+/g, '')
-        //         .replace(/--+/g, '-');
-        // }
-
         // Load Stations GeoJSON file
         fetch('./layers/stations.geojson')
             .then(res => {
@@ -250,7 +270,7 @@
 			})
             .then(data => {
                 console.log("Data loaded successfully:", data);
-                L.geoJSON(data, {
+                stations = L.geoJSON(data, {
                     pointToLayer: function (feature, latlng) {
                         return L.circleMarker(latlng, {
                             radius: 5,
@@ -272,6 +292,14 @@
                         let end = props.end || "Unknown";
                         let regime = (props.regime || "Unknown").toLowerCase();
                         
+                        // tooltip
+                        layer.bindTooltip(String(id), {
+                            permanent: true,
+                            direction: 'top',
+                            className: 'station-label',
+                            opacity: 0 // Start invisible
+                        });
+
                         // Pop-up window
                         layer.bindPopup(`
                             <strong>${id} - ${name}</strong><br>
@@ -335,14 +363,14 @@
             });
 
         // Load Reservoirs GeoJSON file
-        let reservoirLayer;
+        let reservoirs;
         fetch('./layers/reservoirs.geojson')
             .then(res => {
                 if (!res.ok) throw new Error("Could not load Reservoirs GeoJSON file");
                 return res.json();
             })
             .then(data => {
-                reservoirLayer = L.geoJSON(data, {
+                reservoirs = L.geoJSON(data, {
                     style: {
                         pane: 'reservoirPane'
                     },
@@ -356,6 +384,14 @@
                         let catchment = props.catch_skm || props.CATCH_SKM || "Catchment";
                         let start = props.start || "Unknown";
                         let end = props.end || "Unknown";
+
+                        // tooltip
+                        layer.bindTooltip(String(id), {
+                            permanent: true,
+                            direction: 'top',
+                            className: 'reservoir-label',
+                            opacity: 0 // Start invisible
+                        });
 
                         // Pop-up window
                         layer.bindPopup(`
@@ -419,17 +455,40 @@
                 });
                 // Initial check: Only add if already zoomed in
                 if (map.getZoom() >= 9) {
-                    reservoirLayer.addTo(map);
+                    reservoirs.addTo(map);
                 }
             });
 
         // Listen for zoom changes
         map.on('zoomend', function() {
-            if (reservoirLayer) {
-                if (map.getZoom() >= 9) {
-                    if (!map.hasLayer(reservoirLayer)) map.addLayer(reservoirLayer);
+            const zoom = map.getZoom();
+            
+            // visibility station ID labels
+            if (stations) {
+                stations.eachLayer(function(layer) {
+                    const tooltip = layer.getTooltip();
+                    if (tooltip) {
+                        tooltip.setOpacity(zoom >= 11 ? 1 : 0);
+                    }
+                });
+            }
+
+            // visibility reservoir ID labels
+            if (reservoirs) {
+                reservoirs.eachLayer(function(layer) {
+                    const tooltip = layer.getTooltip();
+                    if (tooltip) {
+                        tooltip.setOpacity(zoom >= 11 ? 1 : 0);
+                    }
+                });
+            }
+
+            // visibility of the reservoir layer
+            if (reservoirs) {
+                if (map.getZoom() >= 8) {
+                    if (!map.hasLayer(reservoirs)) map.addLayer(reservoirs);
                 } else {
-                    if (map.hasLayer(reservoirLayer)) map.removeLayer(reservoirLayer);
+                    if (map.hasLayer(reservoirs)) map.removeLayer(reservoirs);
                 }
             }
         });
