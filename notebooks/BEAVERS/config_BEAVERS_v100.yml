@@ -27,7 +27,7 @@ dataset:
         availability: 0.9
         years: 4
     # coordinate reference system
-    crs: 4326 #'epsg:4326'
+    crs: 4326
 
 # LSTM model configuration
 modelo:

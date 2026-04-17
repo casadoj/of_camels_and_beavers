@@ -372,7 +372,7 @@ def plot_reservoir_timeseries(
         f"Capacity: {attributes.cap_mcm:.1f} hm³<br>"
         f"Surface: {attributes.area_skm:.1f} km²<br>"
         f"Catchment: {attributes.catch_skm:.1f} km²<br>"
-        f"Deg. Regulation: {dor:.2f}<br>"
+        f"Deg. Regulation: {dor:.2f} year<br>"
         f"Deg. Disruptivity: {attributes.dod_m:.2f} m<br>"
         f"Use: {attributes.main_use}<br>"
         "<br><b>Climatology</b><br>"
@@ -539,7 +539,7 @@ def create_station_html(
     Parameters:
     -----------
     fig:
-        Result of `plot_discharge()`
+        Result of `plot_station_timeseries()`
     path: string
         Name of the HTML file where the figure wil be saved
     start: string
@@ -593,6 +593,100 @@ def create_station_html(
                     const stationEntryId = "1301492004";
                     const startEntryId = "598747998";
                     const endEntryId = "2001326573";
+
+                    const userEmail = localStorage.getItem('userEmail') || "";
+                    const filename = window.location.pathname.split('/').pop();
+                    const stationId = filename.replace('.html', '');
+                    const start = "{start}";
+                    const end = "{end}";
+
+                    const finalUrl = baseUrl + 
+                        "&entry." + stationEntryId + "=" + stationId + 
+                        "&entry." + emailEntryId + "=" + encodeURIComponent(userEmail) + 
+                        "&entry." + startEntryId + "=" + start + 
+                        "&entry." + endEntryId + "=" + end;
+
+                    document.getElementById('form-container').innerHTML = 
+                        '<iframe src="' + finalUrl + '" frameborder="0">Loading form…</iframe>';
+                }})();
+
+                window.addEventListener('load', function() {{
+                    setTimeout(function() {{ window.dispatchEvent(new Event('resize')); }}, 100); 
+                }});
+            </script>
+        </body>
+        </html>
+        """
+    
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(full_page_html)
+
+
+def create_reservoir_html(
+    fig, 
+    path: str,
+    start: str,
+    end: str
+):
+    """Wraps a Plotly figure into the full validation HTML template.
+    
+    Parameters:
+    -----------
+    fig:
+        Result of `plot_reservoir_timeseries()`
+    path: string
+        Name of the HTML file where the figure wil be saved
+    start: string
+        Start date of the time series. Format YYYY-mm-dd
+    end: string
+        End date of the time series. Format YYYY-mm-dd
+    """
+
+    fig.update_layout(height=None, autosize=True)
+
+    # Convert figure to HTML div string
+    plotly_html = fig.to_html(
+        full_html=False, 
+        include_plotlyjs='cdn',
+        config={'responsive': True}
+    )
+
+    full_page_html = f"""
+        <html>
+        <head>
+            <meta charset="utf-8" />
+            <style>
+                body {{ 
+                    margin: 0; padding: 0; height: 100vh; display: flex; 
+                    flex-direction: column; font-family: sans-serif;
+                    overflow: hidden;
+                }}
+                .hydrograph {{ flex: 1; min-height: 50vh; width: 100%; }}
+                .hydrograph > div {{ height: 100% !important; width: 100% !important; }}
+                .google-form {{ order: 2; height: 50vh; display: flex; }}
+                iframe {{ width: 100%; height: 100%; border: none; }}
+                .back-nav {{ position: fixed; top: 12px; left: 8px; z-index: 9999; }}
+                .back-btn {{
+                    text-decoration: none; color: steelblue; font-size: 14px; font-weight: bold; 
+                    background-color: rgba(255, 255, 255, 0.9); padding: 8px 12px; 
+                    border-radius: 5px; border: 1px solid #ccc;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="back-nav">
+                <a href="../../../index.html" class="back-btn">← Back to map</a>
+            </div>
+            <div class="hydrograph">{plotly_html}</div>
+            <div class="google-form" id="form-container"></div>
+
+            <script>
+                (function() {{
+                    const baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdcqEbw2bhJXLUqHFCQLBz0LEbCBUesnxeT32L5l5XkNAfMyg/viewform?embedded=true";
+                    const emailEntryId = "204970380";
+                    const stationEntryId = "889543648";
+                    const startEntryId = "1625252996";
+                    const endEntryId = "314932285";
 
                     const userEmail = localStorage.getItem('userEmail') || "";
                     const filename = window.location.pathname.split('/').pop();
