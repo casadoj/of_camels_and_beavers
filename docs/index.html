@@ -142,6 +142,7 @@
         var subbasinStation = null;
         var allSubbasinsReservoirs = null;
         var subbasinReservoir = null;
+        var smallRivers = null;
         var stations = null;
         
         // Add the Relief Map (OpenTopoMap)
@@ -153,10 +154,12 @@
         // Create a specific pane for basins & rivers to keep them at the bottom
         map.createPane('basinPane');
         map.getPane('basinPane').style.zIndex = 200;
-        map.createPane('riverPane');
-        map.getPane('riverPane').style.zIndex = 390;
         map.createPane('subbasinPane');
         map.getPane('subbasinPane').style.zIndex = 300;
+        map.createPane('riverSmallPane');
+        map.getPane('riverSmallPane').style.zIndex = 350;
+        map.createPane('riverPane');
+        map.getPane('riverPane').style.zIndex = 400;
         map.createPane('reservoirPane');
         map.getPane('reservoirPane').style.zIndex = 450;
         map.createPane('stationPane');
@@ -247,14 +250,39 @@
                     style: function(feature) {
                         return {
                             color: '#3388ff',
-                            weight: 1.5,
-                            opacity: 0.7,
+                            weight: 1.7,
+                            opacity: 0.8,
                             lineJoin: 'round',
                             pane: 'riverPane'
                         };
                     },
                     interactive: false
                 }).addTo(map);
+            });
+
+        // Load Small Rivers GeoJSON
+        fetch('./layers/rivers_smaller.geojson')
+            .then(res => {
+                if (!res.ok) throw new Error("Could not load Small Rivers GeoJSON file");
+                return res.json();
+            })
+            .then(data => {
+                smallRivers = L.geoJSON(data, {
+                    style: function(feature) {
+                        return {
+                            color: '#3388ff',
+                            weight: 1.0,
+                            opacity: 0.7,
+                            lineJoin: 'round',
+                            pane: 'riverSmallPane'
+                        };
+                    },
+                    interactive: false
+                });
+                // Initial check: Only add if already zoomed in
+                if (map.getZoom() >= 11) {
+                    smallRivers.addTo(map);
+                }
             });
         
         // Helper function for Title Case
@@ -454,7 +482,7 @@
                     }
                 });
                 // Initial check: Only add if already zoomed in
-                if (map.getZoom() >= 9) {
+                if (map.getZoom() >= 8) {
                     reservoirs.addTo(map);
                 }
             });
@@ -481,6 +509,15 @@
                         tooltip.setOpacity(zoom >= 11 ? 1 : 0);
                     }
                 });
+            }
+
+            // visibility small rivers
+            if (smallRivers) {
+                if (map.getZoom() >= 11) {
+                    if (!map.hasLayer(smallRivers)) map.addLayer(smallRivers);
+                } else {
+                    if (map.hasLayer(smallRivers)) map.removeLayer(smallRivers);
+                }
             }
 
             // visibility of the reservoir layer
