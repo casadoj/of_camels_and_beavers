@@ -1,6 +1,6 @@
 # Of Camels and Beavers - Spain
 
-![Python_3.12](https://img.shields.io/badge/Python-%3E%3D3.12-blue?labelColor=343b41) &nbsp; [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) &nbsp; [![Docs](https://img.shields.io/badge/docs-online-blue.svg)](https://casadoj.github.io/CAMELS-ES/index.html)
+![Python_3.12](https://img.shields.io/badge/Python-%3E%3D3.12-blue?labelColor=343b41) &nbsp; [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) &nbsp; [![Docs](https://img.shields.io/badge/docs-online-blue.svg)](https://casadoj.github.io/of_camels_and_beavers/index.html)
 
 ## Introduction
 
@@ -12,6 +12,14 @@ This repository creates two dataset representing the natural and regulated Hydro
 The purpose of these two datasets is to build deep-learning models that represent either natural or regulated catchments over the country. CAMELS-ES is part of the [CARAVAN](https://github.com/kratzert/Caravan) initiative, that aims at creating a large dataset of hydrological time series to build large-sample hydrological models.
 
 Both datasets will be published freely on Zenodo to enhance model intercomparison.
+
+<p align="center">
+  <a href="https://doi.org/10.4995/ia.25084">
+    <img src="./paper/fig1_seleccion_estaciones.jpg" width="100%" alt="Spatial distribution of selected stations in Spain.">
+  </a>
+  <br>
+  <em><b>Figure 1:</b> Selection of gauging stations in CAMELS-ES v1.</em>
+</p>
 
 ## Data sources
 
