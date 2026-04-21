@@ -1,28 +1,68 @@
-# Simulación del caudal en España utilizando redes Long Short-Term Memory
+# Of Camels and Beavers - Spain
 
 ![Python_3.12](https://img.shields.io/badge/Python-%3E%3D3.12-blue?labelColor=343b41) &nbsp; [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) &nbsp; [![Docs](https://img.shields.io/badge/docs-online-blue.svg)](https://casadoj.github.io/CAMELS-ES/index.html)
 
-## Introducción
+## Introduction
 
-Trabajo final del Máster en Ciencia de Datos de la Universidad de Alcalá de Henares en el curso 2022-2023.
+This repository creates two dataset representing the natural and regulated Hydrology in Spain.
 
-El trabajo tiene 3 objetivos:
-1. Crear el conjunto de datos CAMELS-ES (_Catchment Attributes and Meteorology for Large-sample Studies - España_) . Este conjunto se enmarca dentro de la iniciativa CARAVAN para crear muestras a gran escala de cuencas hidrológicas, incluyendo series temporales diarias (meteorología y caudal) y atributos estáticos (geomorfología, usos del suelo, tipo de suelo, vegetación...).
-2. Crear una red neuronal recurrente de tipo LSTM (_Long-short Term Memory_) basada en los datos de CAMELS-ES y capaz de simular el caudal diario en cualquier punto de la España Peninsular.
-3. Crear una segunda red LSTM capaz de emular al modelo hidrológico LISFLOOD-OS, el utilizado en el sistema EFAS (_European Flood Awareness System_). Para ello ha de expandirse primero el conjunto de datos CAMELS-ES con los datos de entrada del modelo LISFLOOD-OS (series meteorológicas, mapas estáticos y parámetros calibrados del modelo). Posteriormente se entrena una red LSTM capaz de replicar el caudal simulado por LISFLOOD-OS con sus mismos datos de entrada.
+1. **CAMELS-ES** (*Catchment Attributes and Meteorology for Large-Sample Studies – Spain*): daily time series of river streamflow and catchment meteorology, and catchment characteristics for gauging stations in natural or semi-natural regime.
+2. **BEAVERS-ES** (*Basin and rEservoir Attributes, Volume, Evaporation and Release time Series – Spain*): daily timeseries of reservoir operations (inflow, outflow and storage) and catchment meteorology, and catchment and reservoir characteristics.
 
-## Organización
+The purpose of these two datasets is to build deep-learning models that represent either natural or regulated catchments over the country. CAMELS-ES is part of the [CARAVAN](https://github.com/kratzert/Caravan) initiative, that aims at creating a large dataset of hydrological time series to build large-sample hydrological models.
 
-Actualmente el repositorio cuenta con cinco directorios:
+Both datasets will be published freely on Zenodo to enhance model intercomparison.
 
-1. `bib` contiene algunas referencias bibliográficas.
-2. `data` contiene los datos de partida utilizados para generar el conjunto de datos CAMELS-ES, así como el resultado final.
-3. `docs` contiene documentos como la propuesta de trabajo y el informe final.
-4. `environment` contiene los entornos Conda necesarios para replicar los códigos utilizado.
-5. `notebooks` contiene los cuadernos de Jupyter utilizados en las diversas fases del estudio.
+## Data sources
 
-## Referencias
+The dataests integrate high-quality local and continental producs:
+* **Hydrology**: [*Anuario de aforos 2020-2021*](https://ceh.cedex.es/anuarioaforos/default.asp) (CEDEX).
+* **Meteorology**: [*EMO1*](https://data.jrc.ec.europa.eu/dataset/0bd84be4-cec8-4180-97a6-8b3adaac4d26) (JRC), [*ERA5*](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels?tab=overview) (ECMWF), CERRA, and ROCIO-IBEB.
+* **Catchment attributes**: [EFAS5 static maps](https://data.jrc.ec.europa.eu/dataset/f572c443-7466-4adf-87aa-c0847a169f23) (JRC).
+* **Reservoir and dam characteristics**: [National Inventory of Dams and Reservoirs of Spain](https://www.miteco.gob.es/es/agua/temas/seguridad-de-presas-y-embalses/inventario-presas-y-embalses.html) (MITECO), and [Global Dam Watch](https://www.globaldamwatch.org/).
 
-El conjunto de datos CAMELS-ES puede descargarse de este repostorio en Zenodo: https://zenodo.org/records/15040948
+## How to collaborate
+
+Building such datasets requires the manual selection of gauging stations in natural (or semi-natural regime) and good-quality time series. To ease collaboration, we have created a [website](https://casadoj.github.io/of_camels_and_beavers/) in which anyone can help by answering a set of questions. The answers to the forms will be use to select stations, variables and the best modelling period. We welcome any collaboration.
+
+If you want to collaborate further, please reach out to chus.casado.88@gmail.com.
+
+## Getting started
+
+This project uses [`uv`](https://docs.astral.sh/uv/) for Python package and project management.
+
+### 1. Prerequisites
+
+Ensure you have `uv` installed. If not, you can install it via:
+
+```Bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+### 2. Setup
+
+Clone the repository and install the dependencies. The `uv sync` command will automatically create a virtual environment in `.venv` and install the exact versions from the lockfile.
+
+```Bash
+# Clone the repository
+git clone https://github.com/casadoj/of_camels_and_beavers.git
+cd of_camels_and_beavers
+
+# Install environment and dependencies
+uv sync
+```
+
+### 3. Usage
+
+To run the scripts within the project environment, prefix your commands with `uv run`. For instance:
+
+```Bash
+# create the basin polygons for the reservoirs in BEAVERS-ES
+uv run basin-delineation -c <USER_FOLDER>/BEAVERS-ES/basins/config.yml
+```
+
+## Citation
 
 Casado-Rodríguez, J., Ramos-Gomes, G., & Salamon, P. (2026). Simulación del caudal en España utilizando redes neuronales Long Short-Term Memory. _Ingeniería del Agua, 30_(1), 63–78. https://doi.org/10.4995/ia.25084
+
+CAMELS-ES v1 can be downloaded from Zenodo: https://zenodo.org/records/15040948
