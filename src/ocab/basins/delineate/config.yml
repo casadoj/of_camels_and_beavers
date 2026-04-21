@@ -1,10 +1,10 @@
 input:
     points:         # CSV file defining four point attributes: 'ID', 'lat', 'lon', 'area' in km2
-    flwdir_fine:    # TIFF or NetCDF file of the local direction drainage in the high resolution grid
+    flwdir_fine:    # TIFF or NetCDF file of the flow directions in the high resolution grid
     points_fine:    # points located in the high resolution grid. Only needed if 'flwdir_fine' not provided
     basins_fine:    # basin polygons in the high resolution grid. Only needed if 'flwdir_fine' not provided
-    flowdir_coarse: # TIFF or NetCDF file of the local direction drainage in the low resolution grid
-            
+    flwdir_coarse: # TIFF or NetCDF file of the flow directions in the low resolution grid
+
 output_folder:      # folder where catchment shapefiles will be saved. By default, './shapefiles/'
 
 conditions:

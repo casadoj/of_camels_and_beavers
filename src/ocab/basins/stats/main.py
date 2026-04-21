@@ -252,8 +252,8 @@ def main(argv=sys.argv):
     prog = os.path.basename(argv[0])
     parser = argparse.ArgumentParser(
         description="""
-        Utility to compute basin statistics from (multiple) NetCDF files.
-        The mask masp are NetCDF files with values in the area of interest and NaN elsewhere.
+        Utility to compute basin statistics from (multiple) NetCDF files or a Zarr store.
+        Basin polygons are required to define the areas of interest.
         The area map is optional and accounts for varying pixel area with latitude.
         """,
         prog=prog,

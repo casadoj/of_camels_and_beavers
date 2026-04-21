@@ -1,6 +1,6 @@
 # Of Camels and Beavers - Spain
 
-![Python_3.12](https://img.shields.io/badge/Python-%3E%3D3.12-blue?labelColor=343b41) &nbsp; [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) &nbsp; [![Docs](https://img.shields.io/badge/docs-online-blue.svg)](https://casadoj.github.io/of_camels_and_beavers/index.html)
+![Python_3.12](https://img.shields.io/badge/Python-%3E%3D3.12-blue?labelColor=343b41) &nbsp; [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) &nbsp; [![Docs](https://img.shields.io/badge/docs-online-blue.svg)](https://github.com/casadoj/of_camels_and_beavers/wiki)
 
 ## Introduction
 
