@@ -9,7 +9,7 @@ This repository creates two dataset representing the natural and regulated Hydro
 1. **CAMELS-ES** (*Catchment Attributes and Meteorology for Large-Sample Studies – Spain*): daily time series of river streamflow and catchment meteorology, and catchment characteristics for gauging stations in natural or semi-natural regime.
 2. **BEAVERS-ES** (*Basin and rEservoir Attributes, Volume, Evaporation and Release time Series – Spain*): daily timeseries of reservoir operations (inflow, outflow and storage) and catchment meteorology, and catchment and reservoir characteristics.
 
-The purpose of these two datasets is to build deep-learning models that represent either natural or regulated catchments over the country. CAMELS-ES is part of the [CARAVAN](https://github.com/kratzert/Caravan) initiative, that aims at creating a large dataset of hydrological time series to build large-sample hydrological models.
+The purpose of these two datasets is to build deep-learning models that represent either natural or regulated catchments over the country. CAMELS-ES is part of the [CARAVAN](https://github.com/kratzert/Caravan) initiative, that aims at creating a large dataset of hydrological time series to build large-sample hydrological models. BEAVERS-ES follows that phylosophy, but aims at creating a large dataset of reservoir operations; similar datasets have already been published for the US ([ResOpsUS+CARS](https://zenodo.org/records/15978041)) and Brazil ([ResOpsBR+CARS](https://zenodo.org/records/16096623)).
 
 Both datasets will be published freely on Zenodo to enhance model intercomparison.
 
