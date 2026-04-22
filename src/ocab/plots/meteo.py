@@ -74,14 +74,18 @@ def plot_meteo_timeseries(
             y=meteo['precip_mm'], 
             name="Precipitation", 
             marker_color=c_precip, 
-            marker_line_width=0
+            marker_line_width=0,
+            legendgroup="Precipitation",
+            showlegend=True
         ), row=1, col=1
     )
     fig.add_trace(go.Scatter(
             x=meteo.index, 
             y=meteo['temp_degC'], 
             name="Temperature", 
-            line=dict(color=c_temp, width=0.5)
+            line=dict(color=c_temp, width=0.5),
+            legendgroup="Temperature",
+            showlegend=True
         ), row=1, col=1, secondary_y=True
     )
 
@@ -101,13 +105,13 @@ def plot_meteo_timeseries(
 
     # set axes properties
     fig.update_yaxes(
-        title_text="Precipitation (mm)", 
+        title_text="mm", 
         range=[daily_p_min, daily_p_max], 
         dtick=round_p, 
         row=1, col=1, secondary_y=False
     )
     fig.update_yaxes(
-        title_text="Temperature (°C)", 
+        title_text="°C", 
         range=[daily_t_min, daily_t_max], 
         dtick=round_t, 
         row=1, col=1, secondary_y=True
@@ -130,33 +134,38 @@ def plot_meteo_timeseries(
             x=meteo_m.index, 
             y=meteo_m['precip_mm'], 
             name="Precipitation", 
-            marker_color=c_precip, opacity=0.8
+            marker_color=c_precip, 
+            opacity=0.8,
+            legendgroup="Precipitation",
+            showlegend=False
         ), row=1, col=2
     )
     fig.add_trace(go.Scatter(
             x=meteo_m.index, 
             y=meteo_m['temp_degC'], 
             name="Temperature", 
-            line=dict(color=c_temp, width=2)
+            line=dict(color=c_temp, width=2),
+            legendgroup="Temperature",
+            showlegend=False
         ), row=1, col=2, secondary_y=True
     )
 
     # define Y axis limits
-    factor = 2
-    round_p = 50
-    round_t = round_p / factor
+    factor = .5
+    round_p = 20
+    round_t = round_p * factor
     month_p_max = np.ceil(meteo_m['precip_mm'].max() / round_p) * round_p + 2
     month_t_max = factor * month_p_max
 
     # set axes properties
     fig.update_yaxes(
-        title_text="Precipitation (mm)", 
+        title_text="mm", 
         range=[0, month_p_max], 
         dtick=round_p, 
         row=1, col=2, secondary_y=False
     )
     fig.update_yaxes(
-        title_text="Temperature (°C)", 
+        title_text="°C", 
         range=[0, month_t_max], 
         dtick=round_t, 
         row=1, col=2, secondary_y=True
@@ -177,14 +186,19 @@ def plot_meteo_timeseries(
             x=meteo_y.index, 
             y=meteo_y['precip_mm'], 
             name="Precipitation", 
-            marker_color=c_precip, opacity=0.8
+            marker_color=c_precip, 
+            opacity=0.8,
+            legendgroup="Precipitation",
+            showlegend=False
         ), row=2, col=1
     )
     fig.add_trace(go.Scatter(
             x=meteo_y.index, 
             y=meteo_y['temp_degC'], 
             name="Temperature",
-            line=dict(color=c_temp, width=2)
+            line=dict(color=c_temp, width=2),
+            legendgroup="Temperature",
+            showlegend=False
         ), row=2, col=1, secondary_y=True
     )
 
@@ -200,13 +214,13 @@ def plot_meteo_timeseries(
 
     # set axes properties
     fig.update_yaxes(
-        title_text="Precipitation (mm)", 
+        title_text="mm", 
         range=[0, year_p_max], 
         dtick=dtick_p, 
         row=2, col=1, secondary_y=False
     )
     fig.update_yaxes(
-        title_text="Temperature (°C)", 
+        title_text="°C", 
         range=[0, year_t_max], 
         dtick=dtick_t, 
         row=2, col=1, secondary_y=True
@@ -218,7 +232,16 @@ def plot_meteo_timeseries(
         title_x=0.5,
         height=800, 
         template="plotly_white", 
-        showlegend=False,
+        showlegend=True,
+        legend=dict(
+            orientation="v",
+            yanchor="middle",
+            xanchor="center",
+            y=0.1,
+            x=0.87,
+            bgcolor="rgba(0, 0, 0, 0)", # Semi-transparent background
+            borderwidth=0
+        ),
         bargap=0.075, 
         barmode='overlay'
     )
