@@ -304,7 +304,8 @@ def plot_station_timeseries(
         ), 
         row=row, col=col
     )
-    fig.add_trace(go.Scatter(
+    fig.add_trace(
+        go.Scatter(
             x=ts_m.index, 
             y=ts_m['temp_degC'], 
             name="Temperature", 
