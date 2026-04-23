@@ -552,6 +552,10 @@ def plot_reservoir_timeseries(
         yref="paper", y=1, yanchor="top",
         showarrow=False, align="left", bgcolor="rgba(255, 255, 255, 0.9)"
     )
+    fig.update_xaxes(
+        range=[ts.index.min(), ts.index.max()],
+        row=1, col=1
+    )
     
     if save:
         return fig
