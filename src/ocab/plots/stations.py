@@ -11,42 +11,51 @@ from ocab.signatures import annual_runoff, baseflow_index, flashiness_index, slo
 
 def _define_y_limits(
         df: pd.DataFrame,
-        scale: float,
         round_mm: int,
+        scale: float = 1,
         cols_mm: list = ['precip_mm', 'discharge_mm'],
-        cols_deg: list = ['temp_degC']
+        cols_deg: Optional[list] = ['temp_degC']
 ):
     """
     """
     
-    round_deg = round_mm / scale
-    eps = round_mm / 10
+    eps = round_mm / 100
+    
+    # 1. Define mm limits
 
     # extract values
     mm_vals = df[cols_mm].values.flatten()
-    mm_vals = mm_vals[~np.isnan(mm_vals)]
+    mm_vals = mm_vals[~np.isnan(mm_vals)]   
 
-    deg_vals = df[cols_deg].values.flatten()
-    deg_vals = deg_vals[~np.isnan(deg_vals)]
-
-    # Default values if no data exists to prevent crashes
+    # define min/max values
+    mm_min = 0.0 - eps
     mm_max_raw = np.nanmax(mm_vals) if mm_vals.size > 0 else 100
-    deg_min_raw = np.nanmin(deg_vals) if deg_vals.size > 0 else 0
-    deg_max_raw = np.nanmax(deg_vals) if deg_vals.size > 0 else 30
+    mm_max = np.ceil(mm_max_raw / round_mm) * round_mm + eps
 
-    # get independent min/max values
-    mm_min = 0.0
-    mm_max = np.ceil(mm_max_raw / round_mm) * round_mm
-    deg_min = np.floor(deg_min_raw / round_deg) * round_deg
-    deg_max = np.ceil(deg_max_raw / round_deg) * round_deg
+    # 2. Define °C limits
+    if cols_deg is not None:
+        round_deg = round_mm / scale
 
-    # Sync the scales
-    mm_max = max(mm_max, deg_max * scale) + eps
-    mm_min = min(mm_min, deg_min * scale) - eps
-    deg_max = mm_max / scale
-    deg_min = mm_min / scale
+        # extract values
+        deg_vals = df[cols_deg].values.flatten()
+        deg_vals = deg_vals[~np.isnan(deg_vals)]
+
+        # define min/max values
+        deg_min_raw = np.nanmin(deg_vals) if deg_vals.size > 0 else 0
+        deg_min = np.floor(deg_min_raw / round_deg) * round_deg - eps
+        deg_max_raw = np.nanmax(deg_vals) if deg_vals.size > 0 else 30
+        deg_max = np.ceil(deg_max_raw / round_deg) * round_deg + eps  
+        
+        # Sync the scales
+        mm_min = min(mm_min, deg_min * scale)
+        deg_min = mm_min / scale
+        mm_max = max(mm_max, deg_max * scale)
+        deg_max = mm_max / scale
+    else:
+        deg_min, deg_max = None, None
 
     return [mm_min, mm_max], [deg_min, deg_max]
+
 
 def plot_station_timeseries(
     ts: pd.DataFrame,
@@ -86,7 +95,7 @@ def plot_station_timeseries(
 
     # Extract keywords
     alpha = kwargs.get('alpha', 0.2)
-    c_dis = kwargs.get('c_dis', 'dimgrey')
+    c_dis = kwargs.get('c_dis', 'darkslategrey')
     c_precip = kwargs.get('c_precip', 'lightblue')
     c_temp = kwargs.get('c_temp', 'darkred')
     title = kwargs.get('title', None)
@@ -95,7 +104,7 @@ def plot_station_timeseries(
     fig = make_subplots(
         rows=4, cols=2,
         specs=[
-            [{"colspan": 2, "secondary_y": True}, None], # row 1
+            [{"colspan": 2}, None], # row 1
             [{"colspan": 2}, None], # row 2
             [{"colspan": 2, "secondary_y": True}, None], # row 3
             [{"secondary_y": True}, {}] # row 4
@@ -104,13 +113,7 @@ def plot_station_timeseries(
         row_heights=[0.48, 0.02, 0.1, 0.4],
         shared_xaxes=False,
         shared_yaxes=False,
-        subplot_titles=(
-            "", 
-            "",
-            '', 
-            'Climatology',
-            "Flow Duration Curve", 
-        ),
+        subplot_titles=("", "", "", 'Climatology', "Flow Duration Curve"),
         vertical_spacing=0.05,
         horizontal_spacing=0.15
     )
@@ -129,19 +132,9 @@ def plot_station_timeseries(
             opacity=1 - alpha,
             marker_line_width=0,
             legendgroup="Precipitation",
-            showlegend=True
+            showlegend=False
         ),
         row=row, col=col
-    )
-    fig.add_trace(go.Scatter(
-            x=ts.index, 
-            y=ts['temp_degC'], 
-            name="Temperature", 
-            line=dict(color=c_temp, width=0.7),
-            legendgroup="Temperature",
-            showlegend=True
-        ), 
-        row=row, col=col, secondary_y=True
     )
     fig.add_trace(
         go.Scatter(
@@ -150,33 +143,16 @@ def plot_station_timeseries(
             name="Discharge", 
             line=dict(color=c_dis, width=1), 
             legendgroup="Discharge",
-            showlegend=True
+            showlegend=False
         ),
         row=row, col=col
     )
 
     # set axes properties
-    scale = 4
-    round_mm_d = 20
-    mm_range_d, deg_range_d = _define_y_limits(ts, scale, round_mm_d)
     fig.update_yaxes(
         title_text="mm", 
-        range=mm_range_d, 
-        dtick=round_mm_d, 
+        rangemode='nonnegative',
         row=1, col=1, secondary_y=False
-    )
-    fig.update_yaxes(
-        title_text="°C", 
-        range=deg_range_d, 
-        dtick=round_mm_d / scale, 
-        row=1, col=1, secondary_y=True
-    )
-    fig.add_hline(
-        y=0, 
-        line_width=0.5, 
-        line_color="black", 
-        layer="above",
-        row=1, col=1
     )
 
     # --- PLOT 2: MISSING DATA ---
@@ -193,11 +169,11 @@ def plot_station_timeseries(
             mode='markers',
             marker=dict(
                 symbol='line-ns-open',
-                size=12,
-                color='gray',
-                line_width=1.5
+                size=10,
+                color=c_dis,
+                line_width=1
             ),
-            name="Missing Data",
+            name="Missing",
             legendgroup="Missing",
             showlegend=True,
             hoverinfo='x'
@@ -210,7 +186,7 @@ def plot_station_timeseries(
         showgrid=False, 
         showticklabels=False, 
         zeroline=False, 
-        fixedrange=True, # Prevents vertical zooming on the rug
+        fixedrange=True,
         row=row, col=col
     )
     fig.update_xaxes(
@@ -225,7 +201,7 @@ def plot_station_timeseries(
     row, col = 3, 1
 
     # compute annual time series
-    ts_y = compute_annual_timeseries(ts).round(0)
+    ts_y = compute_annual_timeseries(ts).round(1)
 
     # add traces
     fig.add_trace(
@@ -236,7 +212,7 @@ def plot_station_timeseries(
             marker_color=c_precip, 
             opacity=1 - alpha,
             legendgroup="Precipitation",
-            showlegend=False
+            showlegend=True
         ),
         row=row, col=col
     )
@@ -246,7 +222,7 @@ def plot_station_timeseries(
             name="Temperature",
             line=dict(color=c_temp, width=2),
             legendgroup="Temperature",
-            showlegend=False
+            showlegend=True
         ), 
         row=row, col=col, secondary_y=True
     )
@@ -257,15 +233,15 @@ def plot_station_timeseries(
             name="Discharge",
             line=dict(color=c_dis, width=2),
             legendgroup="Discharge",
-            showlegend=False
+            showlegend=True
         ),
         row=row, col=col
     )
 
     # set axes properties
-    scale = 100
+    scale_y = 100
     round_mm_y = 500
-    mm_range_y, deg_range_y = _define_y_limits(ts_y, scale, round_mm_y)
+    mm_range_y, deg_range_y = _define_y_limits(ts_y, round_mm_y, scale_y)
     fig.update_yaxes(
         title_text="mm", 
         range=mm_range_y, 
@@ -275,7 +251,7 @@ def plot_station_timeseries(
     fig.update_yaxes(
         title_text="°C", 
         range=deg_range_y, 
-        dtick=round_mm_y / scale, 
+        dtick=round_mm_y / scale_y, 
         row=row, col=col, secondary_y=True
     )
     fig.update_xaxes(
@@ -289,7 +265,7 @@ def plot_station_timeseries(
     row, col = 4, 1
 
     # compute monthly climatology
-    ts_m = compute_monthly_climatology(ts).round(0)
+    ts_m = compute_monthly_climatology(ts).round(1)
 
     # add traces
     fig.add_trace(
@@ -328,9 +304,9 @@ def plot_station_timeseries(
     )
 
     # set axes properties
-    scale = 2
+    scale_m = 2
     round_mm_m = 20
-    mm_range_m, deg_range_m = _define_y_limits(ts_m, scale, round_mm_m)
+    mm_range_m, deg_range_m = _define_y_limits(ts_m, round_mm_m, scale_m)
     fig.update_yaxes(
         title_text="mm", 
         range=mm_range_m, 
@@ -340,7 +316,7 @@ def plot_station_timeseries(
     fig.update_yaxes(
         title_text="°C", 
         range=deg_range_m, 
-        dtick=round_mm_m / scale, 
+        dtick=round_mm_m / scale_m, 
         row=row, col=col, secondary_y=True
     )
     fig.update_xaxes(
@@ -385,8 +361,7 @@ def plot_station_timeseries(
     fig.update_xaxes(title_text="Exceedance Prob. (%)", row=row, col=col)
     fig.update_yaxes(
         title_text="mm", 
-        range=[-round_mm_d / 10, mm_range_d[1]], 
-        dtick=round_mm_d, 
+        rangemode='nonnegative',
         row=row, col=col
     )
 
@@ -418,10 +393,18 @@ def plot_station_timeseries(
     )
 
     # 4. Update Layout & Scale Buttons
+    y_raw = [
+        ts['precip_mm'], ts['discharge_mm'], 
+        missing_y,
+        ts_y['precip_mm'], ts_y['temp_degC'], ts_y['discharge_mm'],
+        ts_m['precip_mm'], ts_m['temp_degC'],  ts_m['discharge_mm'],
+        fdc_precip.values, fdc_dis.values,
+    ]
+    sqrt_traces = [0, 1, 9, 10]
+    y_sqrt = [trace**.5 if i in sqrt_traces else trace for i, trace in enumerate(y_raw)]
     fig.update_layout(
         title_text=f"<b>{title if title else ''}</b>",
         title_x=0.5,
-        # margin=dict(l=50, r=275, t=100, b=50),
         margin=dict(l=50, r=200, t=50, b=50),
         template="plotly_white",
         autosize=True,
@@ -441,44 +424,26 @@ def plot_station_timeseries(
                 buttons=[
                     dict(label="Linear Scale", method="update", 
                          args=[
-                             {"y": [
-                                 ts['precip_mm'], ts['temp_degC'], ts['discharge_mm'], 
-                                 missing_y,
-                                 ts_y['precip_mm'], ts_y['temp_degC'], ts_y['discharge_mm'],
-                                 ts_m['precip_mm'], ts_m['temp_degC'],  ts_m['discharge_mm'],
-                                 fdc_precip.values, fdc_dis.values,
-                             ]},
+                             {"y": y_raw},
                              {
                                  "yaxis.type": "linear", "yaxis.title.text": "mm",
-                                 "yaxis8.type": "linear", "yaxis8.title.text": "mm",
+                                 "yaxis7.type": "linear", "yaxis7.title.text": "mm",
                             }
                          ]),
                     dict(label="Log Scale", method="update",
                          args=[
-                             {"y": [
-                                 ts['precip_mm'], ts['temp_degC'], ts['discharge_mm'], 
-                                 missing_y,
-                                 ts_y['precip_mm'], ts_y['temp_degC'], ts_y['discharge_mm'],
-                                 ts_m['precip_mm'], ts_m['temp_degC'], ts_m['discharge_mm'],
-                                 fdc_precip.values, fdc_dis.values,
-                            ]}, 
+                             {"y": y_raw}, 
                              {
                                  "yaxis.type": "log", "yaxis.title.text": "log mm",
-                                 "yaxis8.type": "log", "yaxis8.title.text": "log mm",
+                                 "yaxis7.type": "log", "yaxis7.title.text": "log mm",
                              }
                          ]),
                     dict(label="Sqrt Scale", method="update",
                          args=[
-                             {"y": [
-                                 ts['precip_mm']**0.5, ts['temp_degC'], ts['discharge_mm']**0.5,
-                                 missing_y,
-                                 ts_y['precip_mm'], ts_y['temp_degC'], ts_y['discharge_mm'],
-                                 ts_m['precip_mm'], ts_m['temp_degC'], ts_m['discharge_mm'],
-                                 fdc_precip.values**0.5, fdc_dis.values**0.5,
-                                 ]},
+                             {"y": y_sqrt},
                              {
                                  "yaxis.type": "linear", "yaxis.title.text": "sqrt mm",
-                                 "yaxis8.type": "linear", "yaxis8.title.text": "sqrt mm",
+                                 "yaxis7.type": "linear", "yaxis7.title.text": "sqrt mm",
                              }
                          ])
                 ],

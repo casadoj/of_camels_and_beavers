@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 aggregation = {
@@ -25,4 +26,7 @@ def compute_annual_timeseries(timeseries: pd.DataFrame) -> pd.DataFrame:
     if len(agg_logic) == 0:
         raise ValueError("No variables in the timeseries match the aggregation logic.")
     
-    return timeseries.resample('YS').agg(agg_logic)
+    ts_year = timeseries.resample('YS').agg(agg_logic)
+    ts_year.replace(0, np.nan, inplace=True)
+
+    return ts_year
