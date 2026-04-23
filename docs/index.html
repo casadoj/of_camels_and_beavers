@@ -12,14 +12,6 @@
             width: 100%;
             font-family: sans-serif
         }
-        #sidebar {
-            width: 300px;
-            height: 700px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            padding: 10px;
-            border-radius: 8px;
-        }
         #map { 
             position: absolute;
             top: 0;
@@ -29,8 +21,8 @@
         }
         #ui-container {
             position: absolute;
-            top: 20px;
-            left: 20px;
+            top: 10vh;
+            left: 2vw;
             z-index: 1000; /* Must be higher than map's z-index */
             pointer-events: none; /* Allows clicking the map through the empty spaces */
             display: flex;
@@ -39,19 +31,24 @@
             max-height: 90vh;
         }
         h1 {
-            /* margin: 0; */
-            width: 250px;
-            /* background:rgba(255, 255, 255, 0.9); */
+            margin-left: -30px;
+            width: fit-content;
             padding: 10px 35px;
             border-radius: 8px;
+            /* background:rgba(255, 255, 255, 0.9); */
             /* box-shadow: 0 2px 10px rgba(0,0,0,0.2); */
             font-size: 1.5rem;
             pointer-events: auto;
-            width: fit-content;
+            color: #333;
+            text-shadow: 
+                -2px -2px 0 #fff,  
+                2px -2px 0 #fff,
+                -2px  2px 0 #fff,
+                2px  2px 0 #fff;
         }
         #sidebar { 
             width: 250px; 
-            max-height: 60vh;
+            max-height: 50vh;
             background: rgba(255, 255, 255, 0.9);
             padding: 15px; 
             border-radius: 8px;
@@ -198,14 +195,16 @@
             })
             .then(data => {
                 const basinListDiv = document.getElementById('basin-list');
-                basinListDiv.innerHTML = ''; // Clear loading text
+                basinListDiv.innerHTML = '';
+
+                let basinItems = [];
 
                 const basinsLayer = L.geoJSON(data, {
                     style: {
                         color: 'black',
                         weight: 1.5,
                         fillColor: 'transparent',
-                        fillOpacity: 0.1, // Small opacity makes it easier to click
+                        fillOpacity: 0.1,
                         lineJoin: 'round',
                         pane: 'basinPane'
                     },
@@ -223,20 +222,43 @@
                             map.fitBounds(layer.getBounds(), zoomOptions);
                         });
 
-                        // 2. Add to sidebar list
-                        const item = document.createElement('div');
-                        item.className = 'basin-item';
-                        item.innerText = name;
-                        item.onclick = function() {
-                            map.fitBounds(layer.getBounds(), zoomOptions);
-                            layer.bringToFront();
-                        };
-                        basinListDiv.appendChild(item);
-
-                        // Optional: show name on hover
+                        // show name on hover
                         layer.bindTooltip(name, { sticky: true });
+
+                        // // 2. Add to sidebar list
+                        // const item = document.createElement('div');
+                        // item.className = 'basin-item';
+                        // item.innerText = name;
+                        // item.onclick = function() {
+                        //     map.fitBounds(layer.getBounds(), zoomOptions);
+                        //     layer.bringToFront();
+                        // };
+                        // basinListDiv.appendChild(item);
+
+                        // Store the name and the layer reference for sorting
+                        basinItems.push({ name: name, layer: layer });
                     }
                 }).addTo(map);
+
+                // Sort alphabetically by name
+                basinItems.sort((a, b) => a.name.localeCompare(b.name));
+
+                // Add sorted items to the sidebar
+                basinItems.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'basin-item';
+                    div.innerText = item.name;
+                    div.onclick = function() {
+                        const zoomOptions = {
+                            paddingTopLeft: [320, 20],
+                            paddingBottomRight: [20, 20],
+                            duration: 1.5
+                        };
+                        map.fitBounds(item.layer.getBounds(), zoomOptions);
+                        item.layer.bringToFront();
+                    };
+                    basinListDiv.appendChild(div);
+                });
             });
 
         // Load Rivers GeoJSON
