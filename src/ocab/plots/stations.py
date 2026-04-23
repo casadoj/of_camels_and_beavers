@@ -1,60 +1,11 @@
-import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.io as pio
 from typing import Optional
 
-from ocab.plots.utils import compute_annual_timeseries, compute_monthly_climatology
+from ocab.plots.utils import compute_annual_timeseries, compute_monthly_climatology, define_y_limits
 from ocab.signatures import annual_runoff, baseflow_index, flashiness_index, slope_fdc
-
-
-def _define_y_limits(
-        df: pd.DataFrame,
-        round_mm: int,
-        scale: float = 1,
-        cols_mm: list = ['precip_mm', 'discharge_mm'],
-        cols_deg: Optional[list] = ['temp_degC']
-):
-    """
-    """
-    
-    eps = round_mm / 10
-    
-    # 1. Define mm limits
-
-    # extract values
-    mm_vals = df[cols_mm].values.flatten()
-    mm_vals = mm_vals[~np.isnan(mm_vals)]   
-
-    # define min/max values
-    mm_min = 0.0
-    mm_max_raw = np.nanmax(mm_vals) if mm_vals.size > 0 else 100
-    mm_max = np.ceil(mm_max_raw / round_mm) * round_mm
-
-    # 2. Define °C limits
-    if cols_deg is not None:
-        round_deg = round_mm / scale
-
-        # extract values
-        deg_vals = df[cols_deg].values.flatten()
-        deg_vals = deg_vals[~np.isnan(deg_vals)]
-
-        # define min/max values
-        deg_min_raw = np.nanmin(deg_vals) if deg_vals.size > 0 else 0
-        deg_min = np.floor(deg_min_raw / round_deg) * round_deg
-        deg_max_raw = np.nanmax(deg_vals) if deg_vals.size > 0 else 30
-        deg_max = np.ceil(deg_max_raw / round_deg) * round_deg
-        
-        # Sync the scales
-        mm_min = min(mm_min, deg_min * scale) + eps
-        deg_min = mm_min / scale
-        mm_max = max(mm_max, deg_max * scale) + eps
-        deg_max = mm_max / scale
-    else:
-        deg_min, deg_max = None, None
-
-    return [mm_min, mm_max], [deg_min, deg_max]
 
 
 def plot_station_timeseries(
@@ -100,7 +51,7 @@ def plot_station_timeseries(
     c_temp = kwargs.get('c_temp', 'darkred')
     title = kwargs.get('title', None)
 
-    # 1. Setup Grid
+    # Setup Grid
     fig = make_subplots(
         rows=4, cols=2,
         specs=[
@@ -152,7 +103,7 @@ def plot_station_timeseries(
     fig.update_yaxes(
         title_text="mm", 
         rangemode='nonnegative',
-        row=1, col=1, secondary_y=False
+        row=row, col=col, secondary_y=False
     )
 
     # --- PLOT 2: MISSING DATA ---
@@ -173,9 +124,8 @@ def plot_station_timeseries(
                 color=c_dis,
                 line_width=1
             ),
-            name="Missing",
-            legendgroup="Missing",
-            showlegend=True,
+            legendgroup="Discharge",
+            showlegend=False,
             hoverinfo='x'
         ),
         row=row, col=col
@@ -201,7 +151,7 @@ def plot_station_timeseries(
     row, col = 3, 1
 
     # compute annual time series
-    ts_y = compute_annual_timeseries(ts).round(1)
+    ts_y = compute_annual_timeseries(ts)
 
     # add traces
     fig.add_trace(
@@ -241,7 +191,7 @@ def plot_station_timeseries(
     # set axes properties
     scale_y = 100
     round_mm_y = 500
-    mm_range_y, deg_range_y = _define_y_limits(ts_y, round_mm_y, scale_y)
+    mm_range_y, deg_range_y = define_y_limits(ts_y, round_mm_y, scale_y)
     fig.update_yaxes(
         title_text="mm", 
         range=mm_range_y, 
@@ -265,7 +215,7 @@ def plot_station_timeseries(
     row, col = 4, 1
 
     # compute monthly climatology
-    ts_m = compute_monthly_climatology(ts).round(1)
+    ts_m = compute_monthly_climatology(ts)
 
     # add traces
     fig.add_trace(
@@ -306,7 +256,7 @@ def plot_station_timeseries(
     # set axes properties
     scale_m = 2
     round_mm_m = 20
-    mm_range_m, deg_range_m = _define_y_limits(ts_m, round_mm_m, scale_m)
+    mm_range_m, deg_range_m = define_y_limits(ts_m, round_mm_m, scale_m)
     fig.update_yaxes(
         title_text="mm", 
         range=mm_range_m, 
@@ -367,12 +317,12 @@ def plot_station_timeseries(
 
     ### --- SIGNATURES & CLIMATOLOGY VALUES ---
 
-    # 1. Compute hydrological signatures
+    # Compute hydrological signatures
     avg_dis = annual_runoff(ts['discharge_cms'], area)
     _, bfi = baseflow_index(ts['discharge_cms'])
     fi = flashiness_index(ts['discharge_cms'])
 
-    # Calculate Climatology values
+    # Calculate climatology values
     avg_precip = ts['precip_mm'].mean()
     avg_temp = ts['temp_degC'].mean()
     avg_pet = ts['pet_mm'].mean()
@@ -392,7 +342,7 @@ def plot_station_timeseries(
         f"Slope FDC: {slope:.2f}<br>"
     )
 
-    # 4. Update Layout & Scale Buttons
+    # Update Layout & Scale Buttons
     y_raw = [
         ts['precip_mm'], ts['discharge_mm'], 
         missing_y,
@@ -473,8 +423,23 @@ def create_station_html(
     start: str,
     end: str
 ):
+    """Wraps a Plotly figure into the full validation HTML template.
+    
+    Parameters:
+    -----------
+    fig:
+        Result of `plot_reservoir_timeseries()`
+    path: string
+        Name of the HTML file where the figure wil be saved
+    start: string
+        Start date of the time series. Format YYYY-mm-dd
+    end: string
+        End date of the time series. Format YYYY-mm-dd
+    """
+        
     fig.update_layout(height=None, width=None, autosize=True)
 
+    # Convert figure to HTML div string
     plotly_html = pio.to_html(
         fig, 
         full_html=False, 
