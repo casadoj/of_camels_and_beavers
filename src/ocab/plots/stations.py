@@ -19,7 +19,7 @@ def _define_y_limits(
     """
     """
     
-    eps = round_mm / 100
+    eps = round_mm / 10
     
     # 1. Define mm limits
 
@@ -28,9 +28,9 @@ def _define_y_limits(
     mm_vals = mm_vals[~np.isnan(mm_vals)]   
 
     # define min/max values
-    mm_min = 0.0 - eps
+    mm_min = 0.0
     mm_max_raw = np.nanmax(mm_vals) if mm_vals.size > 0 else 100
-    mm_max = np.ceil(mm_max_raw / round_mm) * round_mm + eps
+    mm_max = np.ceil(mm_max_raw / round_mm) * round_mm
 
     # 2. Define °C limits
     if cols_deg is not None:
@@ -42,14 +42,14 @@ def _define_y_limits(
 
         # define min/max values
         deg_min_raw = np.nanmin(deg_vals) if deg_vals.size > 0 else 0
-        deg_min = np.floor(deg_min_raw / round_deg) * round_deg - eps
+        deg_min = np.floor(deg_min_raw / round_deg) * round_deg
         deg_max_raw = np.nanmax(deg_vals) if deg_vals.size > 0 else 30
-        deg_max = np.ceil(deg_max_raw / round_deg) * round_deg + eps  
+        deg_max = np.ceil(deg_max_raw / round_deg) * round_deg
         
         # Sync the scales
-        mm_min = min(mm_min, deg_min * scale)
+        mm_min = min(mm_min, deg_min * scale) + eps
         deg_min = mm_min / scale
-        mm_max = max(mm_max, deg_max * scale)
+        mm_max = max(mm_max, deg_max * scale) + eps
         deg_max = mm_max / scale
     else:
         deg_min, deg_max = None, None
