@@ -225,16 +225,6 @@
                         // show name on hover
                         layer.bindTooltip(name, { sticky: true });
 
-                        // // 2. Add to sidebar list
-                        // const item = document.createElement('div');
-                        // item.className = 'basin-item';
-                        // item.innerText = name;
-                        // item.onclick = function() {
-                        //     map.fitBounds(layer.getBounds(), zoomOptions);
-                        //     layer.bringToFront();
-                        // };
-                        // basinListDiv.appendChild(item);
-
                         // Store the name and the layer reference for sorting
                         basinItems.push({ name: name, layer: layer });
                     }
