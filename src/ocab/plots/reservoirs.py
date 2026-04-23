@@ -491,12 +491,12 @@ def plot_reservoir_timeseries(
     # # Update Layout & Scale Buttons
     y_raw = [
         ts['precip_mm'], ts['inflow_mm'], ts['outflow_mm'], ts['filling'],
-        missing_y_out, missing_y_fill,
+        missing_y_in, missing_y_out, missing_y_fill,
         ts_y['precip_mm'], ts_y['inflow_mm'], ts_y['outflow_mm'], ts_y['filling'],
         ts_m['precip_mm'], ts_m['inflow_mm'], ts_m['outflow_mm'], ts_m['filling'],
         fdc_precip.values, fdc_inflow.values, fdc_outflow.values,
     ]
-    sqrt_traces = [0, 1, 2, 3, 14, 15, 16]
+    sqrt_traces = [0, 1, 2, 15, 16, 17]
     y_sqrt = [trace**.5 if i in sqrt_traces else trace for i, trace in enumerate(y_raw)]
     fig.update_layout(
         title_text=f"<b>{title if title else ''}</b>",
