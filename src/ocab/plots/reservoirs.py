@@ -464,9 +464,6 @@ def plot_reservoir_timeseries(
     vars = [var for var in climatology.index if var.endswith('_mm')]
     climatology[vars] *= 365 # transform to mm/year
 
-    # Degree of regulation
-    # dor = attributes['cap_mcm'] / (climatology['inflow_mm'] * attributes['catch_skm']) * 1e3
-
     signature_text = (
         "<b>Properties</b><br>"
         f"Capacity: {attributes.cap_mcm:.1f} hm³<br>"
