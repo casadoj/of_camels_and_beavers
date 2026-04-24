@@ -144,20 +144,31 @@
             z-index: 1001;
             opacity: 0.9;
         }
-        #tutorial-link {
+        #youtube-logo {
             position: absolute;
             bottom: 20px;
             left: 65px;
             z-index: 1001;
             opacity: 0.9;
         }
-        #github-logo:hover, #tutorial-link:hover {
+        #zenodo-logo {
+            position: absolute;
+            bottom: 22px;
+            left: 110px;
+            z-index: 1001;
+            opacity: 0.9;
+        }
+        #github-logo:hover, #youtube-logo:hover, #zenodo-logo:hover {
             opacity: 1;
             transform: scale(1.05);
         }
-        #github-logo img, #tutorial-link img {
+        #github-logo img, #youtube-logo img {
             width: 40px;
             height: 40px;
+        }
+        #zenodo-logo img {
+            width: 80px;
+            height: 36px;
         }
     </style>
 </head>
@@ -650,6 +661,7 @@
         checkUserEmail();
     </script>
     
+    <!-- GitHub repository -->
     <a href="https://github.com/casadoj/of_camels_and_beavers" 
         id="github-logo" 
         target="_blank" 
@@ -657,12 +669,21 @@
         title="GitHub Repository">
         <img src="./img/github_logo_white.png" alt="GitHub Repository">
     </a>
+    <!-- Tutorial -->
     <a href="https://www.youtube.com/watch?v=YOUR_VIDEO_ID" 
-        id="tutorial-link" 
+        id="youtube-logo" 
         target="_blank" 
         rel="noopener noreferrer"
         title="Watch Tutorial">
         <img src="./img/youtube_logo_white.png" alt="Tutorial">
+    </a>
+    <!-- Zenodo repository -->
+     <a href="https://zenodo.org/records/8428374" 
+        id="zenodo-logo" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        title="CAMELS-ES v1">
+        <img src="./img/zenodo_logo_white.png" alt="Tutorial">
     </a>
 
 </body>

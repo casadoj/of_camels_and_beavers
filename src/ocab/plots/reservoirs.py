@@ -465,15 +465,15 @@ def plot_reservoir_timeseries(
     climatology[vars] *= 365 # transform to mm/year
 
     # Degree of regulation
-    dor = attributes['cap_mcm'] / (climatology['inflow_mm'] * attributes['catch_skm']) * 1e3
+    # dor = attributes['cap_mcm'] / (climatology['inflow_mm'] * attributes['catch_skm']) * 1e3
 
     signature_text = (
         "<b>Properties</b><br>"
         f"Capacity: {attributes.cap_mcm:.1f} hm³<br>"
         f"Surface: {attributes.area_skm:.1f} km²<br>"
         f"Catchment: {attributes.catch_skm:.1f} km²<br>"
-        f"Deg. Regulation: {dor:.2f} year<br>"
-        f"Deg. Disruptivity: {attributes.dod_m:.2f} m<br>"
+        f"Deg. Regulation: {attributes.dor_d:.0f} days<br>"
+        f"Deg. Disruptivity: {attributes.dod_m * 1000:.0f} mm<br>"
         f"Use: {attributes.main_use}<br>"
         "<br><b>Climatology</b><br>"
         f"Filling: {climatology.filling:.2f}<br>"
