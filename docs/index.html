@@ -23,20 +23,18 @@
             position: absolute;
             top: 10vh;
             left: 2vw;
-            z-index: 1000; /* Must be higher than map's z-index */
-            pointer-events: none; /* Allows clicking the map through the empty spaces */
+            z-index: 1000;
+            pointer-events: none;
             display: flex;
             flex-direction: column;
             gap: 10px;
             max-height: 90vh;
         }
-        h1 {
+        /* h1 {
             margin-left: -30px;
             width: fit-content;
             padding: 10px 35px;
             border-radius: 8px;
-            /* background:rgba(255, 255, 255, 0.9); */
-            /* box-shadow: 0 2px 10px rgba(0,0,0,0.2); */
             font-size: 1.5rem;
             pointer-events: auto;
             color: #333;
@@ -45,16 +43,45 @@
                 2px -2px 0 #fff,
                 -2px  2px 0 #fff,
                 2px  2px 0 #fff;
-        }
+        } */
         #sidebar { 
-            width: 250px; 
-            max-height: 50vh;
-            background: rgba(255, 255, 255, 0.9);
+            position: fixed;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            width: 175px;
+            max-height: 520px;
+            background: rgba(255, 255, 255, 0.85);
             padding: 15px; 
-            border-radius: 8px;
+            border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             overflow-y: auto;
             pointer-events: auto;
+            z-index: 1000;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .info.legend {
+            position: fixed;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            padding: 10px;
+            font: 12px/18px Arial, Helvetica, sans-serif;
+            background: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            border-radius: 10px;
+            color: #333;
+            line-height: 20px;
+        }
+
+        .info.legend i {
+            width: 16px;
+            height: 16px;
+            float: left;
+            margin-right: 10px;
+            opacity: 0.9;
+            border-radius: 3px;
+            border: 1px solid rgba(0,0,0,0.1);
         }
         .basin-item { 
             padding: 10px; 
@@ -81,14 +108,14 @@
             background: transparent !important;
             border: none !important;
             box-shadow: none !important;
-            color: maroon;
+            color: black;
             font-weight: bold;
             font-size: 13px;
             text-shadow: -1px -1px 0 #fff, 
                         1px -1px 0 #fff, 
                         -1px  1px 0 #fff, 
                         1px  1px 0 #fff;
-            pointer-events: none; /* Ensures tooltips don't interfere with clicking */
+            pointer-events: none;
         }
         .station-label::before { 
             display: none !important;
@@ -104,19 +131,42 @@
                         1px -1px 0 #fff, 
                         -1px  1px 0 #fff, 
                         1px  1px 0 #fff;
-            pointer-events: none; /* Ensures tooltips don't interfere with clicking */
+            pointer-events: none;
         }
         .reservoir-label::before { 
             display: none !important;
+        }
+        /* GitHub and YouTube logos */
+        #github-logo {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1001;
+            opacity: 0.9;
+        }
+        #tutorial-link {
+            position: absolute;
+            bottom: 20px;
+            left: 65px;
+            z-index: 1001;
+            opacity: 0.9;
+        }
+        #github-logo:hover, #tutorial-link:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+        #github-logo img, #tutorial-link img {
+            width: 40px;
+            height: 40px;
         }
     </style>
 </head>
 <body>
 
     <div id="ui-container">
-        <h1>Of Camels and Beavers</h1>
+        <!-- <h1>Of Camels and Beavers</h1> -->
         <div id="sidebar">
-            <h3>Basins</h3>
+            <h3>Of Camels and Beavers</h3>
             <div id="basin-list">Loading basins...</div>
         </div>
     </div>
@@ -210,7 +260,7 @@
                     },
                     interactive: true,
                     onEachFeature: function(feature, layer) {
-                        let name = feature.properties.NOM_DEMAR || "Unknown Basin";
+                        let name = toTitleCase(feature.properties.NOM_DEMAR) || "Unknown Basin";
                         
                         // 1. Click polygon to zoom
                         const zoomOptions = {
@@ -237,7 +287,7 @@
                 basinItems.forEach(item => {
                     const div = document.createElement('div');
                     div.className = 'basin-item';
-                    div.innerText = item.name;
+                    div.innerText = toTitleCase(item.name);
                     div.onclick = function() {
                         const zoomOptions = {
                             paddingTopLeft: [320, 20],
@@ -299,10 +349,24 @@
         
         // Helper function for Title Case
         function toTitleCase(str) {
-            return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
+            if (!str) return "";
+            return str.toLowerCase().replace(/(^|\s|-)\p{L}/gu, s => s.toUpperCase());
         }
 
         // Load Stations GeoJSON file
+        function getStationColor(d) {
+            return d > 2000 ? '#3b4cc0' :
+                d > 1800 ? '#5a77ef' :
+                d > 1600 ? '#809fff' :
+                d > 1400 ? '#a6bdff' :
+                d > 1200 ? '#c9d4ed' :
+                d > 1000 ? '#edd1d2' :
+                d > 800  ? '#f9adac' :
+                d > 600  ? '#f7847e' :
+                d > 400  ? '#e5534b' :
+                d > 200  ? '#c1272d' :
+                            '#67000d';
+        }
         fetch('./layers/stations.geojson')
             .then(res => {
 				if (!res.ok) throw new Error("Could not load stations GeoJSON file");
@@ -316,7 +380,7 @@
                             radius: 5,
                             color: 'white',
                             weight: 2,
-                            fillColor: 'maroon',
+                            fillColor: getStationColor(feature.properties.discharge_mm), //'maroon',
                             fillOpacity: 1,
                             pane: 'stationPane'
                         });
@@ -331,6 +395,7 @@
                         let start = props.start || "Unknown";
                         let end = props.end || "Unknown";
                         let regime = (props.regime || "Unknown").toLowerCase();
+                        let discharge = (props.discharge_mm || "Unknown");
                         
                         // tooltip
                         layer.bindTooltip(String(id), {
@@ -345,6 +410,7 @@
                             <strong>${id} - ${name}</strong><br>
                             River: ${river} (${basin})<br>
                             Catchment: ${catchment} km²<br>
+                            Discharge: ${discharge} mm/yr<br>
                             Period: ${start}-${end}<br>
                             Regime: ${regime}<br>
                             <a href="./timeseries/stations/plots/${id}.html" target="_blank" rel="noopener noreferrer">
@@ -542,10 +608,30 @@
             }
         });
 
+        // Legend
+        var legend = L.control({ position: 'bottomright' });
+
+        legend.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'info legend'),
+                grades = [0, 200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000],
+                labels = ['<strong>Discharge (mm/yr)</strong><br>'];
+
+            // Loop through our intervals and generate a label with a colored square for each interval
+            for (var i = 0; i < grades.length; i++) {
+                div.innerHTML +=
+                    labels.push(
+                        '<i style="background:' + getStationColor(grades[i] + 1) + '"></i> ' +
+                        grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] : '+')
+                    );
+            }
+            div.innerHTML = labels.join('<br>');
+            return div;
+        };
+
+        legend.addTo(map);
     </script>
 
     <script>
-        // Place it here, at the end of your script section
         function checkUserEmail() {
             let email = localStorage.getItem('userEmail');
             
@@ -564,5 +650,20 @@
         checkUserEmail();
     </script>
     
+    <a href="https://github.com/casadoj/of_camels_and_beavers" 
+        id="github-logo" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        title="GitHub Repository">
+        <img src="./img/github_logo_white.png" alt="GitHub Repository">
+    </a>
+    <a href="https://www.youtube.com/watch?v=YOUR_VIDEO_ID" 
+        id="tutorial-link" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        title="Watch Tutorial">
+        <img src="./img/youtube_logo_white.png" alt="Tutorial">
+    </a>
+
 </body>
 </html>
