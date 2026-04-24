@@ -1,8 +1,9 @@
-import numpy as np
-import pandas as pd
+from pathlib import Path
 from typing import Optional, Union
 import logging
 
+import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
@@ -598,8 +599,10 @@ def create_station_html(
                     const baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdMDms_IAwkhPwOVqLvU0oVghG9Xti1LMhTsPoujm2w2uXF9A/viewform?embedded=true";
                     const emailEntryId = "2010975770";
                     const stationEntryId = "1301492004";
-                    const startEntryId = "598747998";
-                    const endEntryId = "2001326573";
+                    const startEntry1Id = "598747998";
+                    const endEntry1Id = "2001326573";
+                    const startEntry2Id = "1136531299";
+                    const endEntry2Id = "530564783";
 
                     const userEmail = localStorage.getItem('userEmail') || "";
                     const filename = window.location.pathname.split('/').pop();
@@ -610,8 +613,10 @@ def create_station_html(
                     const finalUrl = baseUrl + 
                         "&entry." + stationEntryId + "=" + stationId + 
                         "&entry." + emailEntryId + "=" + encodeURIComponent(userEmail) + 
-                        "&entry." + startEntryId + "=" + start + 
-                        "&entry." + endEntryId + "=" + end;
+                        "&entry." + startEntry1Id + "=" + start + 
+                        "&entry." + endEntry1Id + "=" + end +
+                        "&entry." + startEntry2Id + "=" + start + 
+                        "&entry." + endEntry2Id + "=" + end;
 
                     document.getElementById('form-container').innerHTML = 
                         '<iframe src="' + finalUrl + '" frameborder="0">Loading form…</iframe>';

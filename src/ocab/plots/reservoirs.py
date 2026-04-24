@@ -655,8 +655,10 @@ def create_reservoir_html(
                     const baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdcqEbw2bhJXLUqHFCQLBz0LEbCBUesnxeT32L5l5XkNAfMyg/viewform?embedded=true";
                     const emailEntryId = "204970380";
                     const stationEntryId = "889543648";
-                    const startEntryId = "1625252996";
-                    const endEntryId = "314932285";
+                    const startEntry1Id = "1625252996";
+                    const endEntry1Id = "314932285";
+                    const startEntry2Id = "1590382732";
+                    const endEntry2Id = "1770881539";
 
                     const userEmail = localStorage.getItem('userEmail') || "";
                     const filename = window.location.pathname.split('/').pop();
@@ -667,8 +669,10 @@ def create_reservoir_html(
                     const finalUrl = baseUrl + 
                         "&entry." + stationEntryId + "=" + stationId + 
                         "&entry." + emailEntryId + "=" + encodeURIComponent(userEmail) + 
-                        "&entry." + startEntryId + "=" + start + 
-                        "&entry." + endEntryId + "=" + end;
+                        "&entry." + startEntry1Id + "=" + start + 
+                        "&entry." + endEntry1Id + "=" + end
+                        "&entry." + startEntry2Id + "=" + start + 
+                        "&entry." + endEntry2Id + "=" + end;
 
                     document.getElementById('form-container').innerHTML = 
                         '<iframe src="' + finalUrl + '" frameborder="0">Loading form…</iframe>';
