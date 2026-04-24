@@ -275,8 +275,8 @@
                         
                         // 1. Click polygon to zoom
                         const zoomOptions = {
-                            paddingTopLeft: [320, 20],
-                            paddingBottomRight: [20, 20],
+                            paddingTopLeft: [150, 20],
+                            paddingBottomRight: [100, 20],
                             duration: 1.5
                         };
                         layer.on('click', function() {
@@ -301,8 +301,8 @@
                     div.innerText = toTitleCase(item.name);
                     div.onclick = function() {
                         const zoomOptions = {
-                            paddingTopLeft: [320, 20],
-                            paddingBottomRight: [20, 20],
+                            paddingTopLeft: [150, 20],
+                            paddingBottomRight: [100, 20],
                             duration: 1.5
                         };
                         map.fitBounds(item.layer.getBounds(), zoomOptions);
