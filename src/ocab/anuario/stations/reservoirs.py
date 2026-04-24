@@ -3,7 +3,9 @@ import pandas as pd
 import geopandas as gpd
 from pathlib import Path
 import logging
-from typing import Optional, List
+from typing import Optional, List, Dict
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 
 from .utils import encode_reservoir_use, _check_names
 
@@ -288,6 +290,127 @@ def get_reservoirs_IDR(
         gdf = gdf[~(gdf.cap_mcm < min_volume)]
 
     return gdf
+
+
+def get_reservoirs_aca(
+        file: Path, 
+        epsg: int = 4326
+    ) -> (gpd.GeoDataFrame, Dict[str, pd.DataFrame]):
+    """
+    Parse reservoir data from the Catalan Water Agency (ACA) Excel exports.
+
+    This function processes Excel files containing water availability data, 
+    extracting time-series for variables (level, volume, filling) and 
+    generating a spatial GeoDataFrame of reservoir locations.
+
+    Parameters
+    ----------
+    file : Path
+        Path to the Excel file exported from the ACA portal. Expected to 
+        contain a sheet named "Quantitat d'aigua disponible".
+    epsg : int, default 4326
+        The Coordinate Reference System (CRS) to return the GeoDataFrame in. 
+        Input data is assumed to be in ETRS89 / UTM zone 31N (EPSG:25831).
+
+    Returns
+    -------
+    reservoirs : gpd.GeoDataFrame
+        A GeoDataFrame containing the metadata for each reservoir, including 
+        name, basin, and geometry. If `epsg=4326`, 'lon_wgs84' and 
+        'lat_wgs84' columns are appended.
+    timeseries : dict of str: pd.DataFrame
+        A dictionary where keys are the ACA reservoir IDs and values are 
+        Pandas DataFrames containing the pivoted time-series data (level, 
+        volume, and filling percentage) indexed by date.
+    """
+
+    # resulting objects
+    cols = ['name', 'basin', 'x_etrs89', 'y_etrs89']
+    attributes = pd.DataFrame(columns=cols)
+    timeseries = {}
+
+    # load data
+    data = pd.read_excel(
+        file,
+        sheet_name="Quantitat d'aigua disponible",
+        skiprows=7,
+        usecols=range(1, 9),
+        engine='openpyxl'
+    )
+
+    # rename columns
+    rename_cols = {
+        'Data': 'date',
+        'Estació': 'name',
+        'Conca': 'basin',
+        'UTM X': 'x_etrs89',
+        'UTM Y': 'y_etrs89',
+        'Variable': 'variable',
+        'Mitjana': 'average',
+        'Unitat Mesura': 'unit'
+    }
+    data = data[rename_cols.keys()].rename(columns=rename_cols)
+
+    # create index with the reservoir ID
+    data['id_aca'] = [var.split('_')[0] for var in data['variable']]
+    data.set_index('id_aca', inplace=True)
+
+    # simplify station names
+    rename_reservoirs = {name: ' '.join(name.upper().split('(')[0].split(' ')[2:]).strip() for name in data['name'].unique()}
+    data['name'] = data['name'].map(rename_reservoirs)
+
+    # rename variable
+    translate_variables = {
+        'Nivell embassament': 'level',
+        'Percentatge volum embassat': 'filling',
+        'Volum embassament': 'volume',
+        'Volum embassat': 'volume'
+    }
+    data['variable'] = [translate_variables[var.split('_')[-1].split('(')[0].strip()] for var in data['variable']]
+
+    # reorganize by ID
+    for ID in data.index.unique():
+        df = data.loc[ID].copy()
+        
+        # extract station attributes
+        if ID not in attributes.index:
+            attributes.loc[ID, cols] = df.iloc[0][cols].values
+        
+        # extract timeseries
+        ts = df[['date', 'variable', 'average']].pivot(
+            index='date',
+            columns='variable',
+            values='average'
+        )
+        ts.index = pd.to_datetime(ts.index)
+        ts.rename_axis(None, axis=1, inplace=True)
+        # convert filling to the range 0-1
+        if 'filling' in ts.columns:
+            ts['filling'] /= 100
+        # save time series
+        timeseries[ID] = ts
+
+        # reservoir capacity (hm3)
+        if all([var in ts.columns for var in ['filling', 'volume']]):
+            mask = ts[['filling', 'volume']].notnull().all(axis=1)
+            capacity = ts.loc[mask, 'volume'] / ts.loc[mask, 'filling']
+            attributes.loc[ID, 'cap_mcm'] = capacity.round(1).unique().item()
+
+    # convert attributes to geopandas
+    attributes = gpd.GeoDataFrame(
+        attributes,
+        geometry=gpd.points_from_xy(attributes.x_etrs89, attributes.y_etrs89),
+        crs=25831
+    )
+    if epsg != 25831:
+        attributes = attributes.to_crs(epsg)
+        if epsg == 4326:
+            attributes['lon_wgs84'] = attributes.geometry.x
+            attributes['lat_wgs84'] = attributes.geometry.x
+            cols = [col for col in attributes.columns if col != 'geometry'] + ['geometry']
+            attributes = attributes[cols]
+
+    return attributes, timeseries
 
 
 def get_dams_IDR(
