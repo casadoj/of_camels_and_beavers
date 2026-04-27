@@ -1,13 +1,52 @@
-    'E01': 351,
-    'E02': 1768,
-    'E06': 2109,
-    'E07': 2180,
-    'E08': 1628,
-    'E12': 1272,
-    'E13': 2044,
-    'E14': 234,
-    'E16': 930,
-    'E17': 971,
-    'E18': 692,
-    'E19': 1931,
-    'E20': None
+'E01':
+  IDR_dam: 2898
+  IDR_res: 351
+  GDW: 4005
+'E02':
+  IDR_dam: 2900
+  IDR_res: 1768
+  GDW: null
+'E06':
+  IDR_dam: 2888
+  IDR_res: 2109
+  GDW: 4046
+'E07':
+  IDR_dam: 2908
+  IDR_res: 2180
+  GDW: 4043
+'E08':
+  IDR_dam: 2909
+  IDR_res: 1628
+  GDW: null
+'E12':
+  IDR_dam: 2912
+  IDR_res: 1272
+  GDW: 35790
+'E13':
+  IDR_dam: 2911
+  IDR_res: 2044
+  GDW: 5989
+'E14':
+  IDR_dam: 2891
+  IDR_res: 234
+  GDW: 4032
+'E16':
+  IDR_dam: 2887
+  IDR_res: 930
+  GDW: 16108
+'E17':
+  IDR_dam: 2916
+  IDR_res: 971
+  GDW: null
+'E18':            # En el Anuario !!!
+  IDR_dam: 2772
+  IDR_res: 692
+  GDW: 6003
+'E19':
+  IDR_dam: 2918 
+  IDR_res: 1931
+  GDW: 16113
+'E20':
+  IDR_dam: null
+  IDR_res: null
+  GDW: null

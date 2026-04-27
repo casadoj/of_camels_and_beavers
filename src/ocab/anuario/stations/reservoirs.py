@@ -300,7 +300,7 @@ def get_reservoirs_aca(
     Parse reservoir data from the Catalan Water Agency (ACA) Excel exports.
 
     This function processes Excel files containing water availability data, 
-    extracting time-series for variables (level, volume, filling) and 
+    extracting time-series for variables (level, storage, filling) and 
     generating a spatial GeoDataFrame of reservoir locations.
 
     Parameters
@@ -321,11 +321,11 @@ def get_reservoirs_aca(
     timeseries : dict of str: pd.DataFrame
         A dictionary where keys are the ACA reservoir IDs and values are 
         Pandas DataFrames containing the pivoted time-series data (level, 
-        volume, and filling percentage) indexed by date.
+        storage, and filling percentage) indexed by date.
     """
 
     # resulting objects
-    cols = ['name', 'basin', 'x_etrs89', 'y_etrs89']
+    cols = ['name', 'system', 'x_etrs89', 'y_etrs89']
     attributes = pd.DataFrame(columns=cols)
     timeseries = {}
 
@@ -342,7 +342,7 @@ def get_reservoirs_aca(
     rename_cols = {
         'Data': 'date',
         'Estació': 'name',
-        'Conca': 'basin',
+        'Conca': 'system',
         'UTM X': 'x_etrs89',
         'UTM Y': 'y_etrs89',
         'Variable': 'variable',
@@ -352,8 +352,8 @@ def get_reservoirs_aca(
     data = data[rename_cols.keys()].rename(columns=rename_cols)
 
     # create index with the reservoir ID
-    data['id_aca'] = [var.split('_')[0] for var in data['variable']]
-    data.set_index('id_aca', inplace=True)
+    data['id_saih'] = [var.split('_')[0] for var in data['variable']]
+    data.set_index('id_saih', inplace=True)
 
     # simplify station names
     rename_reservoirs = {name: ' '.join(name.upper().split('(')[0].split(' ')[2:]).strip() for name in data['name'].unique()}
@@ -363,8 +363,8 @@ def get_reservoirs_aca(
     translate_variables = {
         'Nivell embassament': 'level',
         'Percentatge volum embassat': 'filling',
-        'Volum embassament': 'volume',
-        'Volum embassat': 'volume'
+        'Volum embassament': 'storage',
+        'Volum embassat': 'storage'
     }
     data['variable'] = [translate_variables[var.split('_')[-1].split('(')[0].strip()] for var in data['variable']]
 
@@ -382,18 +382,18 @@ def get_reservoirs_aca(
             columns='variable',
             values='average'
         )
-        ts.index = pd.to_datetime(ts.index)
         ts.rename_axis(None, axis=1, inplace=True)
+        ts.index = pd.to_datetime(ts.index)
         # convert filling to the range 0-1
         if 'filling' in ts.columns:
             ts['filling'] /= 100
         # save time series
-        timeseries[ID] = ts
+        timeseries[ID] = ts.asfreq('D')
 
         # reservoir capacity (hm3)
-        if all([var in ts.columns for var in ['filling', 'volume']]):
-            mask = ts[['filling', 'volume']].notnull().all(axis=1)
-            capacity = ts.loc[mask, 'volume'] / ts.loc[mask, 'filling']
+        if all([var in ts.columns for var in ['filling', 'storage']]):
+            mask = ts[['filling', 'storage']].notnull().all(axis=1)
+            capacity = ts.loc[mask, 'storage'] / ts.loc[mask, 'filling']
             attributes.loc[ID, 'cap_mcm'] = capacity.round(1).unique().item()
 
     # convert attributes to geopandas
