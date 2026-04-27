@@ -4,6 +4,9 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.io as pio
 from typing import Optional
+import logging
+
+logger = logging.getLogger(__name__)
 
 from ocab.plots.utils import compute_annual_timeseries, compute_monthly_climatology, define_y_limits
 from ocab.signatures import annual_runoff, baseflow_index, flashiness_index, slope_fdc
@@ -31,6 +34,8 @@ def plot_reservoir_timeseries(
     
     Keyword arguments:
     ------------------
+    alpha: float
+        Transparency of the precipitation bar plot
     c_fill: string
         Color used to plot reservoir filling
     c_in: string
@@ -50,11 +55,10 @@ def plot_reservoir_timeseries(
     c_out = kwargs.get('c_line', 'darkred')
     c_precip = kwargs.get('c_bar', 'lightblue')
     title = kwargs.get('title', None)
-    yaxis_pos = kwargs.get('yaxis_pos', 0.06)
 
     # extract time series
     variables = ['filling', 'inflow_cms', 'inflow_mm', 'outflow_cms', 'outflow_mm', 'precip_mm', 'temp_degC', 'pet_mm']
-    missing_vars = set(variables).difference(ts.columns)
+    missing_vars = list(set(variables).difference(ts.columns))
     if len(missing_vars) > 0:
         ts[missing_vars] = np.nan
 
@@ -424,8 +428,8 @@ def plot_reservoir_timeseries(
     )
     fig.add_trace(
         go.Scatter(
-            x=fdc_inflow.index * 100, 
-            y=fdc_inflow.values, 
+            x=fdc_inflow.index * 100 if 'inflow_mm' not in missing_vars else None, 
+            y=fdc_inflow.values if 'inflow_mm' not in missing_vars else None, 
             name="Inflow", 
             line=dict(color=c_in, width=2), 
             showlegend=False,
@@ -435,8 +439,8 @@ def plot_reservoir_timeseries(
     )
     fig.add_trace(
         go.Scatter(
-            x=fdc_outflow.index * 100, 
-            y=fdc_outflow.values, 
+            x=fdc_outflow.index * 100 if 'outflow_mm' not in missing_vars else None, 
+            y=fdc_outflow.values if 'outflow_mm' not in missing_vars else None, 
             name="Outflow", 
             line=dict(color=c_out, width=2), 
             showlegend=False,

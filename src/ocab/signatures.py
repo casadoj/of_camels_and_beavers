@@ -97,8 +97,8 @@ def slope_fdc(discharge: pd.Series, quantiles=[.333, .666]) -> [pd.Series, float
         raise ValueError(f"'quantiles must be a list of two values: {quantiles}")
     
     if discharge.isnull().all():
-        logger.warning('Empty time series')
-        return pd.Series, np.nan
+        logger.info('Empty time series')
+        return pd.Series(index=np.linspace(0, 1, num=11)), np.nan
     
     # compute the flow duration curve
     fdc = flow_duration_curve(discharge)
