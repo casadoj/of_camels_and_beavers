@@ -13,7 +13,7 @@ dataset:
     # study period
     period:
         start: 1980-01-01
-        end: 2021-09-30
+        end: 2025-12-31
     # catchment size (km²)
     area:
         min: 10
