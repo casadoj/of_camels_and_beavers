@@ -220,7 +220,7 @@ def compute_inflows(
     delta_v = data['storage'].diff() / delta_t * 1e6
 
     # compute two potential inflows
-    # type 1: Inflow[t] = Inflow[t] = ΔV[t] + Outflow[t]
+    # type 1: Inflow[t] = ΔV[t] + Outflow[t]
     inflow_type_1 = delta_v + data['outflow']
     # type 2: Inflow[t] = ΔV[t+1] + Outflow[t]
     inflow_type_2 = delta_v.shift(-1) + data['outflow']
