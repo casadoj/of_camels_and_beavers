@@ -1,35 +1,7 @@
-El archivo *estaciones.geojson* es una capa de puntos con las estaciones y sus atributos. Se puede
-cargar el cualquier programa SIG (QGIS, ArcGIS...).
+# GitHub Pages
 
-El campo "url_link" contiene la dirección web del hidrograma interactivo de la estación. Para poder
-acceder rápidamente desde QGIS al hidrograma, añade las siguientes líneas en el campo "HTML Map Tip"
-dentro de la ventana `properties>display` de la capa:
+This folder contains the [GitHub Pages](https://casadoj.github.io/of_camels_and_beavers/) of this repository.
 
-```html
-<div style="font-family: sans-serif; font-size: 10px;">
-  <table style="border-spacing: 0 4px;">
-    <tr>
-      <td style="padding-right: 10px;">Estación:</td>
-      <td><b>[% title("indroea") %]</b></td>
-    </tr>
-    <tr>
-      <td style="padding-right: 10px;">Nombre:</td>
-      <td><b>[% title("lugar") %]</b></td>
-    </tr>
-    <tr>
-      <td style="padding-right: 10px;">Río:</td>
-      <td><b>[% title("rio") %]</b></td>
-    </tr>
-  </table>
-  
-  <div style="margin-top: 10px;">
-    <a href="[% "url_link" %]" target="_blank" style="color: steelblue; text-decoration: none; font-weight: bold;">
-      Hidrograma →
-    </a>
-  </div>
-</div>
-```
-
-Además, tienes que activar Map Tip dentro de la barra de herramientas "Attributes Toolbar". Una vez
-hechos estos pasos, al pasar el ratón por una estación surgirá un bocadillo con un acceso al 
-hidrograma, que se abrirá en tu navegador.
+* [*img*](./img/) contains icons shown in the website home page.
+* [*layers*](./layers/) contains the shapefiles (in GeoJSON format) shown in the website home page.
+* [*timeseries*](./timeseries/)  contains both the daily time series for stations (CAMELS-ES) and reservoirs (BEAVERS-ES) in Parquet format, and the HTML plots that are shown in the website.
