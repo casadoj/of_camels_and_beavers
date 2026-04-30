@@ -40,15 +40,26 @@ def compute_monthly_climatology(timeseries: pd.DataFrame) -> pd.DataFrame:
     return ts_monthly.round(rounding)
 
 
-def compute_annual_timeseries(timeseries: pd.DataFrame) -> pd.DataFrame:
-    """Creates the annual time series by resampling the daily data."""
+def compute_annual_timeseries(
+        timeseries: pd.DataFrame, 
+        rule: str = 'YS-OCT'
+    ) -> pd.DataFrame:
+    """Creates the annual time series by resampling the daily data.
+    
+    Parameters
+    ----------
+    timeseries: pd.DataFrame
+        Daily time series
+    rule: string
+        How to aggregate the years. By default, it uses hydrological years (start in October)
+    """
 
     agg_logic = {var: func for var, func in aggregation.items() if var in timeseries.columns}
     if len(agg_logic) == 0:
         raise ValueError("No variables in the timeseries match the aggregation logic.")
     
     # resample to yearly time series
-    ts_year = timeseries.resample('YS').agg(agg_logic)
+    ts_year = timeseries.resample(rule).agg(agg_logic)
     ts_year.replace(0, np.nan, inplace=True)
 
     return ts_year.round(rounding)
@@ -58,7 +69,7 @@ def define_y_limits(
         df: pd.DataFrame,
         round_primary: int,
         scale: float = 1,
-        cols_primary: list = ['precip_mm', 'discharge_mm'],
+        cols_primary: list = ['precip_mm', 'discharge_mm', 'pet_mm'],
         cols_secondary: Optional[list] = ['temp_degC']
 ):
     """

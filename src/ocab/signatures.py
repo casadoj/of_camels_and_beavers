@@ -161,3 +161,21 @@ def baseflow_index(discharge: pd.Series, alpha: float = 0.925) -> float:
     bfi = cumulative.base / cumulative.total if cumulative.total > 0 else np.nan
     
     return series, float(bfi)
+
+
+def budyko(aridity: float, n: float = 2):
+    """Computes the expected evaporative index in the Budyko framework:
+    
+    Parameters:
+    -----------
+    aridity: float
+        Aridity index: quotient of the potential evapotranspiration and precipitation
+    n: float
+        Exponent in the Budyko formulation
+
+    Returns:
+    --------
+    evaporativity: float
+        Evaporative index: quotient of the actual evapotranspiration and precipitation
+    """
+    return (1 + aridity**-n)**(-1/n)
