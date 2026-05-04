@@ -9,7 +9,563 @@ import logging
 logger = logging.getLogger(__name__)
 
 from ocab.plots.utils import compute_annual_timeseries, compute_monthly_climatology, define_y_limits
-from ocab.signatures import annual_runoff, baseflow_index, flashiness_index, slope_fdc
+from ocab.signatures import annual_runoff, baseflow_index, flashiness_index, slope_fdc, budyko
+
+
+# def plot_reservoir_timeseries(
+#     ts: pd.DataFrame,
+#     attributes: pd.Series,
+#     save: bool = False,
+#     **kwargs
+#     ):
+#     """
+#     Creates an interactive figure with two plots: the time series and the flow duration curve.
+#     Interactive buttons allow to transform the specific discharge and precipitation data to 
+#     logarithmic or square root scales to identify issues in the low flows.
+    
+#     Parameters:
+#     -----------
+#     ts: pandas.Series
+#         Discharge time series
+#     attributes: pd.Series
+#         Reservoir and dam attributes
+#     save: boolean
+#         If True, return an object with the Plotly figure. If false, show the figure
+    
+#     Keyword arguments:
+#     ------------------
+#     alpha: float
+#         Transparency of the precipitation bar plot
+#     c_fill: string
+#         Color used to plot reservoir filling
+#     c_in: string
+#         Color used to plot inflow
+#     c_out: string
+#         Color used to plot outflow
+#     c_precip: string
+#         Color used to plot precipitation
+#     title: string
+#         Figure title
+#     """
+
+#     # Extract keywords
+#     alpha = kwargs.get('alpha', 0.2)
+#     c_fill = kwargs.get('c_fill', 'darkslategrey')
+#     c_in = kwargs.get('c_line', 'seagreen')
+#     c_out = kwargs.get('c_line', 'darkred')
+#     c_precip = kwargs.get('c_bar', 'lightblue')
+#     title = kwargs.get('title', None)
+
+#     # extract time series
+#     variables = ['filling', 'inflow_cms', 'inflow_mm', 'outflow_cms', 'outflow_mm', 'precip_mm', 'temp_degC', 'pet_mm']
+#     missing_vars = list(set(variables).difference(ts.columns))
+#     if len(missing_vars) > 0:
+#         ts[missing_vars] = np.nan
+
+#     # Setup grid
+#     fig = make_subplots(
+#         rows=4, cols=2,
+#         specs=[
+#             [{"colspan": 2, "secondary_y": True}, None], # row 1
+#             [{"colspan": 2}, None], # row 2
+#             [{"colspan": 2, "secondary_y": True}, None], # row 3
+#             [{"secondary_y": True}, {}] # row 4
+#             ],
+#         column_widths=[0.5, 0.5], 
+#         row_heights=[0.48, 0.02, 0.1, 0.4],
+#         shared_xaxes=False,
+#         shared_yaxes=False,
+#         subplot_titles=("", "", "", 'Climatology', "Flow Duration Curve"),
+#         vertical_spacing=0.05,
+#         horizontal_spacing=0.15
+#     )
+
+#     # --- PLOT 1: DAILY TIME SERIES ---
+
+#     row, col = 1, 1
+
+#     # add traces
+#     fig.add_trace(
+#         go.Bar(
+#             x=ts.index, 
+#             y=ts['precip_mm'], 
+#             name="Precipitation", 
+#             marker_color=c_precip, 
+#             opacity=1 - alpha,
+#             marker_line_width=0,
+#             legendgroup="Precipitation",
+#             showlegend=False
+#         ),
+#         row=row, col=col
+#     )
+#     fig.add_trace(
+#         go.Scatter(
+#             x=ts.index, 
+#             y=ts['inflow_mm'], 
+#             name="Inflow", 
+#             line=dict(color=c_in, width=1), 
+#             legendgroup="Inflow",
+#             showlegend=False
+#         ),
+#         row=row, col=col
+#     )
+#     fig.add_trace(
+#         go.Scatter(
+#             x=ts.index, 
+#             y=ts['outflow_mm'], 
+#             name="Outflow", 
+#             line=dict(color=c_out, width=1), 
+#             legendgroup="Outflow", 
+#             showlegend=False
+#         ),
+#         row=row, col=col
+#     )
+#     fig.add_trace(
+#         go.Scatter(
+#             x=ts.index, 
+#             y=ts['filling'], 
+#             name="Filling", 
+#             line=dict(color=c_fill, width=1), 
+#             legendgroup="Filling", 
+#             showlegend=False
+#         ), 
+#         row=row, col=col, secondary_y=True
+#     )
+
+#     # set axes properties
+#     round_mm_d = 20
+#     scale_d = 100
+#     mm_range_d, fill_range_d = define_y_limits(
+#         ts, 
+#         round_mm_d, 
+#         scale_d,
+#         cols_primary=['precip_mm', 'inflow_mm', 'outflow_mm'],
+#         cols_secondary=['filling']
+#     )
+#     fig.update_yaxes(
+#         title_text="mm", 
+#         # rangemode='nonnegative',
+#         range=mm_range_d,
+#         dtick=round_mm_d,
+#         row=row, col=col, secondary_y=False
+#     )
+#     fig.update_yaxes(
+#         title_text="Filling (-)",
+#         # range=[0, 1.1],
+#         # showgrid=False, 
+#         # showticklabels=True,
+#         range=fill_range_d,
+#         dtick=round_mm_d / scale_d,
+#         row=row, col=col, secondary_y=True,
+#     )
+
+#     # --- PLOT 2: MISSING DATA ---
+
+#     row, col = 2, 1
+#     size = 2.5
+
+#     # find missing outflow dates
+#     missing_x_in = ts[ts['inflow_mm'].isnull()].index
+#     missing_y_in = [0] * len(missing_x_in)
+#     fig.add_trace(
+#         go.Scatter(
+#             x=missing_x_in,
+#             y=missing_y_in, 
+#             mode='markers',
+#             marker=dict(
+#                 symbol='line-ns-open',
+#                 size=size,
+#                 color=c_in,
+#                 line_width=1
+#             ),
+#             legendgroup="Inflow",
+#             showlegend=False,
+#             hoverinfo='x'
+#         ),
+#         row=row, col=col
+#     )
+#     # find missing outflow dates
+#     missing_x_out = ts[ts['outflow_mm'].isnull()].index
+#     missing_y_out = [10] * len(missing_x_out)
+#     fig.add_trace(
+#         go.Scatter(
+#             x=missing_x_out,
+#             y=missing_y_out, 
+#             mode='markers',
+#             marker=dict(
+#                 symbol='line-ns-open',
+#                 size=size,
+#                 color=c_out,
+#                 line_width=1
+#             ),
+#             legendgroup="Outflow",
+#             showlegend=False,
+#             hoverinfo='x'
+#         ),
+#         row=row, col=col
+#     )
+#     # find missing filling dates
+#     missing_x_fill = ts[ts['filling'].isnull()].index
+#     missing_y_fill = [20] * len(missing_x_fill)
+#     fig.add_trace(
+#         go.Scatter(
+#             x=missing_x_fill,
+#             y=missing_y_fill, 
+#             mode='markers',
+#             marker=dict(
+#                 symbol='line-ns-open',
+#                 size=size,
+#                 color=c_fill,
+#                 line_width=1
+#             ),
+#             legendgroup="Filling",
+#             showlegend=False,
+#             hoverinfo='x'
+#         ),
+#         row=row, col=col
+#     )
+
+#     # set axes
+#     fig.update_yaxes(
+#         showgrid=False, 
+#         showticklabels=False, 
+#         zeroline=False, 
+#         fixedrange=True,
+#         row=row, col=col
+#     )
+#     fig.update_xaxes(
+#         showgrid=False, 
+#         showticklabels=False, 
+#         row=row, col=col,
+#         matches='x'
+#     )
+
+#     # --- PLOT 3: ANNUAL TIME SERIES ---
+
+#     row, col = 3, 1
+
+#     # compute annual time series
+#     ts_y = compute_annual_timeseries(ts)
+
+#     # add traces
+#     fig.add_trace(
+#         go.Bar(
+#             x=ts_y.index + pd.DateOffset(months=6), 
+#             y=ts_y['precip_mm'], 
+#             name="Precipitation", 
+#             marker_color=c_precip, 
+#             opacity=1 - alpha,
+#             legendgroup="Precipitation",
+#             showlegend=True,
+#             hovertemplate="<b>Year: %{x|%Y}</b><br>P: %{y:.0f} mm<extra></extra>"
+#         ),
+#         row=row, col=col
+#     )
+#     fig.add_trace(
+#         go.Scatter(
+#             x=ts_y.index + pd.DateOffset(months=6), 
+#             y=ts_y['inflow_mm'], 
+#             name="Inflow",
+#             line=dict(color=c_in, width=2),
+#             legendgroup="Inflow",
+#             showlegend=True,
+#             hovertemplate="<b>Year: %{x|%Y}</b><br>I: %{y:.0f} mm<extra></extra>"
+#         ),
+#         row=row, col=col
+#     )
+#     fig.add_trace(
+#         go.Scatter(
+#             x=ts_y.index + pd.DateOffset(months=6), 
+#             y=ts_y['outflow_mm'], 
+#             name="Outflow",
+#             line=dict(color=c_out, width=2),
+#             legendgroup="Outflow",
+#             showlegend=True,
+#             hovertemplate="<b>Year: %{x|%Y}</b><br>O: %{y:.0f} mm<extra></extra>"
+#         ),
+#         row=row, col=col
+#     )
+#     fig.add_trace(
+#         go.Scatter(
+#             x=ts_y.index + pd.DateOffset(months=6), 
+#             y=ts_y['filling'], 
+#             name="Filling",
+#             line=dict(color=c_fill, width=2),
+#             legendgroup="Filling",
+#             showlegend=True,
+#             hovertemplate="<b>Year: %{x|%Y}</b><br>F: %{y:.2f}<extra></extra>"
+#         ),
+#         row=row, col=col, secondary_y=True
+#     )
+
+#     # set axes properties
+#     round_mm_y = 500
+#     scale_y = 1000
+#     mm_range_y, fill_range_y = define_y_limits(
+#         ts_y, 
+#         round_mm_y, 
+#         scale_y,
+#         cols_primary=['precip_mm', 'inflow_mm', 'outflow_mm'],
+#         cols_secondary=['filling']
+#     )
+#     fig.update_yaxes(
+#         title_text="mm", 
+#         range=mm_range_y, 
+#         dtick=round_mm_y, 
+#         row=row, col=col
+#     )
+#     fig.update_yaxes(
+#         title_text="Filling (-)",
+#         range=fill_range_y,
+#         dtick=round_mm_y / scale_y,
+#         row=row, col=col, secondary_y=True,
+#     )
+
+#     fig.update_xaxes(
+#         showticklabels=False, 
+#         row=row, col=col,
+#         matches='x'
+#     )
+
+#     # --- PLOT 4: CLIMOGRAPH ---
+
+#     row, col = 4, 1
+
+#     # compute monthly climatology
+#     ts_m = compute_monthly_climatology(ts)
+
+#     # add traces
+#     fig.add_trace(
+#         go.Bar(
+#             x=ts_m.index, 
+#             y=ts_m['precip_mm'], 
+#             name="Precipitation", 
+#             marker_color=c_precip, 
+#             opacity=1 - alpha,
+#             legendgroup="Precipitation",
+#             showlegend=False
+#         ), 
+#         row=row, col=col
+#     )
+#     fig.add_trace(
+#         go.Scatter(
+#             x=ts_m.index, 
+#             y=ts_m['inflow_mm'], 
+#             name="Inflow", 
+#             line=dict(color=c_in, width=2),
+#             legendgroup="Inflow",
+#             showlegend=False
+#         ), 
+#         row=row, col=col
+#     )
+#     fig.add_trace(
+#         go.Scatter(
+#             x=ts_m.index, 
+#             y=ts_m['outflow_mm'], 
+#             name="Outflow", 
+#             line=dict(color=c_out, width=2),
+#             legendgroup="Outflow",
+#             showlegend=False
+#         ), 
+#         row=row, col=col
+#     )
+#     fig.add_trace(
+#         go.Scatter(
+#             x=ts_m.index, 
+#             y=ts_m['filling'], 
+#             name="Filling", 
+#             line=dict(color=c_fill, width=2),
+#             legendgroup="Filling",
+#             showlegend=False
+#         ),
+#         row=row, col=col, secondary_y=True
+#     )
+
+#     # set axes properties
+#     round_mm_m = 20
+#     scale_m = 100
+#     mm_range_m, fill_range_m = define_y_limits(
+#         ts_m, 
+#         round_mm_m,
+#         scale_m,
+#         cols_primary=['precip_mm', 'inflow_mm', 'outflow_mm'],
+#         cols_secondary=['filling']
+#     )
+#     fig.update_yaxes(
+#         title_text="mm", 
+#         range=mm_range_m, 
+#         dtick=round_mm_m, 
+#         row=row, col=col
+#     )
+#     fig.update_yaxes(
+#         title_text="Filling (-)",
+#         range=fill_range_m,
+#         dtick=round_mm_m / scale_m,
+#         row=row, col=col, secondary_y=True,
+#     )
+#     fig.update_xaxes(
+#         tickvals=list(range(1, 13)), 
+#         ticktext=['J','F','M','A','M','J','J','A','S','O','N','D'], 
+#         row=row, col=col
+#     )
+
+#     # --- PLOT 5: FLOW DURATION CURVE ---
+
+#     row, col = 4, 2
+
+#     # compute flow duration curve
+#     fdc_precip, _ = slope_fdc(ts['precip_mm'])
+#     fdc_inflow, _ = slope_fdc(ts['inflow_mm'])
+#     fdc_outflow, slope_outflow = slope_fdc(ts['outflow_mm'])
+
+#     # add traces
+#     fig.add_trace(
+#         go.Scatter(
+#             x=fdc_precip.index * 100, 
+#             y=fdc_precip, 
+#             name="Precipitation", 
+#             line=dict(color=c_precip, width=2), 
+#             showlegend=False,
+#             legendgroup="Precipitation"
+#         ),
+#         row=row, col=col
+#     )
+#     fig.add_trace(
+#         go.Scatter(
+#             x=fdc_inflow.index * 100 if 'inflow_mm' not in missing_vars else None, 
+#             y=fdc_inflow.values if 'inflow_mm' not in missing_vars else None, 
+#             name="Inflow", 
+#             line=dict(color=c_in, width=2), 
+#             showlegend=False,
+#             legendgroup="Inflow"
+#         ),
+#         row=row, col=col
+#     )
+#     fig.add_trace(
+#         go.Scatter(
+#             x=fdc_outflow.index * 100 if 'outflow_mm' not in missing_vars else None, 
+#             y=fdc_outflow.values if 'outflow_mm' not in missing_vars else None, 
+#             name="Outflow", 
+#             line=dict(color=c_out, width=2), 
+#             showlegend=False,
+#             legendgroup="Outflow"
+#         ),
+#         row=row, col=col
+#     )
+
+#     # set axes
+#     fig.update_xaxes(title_text="Exceedance Prob. (%)", row=row, col=col)
+#     fig.update_yaxes(
+#         title_text="mm", 
+#         rangemode='nonnegative',
+#         row=row, col=col
+#     )
+
+#     # --- SIGNATRUES & CLIMATOLOGY ---
+
+#     # 1. Compute hydrological signatures
+#     _, bfi_outflow = baseflow_index(ts['outflow_cms'])
+#     fi_outflow = flashiness_index(ts['outflow_cms'])
+
+#     # Calculate Climatology
+#     climatology = ts.mean(skipna=True)
+#     vars = [var for var in climatology.index if var.endswith('_mm')]
+#     climatology[vars] *= 365 # transform to mm/year
+
+#     signature_text = (
+#         "<b>Properties</b><br>"
+#         f"Capacity: {attributes.cap_mcm:.1f} hm³<br>"
+#         f"Surface: {attributes.area_skm:.1f} km²<br>"
+#         f"Catchment: {attributes.catch_skm:.1f} km²<br>"
+#         f"Deg. Regulation: {attributes.dor_d:.0f} days<br>"
+#         f"Deg. Disruptivity: {attributes.dod_m * 1000:.0f} mm<br>"
+#         f"Use: {attributes.main_use}<br>"
+#         "<br><b>Climatology</b><br>"
+#         f"Filling: {climatology.filling:.2f}<br>"
+#         f"Inflow: {climatology.inflow_mm:.0f} mm/year<br>"
+#         f"Outflow: {climatology.outflow_mm:.0f} mm/year<br>"
+#         f"Precipitation: {climatology.precip_mm:.0f} mm/year<br>"
+#         f"PET: {climatology.pet_mm:.0f} mm/year<br>"
+#         f"Temperature: {climatology.temp_degC:.1f} °C<br>"
+#         "<br><b>Hydrological Signatures</b>"
+#         f"<br>Baseflow Index: {bfi_outflow:.2f}<br>"
+#         f"Flashiness Index: {fi_outflow:.2f}<br>"
+#         f"Slope FDC: {slope_outflow:.2f}<br>"
+#     )
+
+#     # Update Layout & Scale Buttons
+#     y_raw = [
+#         ts['precip_mm'], ts['inflow_mm'], ts['outflow_mm'], ts['filling'],
+#         missing_y_in, missing_y_out, missing_y_fill,
+#         ts_y['precip_mm'], ts_y['inflow_mm'], ts_y['outflow_mm'], ts_y['filling'],
+#         ts_m['precip_mm'], ts_m['inflow_mm'], ts_m['outflow_mm'], ts_m['filling'],
+#         fdc_precip.values, fdc_inflow.values, fdc_outflow.values,
+#     ]
+#     sqrt_traces = [0, 1, 2, 15, 16, 17]
+#     y_sqrt = [trace**.5 if i in sqrt_traces else trace for i, trace in enumerate(y_raw)]
+#     fig.update_layout(
+#         title_text=f"<b>{title if title else ''}</b>",
+#         title_x=0.5,
+#         margin=dict(l=50, r=200, t=50, b=50),
+#         template="plotly_white",
+#         autosize=True,
+#         showlegend=True,
+#         legend=dict(
+#             orientation="h",
+#             yanchor="top",
+#             y=-0.075,
+#             xanchor="center",
+#             x=0.45
+#         ),
+#         bargap=0.08, 
+#         barmode='overlay',
+#         updatemenus=[
+#             dict(
+#                 type="buttons", direction="down", active=0, x=1.02, xanchor="left", y=1, yanchor='top', showactive=True,
+#                 buttons=[
+#                     dict(label="Linear Scale", method="update", 
+#                          args=[
+#                              {"y": y_raw},
+#                              {
+#                                  "yaxis.type": "linear", "yaxis.title.text": "mm",
+#                                  "yaxis8.type": "linear", "yaxis8.title.text": "mm",
+#                             }
+#                          ]),
+#                     dict(label="Log Scale", method="update",
+#                          args=[
+#                              {"y": y_raw}, 
+#                              {
+#                                  "yaxis.type": "log", "yaxis.title.text": "log mm",
+#                                  "yaxis8.type": "log", "yaxis8.title.text": "log mm",
+#                              }
+#                          ]),
+#                     dict(label="Sqrt Scale", method="update",
+#                          args=[
+#                              {"y": y_sqrt},
+#                              {
+#                                  "yaxis.type": "linear", "yaxis.title.text": "sqrt mm",
+#                                  "yaxis8.type": "linear", "yaxis8.title.text": "sqrt mm",
+#                              }
+#                          ])
+#                 ],
+#             )
+#         ],
+#     )
+#     fig.add_annotation(
+#         text=signature_text, 
+#         xref="paper", x=1.02, xanchor="left", 
+#         yref="paper", y=0, yanchor="bottom",
+#         showarrow=False, align="left", bgcolor="rgba(0, 0, 0, 0)"
+#     )
+#     fig.update_xaxes(
+#         range=[ts.index.min(), ts.index.max()],
+#         row=1, col=1
+#     )
+    
+#     if save:
+#         return fig
+#     else:
+#         fig.show()
 
 
 def plot_reservoir_timeseries(
@@ -151,9 +707,6 @@ def plot_reservoir_timeseries(
     )
     fig.update_yaxes(
         title_text="Filling (-)",
-        # range=[0, 1.1],
-        # showgrid=False, 
-        # showticklabels=True,
         range=fill_range_d,
         dtick=round_mm_d / scale_d,
         row=row, col=col, secondary_y=True,
@@ -250,46 +803,50 @@ def plot_reservoir_timeseries(
     # add traces
     fig.add_trace(
         go.Bar(
-            x=ts_y.index, 
+            x=ts_y.index + pd.DateOffset(months=6), 
             y=ts_y['precip_mm'], 
             name="Precipitation", 
             marker_color=c_precip, 
             opacity=1 - alpha,
             legendgroup="Precipitation",
-            showlegend=True
+            showlegend=True,
+            hovertemplate="<b>Year: %{x|%Y}</b><br>P: %{y:.0f} mm<extra></extra>"
         ),
         row=row, col=col
     )
     fig.add_trace(
         go.Scatter(
-            x=ts_y.index, 
+            x=ts_y.index + pd.DateOffset(months=6), 
             y=ts_y['inflow_mm'], 
             name="Inflow",
             line=dict(color=c_in, width=2),
             legendgroup="Inflow",
-            showlegend=True
+            showlegend=True,
+            hovertemplate="<b>Year: %{x|%Y}</b><br>I: %{y:.0f} mm<extra></extra>"
         ),
         row=row, col=col
     )
     fig.add_trace(
         go.Scatter(
-            x=ts_y.index, 
+            x=ts_y.index + pd.DateOffset(months=6), 
             y=ts_y['outflow_mm'], 
             name="Outflow",
             line=dict(color=c_out, width=2),
             legendgroup="Outflow",
-            showlegend=True
+            showlegend=True,
+            hovertemplate="<b>Year: %{x|%Y}</b><br>O: %{y:.0f} mm<extra></extra>"
         ),
         row=row, col=col
     )
     fig.add_trace(
         go.Scatter(
-            x=ts_y.index, 
+            x=ts_y.index + pd.DateOffset(months=6), 
             y=ts_y['filling'], 
             name="Filling",
             line=dict(color=c_fill, width=2),
             legendgroup="Filling",
-            showlegend=True
+            showlegend=True,
+            hovertemplate="<b>Year: %{x|%Y}</b><br>F: %{y:.2f}<extra></extra>"
         ),
         row=row, col=col, secondary_y=True
     )
@@ -405,57 +962,94 @@ def plot_reservoir_timeseries(
         row=row, col=col
     )
 
-    # --- PLOT 5: FLOW DURATION CURVE ---
+    # --- PLOT 5: BUDYKO DIAGRAM ---
 
     row, col = 4, 2
 
-    # compute flow duration curve
-    fdc_precip, _ = slope_fdc(ts['precip_mm'])
-    fdc_inflow, _ = slope_fdc(ts['inflow_mm'])
-    fdc_outflow, slope_outflow = slope_fdc(ts['outflow_mm'])
+    # calculate indices
+    aridity = ts_y['pet_mm'] / ts_y['precip_mm']
+    evaporativity = (ts_y['precip_mm'] - ts_y['outflow_mm']) / ts_y['precip_mm']
 
-    # add traces
+    # plot limits
+    round = 0.2
+    xlim = [0, max(1.4, np.ceil(aridity.max() / round) * round)]
+    ylim = [0, 1.4]
+
+    # Theoretical lines
+    line_props = dict(color='grey', width=1)
+    # Water Limit
     fig.add_trace(
         go.Scatter(
-            x=fdc_precip.index * 100, 
-            y=fdc_precip, 
-            name="Precipitation", 
-            line=dict(color=c_precip, width=2), 
+            x=np.linspace(*xlim, 100), 
+            y=[1] * 100, 
+            mode='lines', 
+            name='Water Limit',
+            line=line_props, 
             showlegend=False,
-            legendgroup="Precipitation"
+            hovertemplate=" "
         ),
         row=row, col=col
     )
+    # Energy Limit
     fig.add_trace(
         go.Scatter(
-            x=fdc_inflow.index * 100 if 'inflow_mm' not in missing_vars else None, 
-            y=fdc_inflow.values if 'inflow_mm' not in missing_vars else None, 
-            name="Inflow", 
-            line=dict(color=c_in, width=2), 
+            x=np.linspace(*xlim, 100), 
+            y=np.linspace(*xlim, 100), 
+            mode='lines', 
+            name='Energy Limit',
+            line=line_props, 
             showlegend=False,
-            legendgroup="Inflow"
+            hovertemplate=" "
         ),
         row=row, col=col
     )
+    # Budyko Curve
+    aridity_idx = np.linspace(0.001, xlim[1], 100)
     fig.add_trace(
         go.Scatter(
-            x=fdc_outflow.index * 100 if 'outflow_mm' not in missing_vars else None, 
-            y=fdc_outflow.values if 'outflow_mm' not in missing_vars else None, 
-            name="Outflow", 
-            line=dict(color=c_out, width=2), 
+            x=aridity_idx, 
+            y=budyko(aridity_idx, n=2), 
+            mode='lines', 
+            name='Budyko Limit',
+            line=line_props,
             showlegend=False,
-            legendgroup="Outflow"
+            hovertemplate=" "
+        ),
+        row=row, col=col
+    )
+
+    # Add annual values
+    fig.add_trace(
+        go.Scatter(
+            x=aridity, 
+            y=evaporativity,
+            mode='markers',
+            name='Budyko',
+            marker=dict(color='sienna', size=8, line=dict(width=1, color='white')),
+            customdata=ts_y.index.year,
+            hovertemplate="<b>Year: %{customdata}</b><br>Arid. Index: %{x:.2f}<br>Evap. Index: %{y:.2f}<extra></extra>",
+            showlegend=False
         ),
         row=row, col=col
     )
 
     # set axes
-    fig.update_xaxes(title_text="Exceedance Prob. (%)", row=row, col=col)
+    fig.update_xaxes(
+        title_text="Aridity Index: PET/P", 
+        range=xlim,
+        row=row, col=col)
     fig.update_yaxes(
-        title_text="mm", 
-        rangemode='nonnegative',
+        title_text="Evaporative Index: (P-Q)/P", 
+        range=ylim,
         row=row, col=col
     )
+
+    ### --- SIGNATURES & CLIMATOLOGY VALUES ---
+
+    # compute flow duration curve
+    fdc_precip, _ = slope_fdc(ts['precip_mm'])
+    fdc_inflow, _ = slope_fdc(ts['inflow_mm'])
+    fdc_outflow, slope_outflow = slope_fdc(ts['outflow_mm'])
 
     # --- SIGNATRUES & CLIMATOLOGY ---
 
@@ -489,7 +1083,7 @@ def plot_reservoir_timeseries(
         f"Slope FDC: {slope_outflow:.2f}<br>"
     )
 
-    # # Update Layout & Scale Buttons
+    # Update Layout & Scale Buttons
     y_raw = [
         ts['precip_mm'], ts['inflow_mm'], ts['outflow_mm'], ts['filling'],
         missing_y_in, missing_y_out, missing_y_fill,
@@ -517,7 +1111,7 @@ def plot_reservoir_timeseries(
         barmode='overlay',
         updatemenus=[
             dict(
-                type="buttons", direction="down", active=0, x=1.02, xanchor="left", y=0, yanchor='bottom', showactive=True,
+                type="buttons", direction="down", active=0, x=1.02, xanchor="left", y=1, yanchor='top', showactive=True,
                 buttons=[
                     dict(label="Linear Scale", method="update", 
                          args=[
@@ -550,8 +1144,8 @@ def plot_reservoir_timeseries(
     fig.add_annotation(
         text=signature_text, 
         xref="paper", x=1.02, xanchor="left", 
-        yref="paper", y=1, yanchor="top",
-        showarrow=False, align="left", bgcolor="rgba(255, 255, 255, 0.9)"
+        yref="paper", y=0, yanchor="bottom",
+        showarrow=False, align="left", bgcolor="rgba(0, 0, 0, 0)"
     )
     fig.update_xaxes(
         range=[ts.index.min(), ts.index.max()],
