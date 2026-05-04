@@ -64,7 +64,7 @@ def plot_stations_map(
         ax.text(.5, 1.125, title, horizontalalignment='center', verticalalignment='bottom', transform=ax.transAxes, fontsize=12)
     ax.axis('off')
     
-    # plot reservoir poitns
+    # plot poitns
     s = np.cbrt(area) if area is not None else size
     scatter = ax.scatter(
         geometry.x,
@@ -800,7 +800,7 @@ def plot_station_timeseries(
 
     row, col = 4, 2
 
-    # calculate data
+    # calculate indices
     aridity = ts_y['pet_mm'] / ts_y['precip_mm']
     evaporativity = (ts_y['precip_mm'] - ts_y['discharge_mm']) / ts_y['precip_mm']
 
