@@ -25,7 +25,7 @@ Both datasets will be published freely on Zenodo to enhance model intercompariso
 
 The dataests integrate high-quality local and continental producs:
 * **Hydrology**: [*Anuario de aforos 2020-2021*](https://ceh.cedex.es/anuarioaforos/default.asp) (CEDEX).
-* **Meteorology**: [*EMO1*](https://data.jrc.ec.europa.eu/dataset/0bd84be4-cec8-4180-97a6-8b3adaac4d26) (JRC), [*ERA5*](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels?tab=overview) (ECMWF), CERRA, and ROCIO-IBEB.
+* **Meteorology**: [*EMO1*](https://data.jrc.ec.europa.eu/dataset/0bd84be4-cec8-4180-97a6-8b3adaac4d26) (JRC), [*ERA5*](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels?tab=overview) (ECMWF), [*CERRA*](https://cds.climate.copernicus.eu/datasets/reanalysis-cerra-single-levels?tab=overview) (temperature), [CERRA-Land](https://cds.climate.copernicus.eu/datasets/reanalysis-cerra-land?tab=download) (precipitation), and [*ROCIO-IBEB*](https://www.aemet.es/es/serviciosclimaticos/cambio_climat/datos_diarios/ayuda/rejilla_5km) (temperature and precipitation). For CERRA and ROCIO-IBEB, potential evapotranspiration was calculated using the method of [Hargreaves et al. (1985, 1994)](https://doi.org/10.13031/2013.26773).
 * **Catchment attributes**: [EFAS5 static maps](https://data.jrc.ec.europa.eu/dataset/f572c443-7466-4adf-87aa-c0847a169f23) (JRC).
 * **Reservoir and dam characteristics**: [National Inventory of Dams and Reservoirs of Spain](https://www.miteco.gob.es/es/agua/temas/seguridad-de-presas-y-embalses/inventario-presas-y-embalses.html) (MITECO), and [Global Dam Watch](https://www.globaldamwatch.org/).
 
