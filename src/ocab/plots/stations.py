@@ -839,7 +839,7 @@ def plot_station_timeseries(
             x=aridity_idx, 
             y=budyko(aridity_idx, n=2), 
             mode='lines', 
-            name='Budyko limit',
+            name='Budyko Limit',
             line=line_props,
             showlegend=False,
             hovertemplate=" "
