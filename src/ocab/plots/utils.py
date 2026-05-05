@@ -65,6 +65,53 @@ def compute_annual_timeseries(
     return ts_year.round(rounding)
 
 
+def compute_annual_timeseries(
+        timeseries: pd.DataFrame, 
+        rule: str = 'YS-OCT'
+    ) -> pd.DataFrame:
+    """Creates the annual time series by resampling the daily data.
+    
+    Parameters
+    ----------
+    timeseries: pd.DataFrame
+        Daily time series
+    rule: string
+        How to aggregate the years. By default, it uses hydrological years (start in October)
+    """
+
+    def scaled_sum(series):
+        """Custom function to compute the sum with missing values"""
+        if series.isna().all():
+            return np.nan
+        return series.mean() * len(series)
+    
+    agg_logic = {}
+    for var, func in aggregation.items():
+        if var not in timeseries.columns:
+            continue
+        if func == 'sum':
+            agg_logic[var] = scaled_sum
+        else:
+            agg_logic[var] = func
+    if len(agg_logic) == 0:
+        raise ValueError("No variables in the timeseries match the aggregation logic.")
+    
+    # 1. Resample and aggregate
+    resampled = timeseries.resample(rule)
+    ts_year = resampled.agg(agg_logic)
+    
+    # 2. Safety Check: Mask years with too much missing data
+    n_data = resampled.count()
+    n_days = resampled.size()
+    for col in ts_year.columns:
+        mask = n_data[col] < (n_days * 0.90)
+        ts_year.loc[mask, col] = np.nan
+
+    ts_year.replace(0, np.nan, inplace=True)
+
+    return ts_year.round(rounding)
+
+
 def define_y_limits(
         df: pd.DataFrame,
         round_primary: int,

@@ -64,7 +64,7 @@ def plot_stations_map(
         ax.text(.5, 1.125, title, horizontalalignment='center', verticalalignment='bottom', transform=ax.transAxes, fontsize=12)
     ax.axis('off')
     
-    # plot reservoir poitns
+    # plot poitns
     s = np.cbrt(area) if area is not None else size
     scatter = ax.scatter(
         geometry.x,
@@ -578,7 +578,7 @@ def plot_station_timeseries(
             opacity=1 - alpha,
             marker_line_width=0,
             legendgroup="P",
-            showlegend=False
+            showlegend=False,
         ),
         row=row, col=col
     )
@@ -651,44 +651,49 @@ def plot_station_timeseries(
     # add traces
     fig.add_trace(
         go.Bar(
-            x=ts_y.index, 
+            x=ts_y.index + pd.DateOffset(months=6), 
             y=ts_y['precip_mm'], 
             name="Precipitation", 
             marker_color=c_precip, 
             opacity=1 - alpha,
             legendgroup="P",
-            showlegend=True
+            showlegend=True,
+            # offset=0,
+            hovertemplate="<b>Year: %{x|%Y}</b><br>P: %{y:.0f} mm<extra></extra>"
         ),
         row=row, col=col
     )
     fig.add_trace(go.Scatter(
-            x=ts_y.index, 
+            x=ts_y.index + pd.DateOffset(months=6), 
             y=ts_y['temp_degC'], 
             name="Temperature",
             line=dict(color=c_temp, width=2),
             legendgroup="T",
-            showlegend=True
+            showlegend=True,
+            hovertemplate="<b>Year: %{x|%Y}</b><br>T: %{y:.1f} °C<extra></extra>"
         ), 
         row=row, col=col, secondary_y=True
     )
     fig.add_trace(go.Scatter(
-            x=ts_y.index, 
+            x=ts_y.index + pd.DateOffset(months=6), 
             y=ts_y['pet_mm'], 
             name="PET",
             line=dict(color=c_pet, width=2),
             legendgroup="PET",
-            showlegend=True
+            showlegend=True,
+            hovertemplate="<b>Year: %{x|%Y}</b><br>PET: %{y:.0f} mm<extra></extra>"
         ), 
         row=row, col=col,
     )
     fig.add_trace(
         go.Scatter(
-            x=ts_y.index, 
+            x=ts_y.index + pd.DateOffset(months=6), 
             y=ts_y['discharge_mm'], 
             name="Discharge",
             line=dict(color=c_dis, width=2),
             legendgroup="Q",
-            showlegend=True
+            showlegend=True,
+            hovertemplate="<b>Year: %{x|%Y}</b><br>Q: %{y:.0f} mm<extra></extra>"
         ),
         row=row, col=col
     )
@@ -795,7 +800,7 @@ def plot_station_timeseries(
 
     row, col = 4, 2
 
-    # calculate data
+    # calculate indices
     aridity = ts_y['pet_mm'] / ts_y['precip_mm']
     evaporativity = (ts_y['precip_mm'] - ts_y['discharge_mm']) / ts_y['precip_mm']
 
@@ -922,7 +927,6 @@ def plot_station_timeseries(
         barmode='overlay',
         updatemenus=[
             dict(
-                # type="buttons", direction="down", active=0, x=1.02, xanchor="left", y=0, yanchor='bottom', showactive=True,
                 type="buttons", direction="down", active=0, x=1.02, xanchor="left", y=1, yanchor='top', showactive=True,
                 buttons=[
                     dict(label="Linear Scale", method="update", 
