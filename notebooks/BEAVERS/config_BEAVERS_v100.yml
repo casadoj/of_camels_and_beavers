@@ -12,7 +12,7 @@ dataset:
     version: 1.0.0
     # study period
     period:
-        start: 1980-01-01
+        start: 1980-10-01
         end: 2025-12-31
     # catchment size (km²)
     area:
