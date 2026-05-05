@@ -1,1 +1,1 @@
-from .api import get_stations, get_timeseries
+from .api import get_stations_hidrosur, get_timeseries_hidrosur, extract_gauge_location_river

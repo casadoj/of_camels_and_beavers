@@ -1,6 +1,64 @@
-from typing import Dict
-import pandas as pd
+from typing import Dict, List
 from pathlib import Path
+import re
+import unicodedata
+
+import numpy as np
+import pandas as pd
+import geopandas as gpd
+
+
+def remove_accents(input_str):
+    nfd_form = unicodedata.normalize('NFD', input_str)
+    return "".join([c for c in nfd_form if unicodedata.category(c) != 'Mn'])
+
+
+def extract_gauge_location_river(series: pd.Series) -> (pd.Series, pd.Series):
+    """
+    It extracts the location and river names from a series of strings.
+
+    Parameters:
+    -----------
+    series: pd.Series
+        Texts that contain the gauge location and rivers
+
+    Returns:
+    --------
+    names: pd.Series
+        Location of the station
+    rivers: pd.Series
+        River in which the station is located
+    """
+
+    # 1. Pre-process: lowercase and remove accents
+    clean_text = series.astype(str).str.lower().apply(remove_accents)
+
+    # 2. Define extraction logic using regex or str methods
+    rivers = pd.Series(index=series.index, dtype=object)
+    names = pd.Series(index=series.index, dtype=object)
+
+    # Case: "rio x (nombre)"
+    mask_paren = clean_text.str.contains(r'\(', na=False)
+    parts = clean_text[mask_paren].str.split(r'\(', expand=True)
+    rivers.loc[mask_paren] = parts[0].str.replace('rio', '', case=False).str.strip()
+    names.loc[mask_paren] = parts[1].str.replace(')', '', regex=False).str.strip()
+
+    # Case: "rio x en nombre"
+    mask_en = (~mask_paren) & clean_text.str.contains(' en ', na=False)
+    parts_en = clean_text[mask_en].str.split(' en ', expand=True)
+    rivers.loc[mask_en] = parts_en[0].str.strip()
+    names.loc[mask_en] = parts_en[1].str.strip()
+
+    # Case: Starts with 'rio' or 'arroyo' (no extra name)
+    mask_prefix = (~mask_paren) & (~mask_en) & clean_text.str.match(r'^(rio|arroyo)', na=False)
+    rivers.loc[mask_prefix] = clean_text[mask_prefix].str.replace(r'^(rio|arroyo)', '', regex=True).str.strip()
+    
+    # Case: Default (Everything else is a name)
+    mask_else = rivers.isna()
+    names.loc[mask_else] = clean_text[mask_else]
+
+    # 3. Final cleanup: Title Case
+    return names.str.title(), rivers.str.title()
 
 
 def get_stations_hidrosur(file: Path, epsg: int = 4326) -> gpd.GeoDataFrame:
@@ -66,8 +124,9 @@ def get_stations_hidrosur(file: Path, epsg: int = 4326) -> gpd.GeoDataFrame:
         name = re.sub(r'EMBALSE DE\s+', '', name)
         name = re.sub(r'EMBALSE DEL\s+', 'EL ', name)
         name = re.sub(r'EMBALSE\s+', '', name)
-        names.append(name.title())
+        names.append(name.lower())
     stations['name'] = names
+    stations['province'] = stations['province'].str.title()
 
     # translate station type
     stations['type'] = stations['type'].replace({
@@ -128,9 +187,10 @@ def get_timeseries_hidrosur(
         'estacion': 'id_saih',
         'sensor': 'sensor',
         'fecha': 'datetime',
-        'nivel (m)': 'stage_m',
-        'caudal (m3/s)': 'discharge_cms',
-        'volumen (hm3)': 'storage_mcm'
+        'nivel (m)': 'stage',
+        'nivel (msnm)': 'level',
+        'caudal (m3/s)': 'discharge',
+        'volumen (hm3)': 'storage'
     }
 
     # load time series and rename columns
@@ -143,11 +203,12 @@ def get_timeseries_hidrosur(
 
     # reorganize the data
     timeseries = {
-        id_saih: group.set_index('datetime')
+        ID: group.set_index('datetime')
                     .drop(columns=['id_saih', 'sensor'], errors='ignore')
                     .sort_index()
                     .asfreq(freq)
-        for id_saih, group in data.groupby('id_saih')
+        for ID, group in data.groupby('id_saih')
     }
+    timeseries = {ID: df.where(df >= 0) for ID, df in timeseries.items()}
 
     return timeseries
