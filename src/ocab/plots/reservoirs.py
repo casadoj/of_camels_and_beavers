@@ -968,7 +968,9 @@ def plot_reservoir_timeseries(
 
     # calculate indices
     aridity = ts_y['pet_mm'] / ts_y['precip_mm']
+    aridity.index += pd.DateOffset(months=6)
     evaporativity = (ts_y['precip_mm'] - ts_y['outflow_mm']) / ts_y['precip_mm']
+    evaporativity.index += pd.DateOffset(months=6)
 
     # plot limits
     round = 0.2

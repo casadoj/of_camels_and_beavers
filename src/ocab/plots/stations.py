@@ -802,7 +802,9 @@ def plot_station_timeseries(
 
     # calculate indices
     aridity = ts_y['pet_mm'] / ts_y['precip_mm']
+    aridity.index += pd.DateOffset(months=6)
     evaporativity = (ts_y['precip_mm'] - ts_y['discharge_mm']) / ts_y['precip_mm']
+    evaporativity.index += pd.DateOffset(months=6)
 
     # plot limits
     round = 0.2
