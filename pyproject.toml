@@ -21,7 +21,7 @@ dependencies = [
     "plotly>=6.6.0",
     "pyarrow>=23.0.1",
     "pyflwdir>=0.5.10",
-    "pytest>=9.0.2",
+    "pytest>=9.0.3",
     "pyyaml>=6.0.3",
     "rechunker>=0.5.2",
     "reservoirs-lshm",
