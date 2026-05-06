@@ -1,3 +1,63 @@
+1078:
+  inflow: []
+  outflow:
+1108:
+  inflow: []
+  outflow:
+1177:
+  inflow: []
+  outflow:
+1231:
+  inflow: []
+  outflow:
+1253:
+  inflow: [1252]
+  outflow:
+1333:
+  inflow: []
+  outflow:
+1334:
+  inflow: [1333]
+  outflow: 1335
+1340:
+  inflow: []
+  outflow:
+1356:
+  inflow: []
+  outflow: 1354
+1406:
+  inflow: [1404] # incomplete
+  outflow:
+1408:
+  inflow: [1406] # incomplete
+  outflow:
+1409:
+  inflow: [1408]
+  outflow:
+1430:
+  inflow: []
+  outflow:
+1445:
+  inflow: []
+  outflow:
+1454:
+  inflow: []
+  outflow:
+1456:
+  inflow: []
+  outflow:
+1507:
+  inflow: []
+  outflow:
+1510:
+  inflow: []
+  outflow:
+1528:
+  inflow: []
+  outflow:
+1546:
+  inflow: []
+  outflow:
 2032:
   inflow: [2529, 2535, 2550]
   outflow: 2102
