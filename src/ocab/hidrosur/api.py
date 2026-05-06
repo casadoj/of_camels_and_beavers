@@ -1,7 +1,10 @@
-from typing import Dict, List
+from typing import Dict, Optional
 from pathlib import Path
 import re
 import unicodedata
+import logging
+
+logger = logging.getLogger(__name__)
 
 import numpy as np
 import pandas as pd
@@ -161,17 +164,157 @@ def get_stations_hidrosur(file: Path, epsg: int = 4326) -> gpd.GeoDataFrame:
     return stations
 
 
+# def get_timeseries_hidrosur(
+#         file: Path, 
+#         freq: str = 'h', 
+#         tz: Optional[str] = 'UTC'
+#         ) -> Dict[int, pd.DataFrame]:
+#     """Read time series data from the raw TXT file.
+    
+#     Parameters:
+#     -----------
+#     file: str or Path
+#         TXT file containing the time series
+#     freq: str
+#         Temporal frequency of the data. By default is hourly: 'h'
+#     tz: str
+#         Time zone. By default 'UTC'
+
+#     Returns:
+#     --------
+#     Dict[int, pd.DataFrame]
+#         A dictionary where keys are station IDs and values are cleaned DataFrames.
+#     """
+
+#     rename_cols = {
+#         'estacion': 'id_saih',
+#         'sensor': 'sensor',
+#         'fecha': 'date',
+#         'hora': 'time',
+#         'nivel_(m)': 'stage',
+#         'nivel_(msnm)': 'level',
+#         'q_(m3/s)': 'discharge',
+#         'volumen_(hm3)': 'storage'
+#     }
+
+#     # load time series and rename columns
+#     data = pd.read_csv(
+#         file, 
+#         sep=r'\s+', 
+#         skiprows=[1]
+#     )
+#     data.columns = data.columns.str.lower()
+#     data = data[data.columns.intersection(rename_cols)].rename(columns=rename_cols)
+
+#     # convert to datetime
+#     data['datetime'] = pd.to_datetime(
+#         data['date'] + ' ' + data['time']
+#     ).dt.tz_localize(tz)
+#     data.drop(columns=['date', 'time'], inplace=True)
+
+#     # reorganize the data
+#     timeseries = {
+#         ID: group.set_index('datetime')
+#                     .drop(columns=['id_saih', 'sensor'], errors='ignore')
+#                     .sort_index()
+#                     .asfreq(freq)
+#         for ID, group in data.groupby('id_saih')
+#     }
+#     timeseries = {ID: df.where(df >= 0) for ID, df in timeseries.items()}
+
+#     return timeseries
+
+
+def _read_txt_file(file, freq='h', tz = 'UTC'):
+    """Read and process a SAIH station text file into a cleaned DataFrame.
+
+    This function parses fixed-width or whitespace-separated text files, 
+    normalizes column names, handles timezone localization, and resolves 
+    duplicate timestamps by prioritizing rows with complete data. It 
+    also enforces data physical constraints (non-negative values).
+
+    Parameters
+    ----------
+    file : str or file-like object
+        Path to the text file or a file-handle containing the data.
+    freq : str, default 'h'
+        The frequency of the time series (e.g., 'h' for hourly, 'D' for daily).
+        Passed directly to pandas.asfreq().
+    tz : str, default 'UTC'
+        The timezone string used to localize the naive datetimes extracted 
+        from the file.
+
+    Returns
+    -------
+    dict
+        A dictionary where the key is the station ID (str) and the value 
+        is a pandas.DataFrame with a DatetimeIndex and the cleaned variables.
+        If multiple IDs or sensors are detected, returns {'unknown': data}.
+    """
+    
+    rename_cols = {
+        'estacion': 'id_saih',
+        'sensor': 'sensor',
+        'fecha': 'date',
+        'hora': 'time',
+        'nivel_(m)': 'stage',
+        'nivel_(msnm)': 'level',
+        'caudal_(m3/s)': 'discharge',
+        'volumen_(hm3)': 'storage'
+    }
+
+    # load time series and rename columns
+    data = pd.read_csv(file, sep=r'\s+')
+    data.columns = data.columns.str.lower()
+    data = data[data.columns.intersection(rename_cols)].rename(columns=rename_cols)
+    
+    # extract ID
+    if len(data['id_saih'].unique()) == 1:
+        ID = data['id_saih'].unique().item()
+        data.drop(columns=['id_saih'], inplace=True)
+    else:
+        logger.warning(f'{file} contains multiple ID')
+        return {'unknown': data}
+    
+    # check sensors
+    if 'sensor' in data.columns:
+        if len(data['sensor'].unique()) == 1:
+            data.drop(columns=['sensor'], inplace=True)
+        else:
+            logger.warning(f'{file} contains multiple sensors')
+            return {'unknown': data}
+
+    # convert to datetime
+    data['datetime'] = pd.to_datetime(
+        data['date'] + ' ' + data['time']
+    ).dt.tz_localize(tz)
+    data.drop(columns=['date', 'time'], inplace=True)
+
+    # remove duplicate dates
+    cols = ['datetime'] + [col for col in data.columns if col != 'datetime']
+    data = data.sort_values(cols, na_position='first')
+    data = data.drop_duplicates(subset='datetime', keep='last')
+    
+    # set datetime as index
+    data = data.set_index('datetime').asfreq(freq)
+
+    # remove negative values
+    data = data.where(data >= 0)
+    
+    return {ID: data}
+
+
 def get_timeseries_hidrosur(
-        file: Path, 
+        folder: Path, 
         freq: str = 'h', 
-        tz: str = 'UTC'
-        ) -> Dict[int, pd.DataFrame]:
+        tz: Optional[str] = 'UTC'
+    ) -> Dict[int, pd.DataFrame]:
     """Read time series data from the raw TXT file.
     
     Parameters:
     -----------
-    file: str or Path
-        TXT file containing the time series
+    folder: Path
+        Path to the directory containing .txt files.
     freq: str
         Temporal frequency of the data. By default is hourly: 'h'
     tz: str
@@ -183,32 +326,13 @@ def get_timeseries_hidrosur(
         A dictionary where keys are station IDs and values are cleaned DataFrames.
     """
 
-    rename_cols = {
-        'estacion': 'id_saih',
-        'sensor': 'sensor',
-        'fecha': 'datetime',
-        'nivel (m)': 'stage',
-        'nivel (msnm)': 'level',
-        'caudal (m3/s)': 'discharge',
-        'volumen (hm3)': 'storage'
-    }
-
-    # load time series and rename columns
-    data = pd.read_csv(file)
-    data.columns = data.columns.str.lower()
-    data = data[data.columns.intersection(rename_cols)].rename(columns=rename_cols)
-
-    # convert to datetime
-    data['datetime'] = pd.to_datetime(data['datetime']).dt.tz_localize(tz)
-
-    # reorganize the data
-    timeseries = {
-        ID: group.set_index('datetime')
-                    .drop(columns=['id_saih', 'sensor'], errors='ignore')
-                    .sort_index()
-                    .asfreq(freq)
-        for ID, group in data.groupby('id_saih')
-    }
-    timeseries = {ID: df.where(df >= 0) for ID, df in timeseries.items()}
+    timeseries = {}
+    folder = Path(folder)
+    for file in folder.glob('*.txt'):
+        try:
+            ts = _read_txt_file(file, freq=freq, tz=tz)
+            timeseries.update(ts)
+        except Exception as e:
+            logger.error(f"{file} couldn't be read:\n{e}")
 
     return timeseries
