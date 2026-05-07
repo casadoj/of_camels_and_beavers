@@ -799,11 +799,12 @@ def plot_reservoir_timeseries(
 
     # compute annual time series
     ts_y = compute_annual_timeseries(ts)
+    ts_y.index += pd.DateOffset(months=6) # to adapt labels in the plots
 
     # add traces
     fig.add_trace(
         go.Bar(
-            x=ts_y.index + pd.DateOffset(months=6), 
+            x=ts_y.index, 
             y=ts_y['precip_mm'], 
             name="Precipitation", 
             marker_color=c_precip, 
@@ -816,7 +817,7 @@ def plot_reservoir_timeseries(
     )
     fig.add_trace(
         go.Scatter(
-            x=ts_y.index + pd.DateOffset(months=6), 
+            x=ts_y.index, 
             y=ts_y['inflow_mm'], 
             name="Inflow",
             line=dict(color=c_in, width=2),
@@ -828,7 +829,7 @@ def plot_reservoir_timeseries(
     )
     fig.add_trace(
         go.Scatter(
-            x=ts_y.index + pd.DateOffset(months=6), 
+            x=ts_y.index, 
             y=ts_y['outflow_mm'], 
             name="Outflow",
             line=dict(color=c_out, width=2),
@@ -840,7 +841,7 @@ def plot_reservoir_timeseries(
     )
     fig.add_trace(
         go.Scatter(
-            x=ts_y.index + pd.DateOffset(months=6), 
+            x=ts_y.index, 
             y=ts_y['filling'], 
             name="Filling",
             line=dict(color=c_fill, width=2),
@@ -968,9 +969,7 @@ def plot_reservoir_timeseries(
 
     # calculate indices
     aridity = ts_y['pet_mm'] / ts_y['precip_mm']
-    aridity.index += pd.DateOffset(months=6)
     evaporativity = (ts_y['precip_mm'] - ts_y['outflow_mm']) / ts_y['precip_mm']
-    evaporativity.index += pd.DateOffset(months=6)
 
     # plot limits
     round = 0.2
@@ -1028,7 +1027,7 @@ def plot_reservoir_timeseries(
             mode='markers',
             name='Budyko',
             marker=dict(color='sienna', size=8, line=dict(width=1, color='white')),
-            customdata=ts_y.index.year,
+            customdata=aridity.index.year,
             hovertemplate="<b>Year: %{customdata}</b><br>Arid. Index: %{x:.2f}<br>Evap. Index: %{y:.2f}<extra></extra>",
             showlegend=False
         ),
