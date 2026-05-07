@@ -575,7 +575,7 @@ def plot_reservoir_timeseries(
     **kwargs
     ):
     """
-    Creates an interactive figure with two plots: the time series and the flow duration curve.
+    Creates an interactive figure with two plots: the time series and the Budyko diagram.
     Interactive buttons allow to transform the specific discharge and precipitation data to 
     logarithmic or square root scales to identify issues in the low flows.
     
@@ -631,7 +631,7 @@ def plot_reservoir_timeseries(
         row_heights=[0.48, 0.02, 0.1, 0.4],
         shared_xaxes=False,
         shared_yaxes=False,
-        subplot_titles=("", "", "", 'Climatology', "Flow Duration Curve"),
+        subplot_titles=("", "", "", 'Climatology', "Budyko Diagram"),
         vertical_spacing=0.05,
         horizontal_spacing=0.15
     )
