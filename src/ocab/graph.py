@@ -39,17 +39,17 @@ def load_MERIT_points(
     Returns:
     --------
     gdf : geopandas.GeoDataFrame
-        A GeoDataFrame indexed by 'ID' containing the geometry, drainage area 
+        A GeoDataFrame indexed by 'id' containing the geometry, drainage area 
         (area_skm), and point category.
     """
 
     # load file
-    gdf = gpd.read_file(path, columns=['ID', 'geometry', 'area_3sec'])
+    gdf = gpd.read_file(path, columns=['id', 'geometry', 'area_3sec'])
 
     # standardize columns
     gdf.rename(columns={'area_3sec': 'area_skm'}, inplace=True)
     gdf['kind'] = kind
-    gdf.set_index(['ID', 'kind'], inplace=True)
+    gdf.set_index(['id', 'kind'], inplace=True)
 
     # reproject, if necessary
     if gdf.crs != crs:
@@ -145,9 +145,9 @@ def delineate_subbasins(
         list(points.index), 
         index=subbasins_map.ravel()[points.pixel]
         ).to_dict()
-    # subbasins[['ID', 'kind']] = subbasins[name].map(subbasin_to_point)
-    subbasins[['ID', 'kind']] = subbasins[name].map(subbasin_to_point).apply(pd.Series)
-    subbasins.set_index(['ID', 'kind'], drop=True, inplace=True)
+    # subbasins[['id', 'kind']] = subbasins[name].map(subbasin_to_point)
+    subbasins[['id', 'kind']] = subbasins[name].map(subbasin_to_point).apply(pd.Series)
+    subbasins.set_index(['id', 'kind'], drop=True, inplace=True)
 
     # Extract upstream area
     subbasins['area_skm'] = uparea.ravel()[points.loc[subbasins.index, 'pixel']]#.round(0).astype(int)
@@ -274,7 +274,7 @@ def find_outlets(
         - pixel: The raster index of the outlet.
         - area_skm: Upstream area at the outlet pixel.
         - geometry: Point geometry in the same CRS as the input.
-        - MultiIndex: Indexed by ['ID', 'kind'], where kind is 'outlet'.
+        - MultiIndex: Indexed by ['id', 'kind'], where kind is 'outlet'.
     """
 
     if 'pixel' not in points.columns:
@@ -305,9 +305,9 @@ def find_outlets(
         sort_points_geographically(outlets, inplace=True)
 
     # create MultiIndex
-    outlets['ID'] = range(1, len(outlets) + 1)
+    outlets['id'] = range(1, len(outlets) + 1)
     outlets['kind'] = 'outlet'
-    outlets.set_index(['ID', 'kind'], inplace=True)
+    outlets.set_index(['id', 'kind'], inplace=True)
 
     return outlets
 
