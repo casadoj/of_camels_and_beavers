@@ -1086,15 +1086,8 @@ def plot_reservoir_timeseries(
     )
 
     # Update Layout & Scale Buttons
-    y_raw = [
-        ts['precip_mm'], ts['inflow_mm'], ts['outflow_mm'], ts['filling'],
-        missing_y_in, missing_y_out, missing_y_fill,
-        ts_y['precip_mm'], ts_y['inflow_mm'], ts_y['outflow_mm'], ts_y['filling'],
-        ts_m['precip_mm'], ts_m['inflow_mm'], ts_m['outflow_mm'], ts_m['filling'],
-        fdc_precip.values, fdc_inflow.values, fdc_outflow.values,
-    ]
-    sqrt_traces = [0, 1, 2, 15, 16, 17]
-    y_sqrt = [trace**.5 if i in sqrt_traces else trace for i, trace in enumerate(y_raw)]
+    y_raw = [ts['precip_mm'], ts['inflow_mm'], ts['outflow_mm']]
+    y_sqrt = [trace**.5 for trace in y_raw]
     fig.update_layout(
         title_text=f"<b>{title if title else ''}</b>",
         title_x=0.5,
@@ -1118,26 +1111,20 @@ def plot_reservoir_timeseries(
                     dict(label="Linear Scale", method="update", 
                          args=[
                              {"y": y_raw},
-                             {
-                                 "yaxis.type": "linear", "yaxis.title.text": "mm",
-                                 "yaxis8.type": "linear", "yaxis8.title.text": "mm",
-                            }
+                             {"yaxis.type": "linear", "yaxis.title.text": "mm" },
+                             [0, 1, 2]
                          ]),
                     dict(label="Log Scale", method="update",
                          args=[
                              {"y": y_raw}, 
-                             {
-                                 "yaxis.type": "log", "yaxis.title.text": "log mm",
-                                 "yaxis8.type": "log", "yaxis8.title.text": "log mm",
-                             }
+                             {"yaxis.type": "log", "yaxis.title.text": "log mm"},
+                             [0, 1, 2]
                          ]),
                     dict(label="Sqrt Scale", method="update",
                          args=[
                              {"y": y_sqrt},
-                             {
-                                 "yaxis.type": "linear", "yaxis.title.text": "sqrt mm",
-                                 "yaxis8.type": "linear", "yaxis8.title.text": "sqrt mm",
-                             }
+                             {"yaxis.type": "linear", "yaxis.title.text": "sqrt mm"},
+                             [0, 1, 2]
                          ])
                 ],
             )
