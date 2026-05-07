@@ -36,40 +36,751 @@
   outflow:
 1430:
   inflow: []
-  outflow:
+  outflow: 1435
 1445:
   inflow: []
   outflow:
 1454:
   inflow: []
-  outflow:
+  outflow: 1455
 1456:
-  inflow: []
-  outflow:
+  inflow: [1455] # incomplete
+  outflow: 1458
 1507:
-  inflow: []
-  outflow:
+  inflow: [1512]
+  outflow: 1514
 1510:
   inflow: []
   outflow:
 1528:
+  inflow: [1528:
   inflow: []
+  outflow:1920:
+  inflow: []
+  outflow:1519:
+  inflow: []
+  outflow:1525]
   outflow:
 1546:
+  inflow: [1546:
+  inflow: []
+  outflow:1544]
+  outflow: 1550
+# MIÑO-SIL
+1627:
+  inflow: [1621:
+  inflow: []
+  outflow:1624]
+  outflow:
+1629:
+  inflow: [1627]
+  outflow: 
+1631:
+  inflow: [1629:
+  inflow: []
+  outflow:1769]
+  outflow: 1631
+1634:
+  inflow: [1631]
+  outflow:
+1637:
   inflow: []
   outflow:
-2032:
-  inflow: [2529, 2535, 2550]
-  outflow: 2102
-2030:
-  inflow: [2078]
-  outflow: 2011
-2125:
+1641:
+  inflow: [1634:
   inflow: []
-  outflow: 2514
+  outflow:1640:
+  inflow: []
+  outflow:1659]
+  outflow: 1821
+1704:
+  inflow: []
+  outflow:
+1709:
+  inflow: [1837]
+  outflow:
+1710:
+  inflow: [1709]
+  outflow: 1719
+1711:
+  inflow: []
+  outflow:
+1712:
+  inflow: [1728:
+  inflow: []
+  outflow:1729]
+  outflow:
+1713:
+  inflow: [1739]
+  outflow:
+1716:
+  inflow: [1712:
+  inflow: []
+  outflow:1734]
+  outflow: 1739
+1718:
+  inflow: []
+  outflow:
+1740:
+  inflow: [1713]
+  outflow:
+1741:
+  inflow: [1742]
+  outflow:
+1743:
+  inflow: [1782:
+  inflow: []
+  outflow:1781:
+  inflow: []
+  outflow:1770:
+  inflow: []
+  outflow:1745]
+  outflow: 1747
+1744:
+  inflow: [1748:
+  inflow: []
+  outflow:1942:
+  inflow: []
+  outflow:1747]
+  outflow: 1749
+1745:
+  inflow: [1741]
+  outflow:
+1748:
+  inflow: [1748]
+  outflow:
+1751:
+  inflow: [1740:
+  inflow: []
+  outflow:1749]
+  outflow: 1751
+1768:
+  inflow: [1780:
+  inflow: []
+  outflow:1795:
+  inflow: []
+  outflow:1753:
+  inflow: []
+  outflow:1751]
+  outflow: 1768
+1769:
+  inflow: [1768]
+  outflow: 1769
+1770:
+  inflow: []
+  outflow:
+1780:
+  inflow: []
+  outflow:
+1781:
+  inflow: []
+  outflow:
+1782:
+  inflow: []
+  outflow:
+1790:
+  inflow: []
+  outflow:
+1791:
+  inflow: []
+  outflow:
+1792:
+  inflow: [1791]
+  outflow: 1942
+1795:
+  inflow: []
+  outflow:
+1796:
+  inflow: []
+  outflow:
+1807:
+  inflow: []
+  outflow:
+1808:
+  inflow: [1805]
+  outflow:
+# DUERO
+2001:
+  inflow: [2000:
+  inflow: []
+  outflow:2101] # incomplete
+  outflow: 2001
+2002:
+  inflow: [2029:
+  inflow: []
+  outflow:2066] # incomplete
+  outflow:
+2003:
+  inflow: [2002]
+  outflow: 2093
+2004:
+  inflow: [2005]
+  outflow:
+2005:
+  inflow: [2041:
+  inflow: []
+  outflow:2093]
+  outflow:
+2010:
+  inflow: [2109]
+  outflow: 2032
+2011:
+  inflow: [2508]
+  outflow: 2109
+2012:
+  inflow: [2539]
+  outflow: 2107
+2013:
+  inflow: [2536] # incomplete
+  outflow: 2106
+2014:
+  inflow: [2511:
+  inflow: []
+  outflow:2512]
+  outflow: 2108
+2015:
+  inflow: [2108]
+  outflow: 2037
+2016:
+  inflow: [2019]
+  outflow: 2020
 2026:
   inflow: [2532]
   outflow: 2122
-2487:
+2027:
   inflow: [2547]
   outflow: 2077
+2029:
+  inflow: [2155:
+  inflow: []
+  outflow:2530]
+  outflow: 
+2030:
+  inflow: [2078]
+  outflow: 2011
+2031:
+  inflow: [2080:
+  inflow: []
+  outflow:2144]
+  outflow:
+2032:
+  inflow: [2529:
+  inflow: []
+  outflow:2535:
+  inflow: []
+  outflow:2550]
+  outflow: 2102
+2033:
+  inflow: [2031]
+  outflow:
+2034:
+  inflow: [2033:
+  inflow: []
+  outflow:2113]
+  outflow: 2541
+2036:
+  inflow: [2538]
+  outflow: 2010 # 2552 a reduced period
+2037:
+  inflow: [2012] # incomplete
+  outflow: 2110
+2038:
+  inflow: [2081]
+  outflow: 2140
+2039:
+  inflow: [2501:
+  inflow: []
+  outflow:2503]
+  outflow: 2092
+2040:
+  inflow: [2110]
+  outflow: 2161
+2041:
+  inflow: [2546:
+  inflow: []
+  outflow:2088]
+  outflow:
+2042:
+  inflow: [2046]
+  outflow: 2500
+2043:
+  inflow: [2525] #incomplete
+  outflow: 2526
+2047:
+  inflow: [2502] # incomplete
+  outflow: 2503
+2125:
+  inflow: []
+  outflow: 2514
+# EBRO
+9801:
+  inflow: [9178:
+  inflow: []
+  outflow:
+9203:
+  inflow: []
+  outflow:
+9202]
+  outflow: 9026
+9802:
+  inflow: [9210]
+  outflow: 9121
+9803:
+  inflow: [9231:
+  inflow: []
+  outflow:
+9099:
+  inflow: []
+  outflow:
+9014:
+  inflow: []
+  outflow:
+9112]
+  outflow:
+9804:
+  inflow: [9803:
+  inflow: []
+  outflow:
+9176:
+  inflow: []
+  outflow:
+9025:
+  inflow: []
+  outflow:
+9017]
+  outflow: 9210
+9805:
+  inflow: [9161]
+  outflow:
+9806:
+  inflow: []
+  outflow: 9142
+9807:
+  inflow: []
+  outflow:
+9808:
+  inflow: [9236:
+  inflow: []
+  outflow:
+9294]
+  outflow: 9238
+9809:
+  inflow: []
+  outflow: 9034
+9811:
+  inflow: []
+  outflow: 9039
+9812:
+  inflow: [9056:
+  inflow: []
+  outflow:
+9008:
+  inflow: []
+  outflow:
+9129]
+  outflow: 9125
+9813:
+  inflow: [9124]
+  outflow: 9105
+9814:
+  inflow: [9215]
+  outflow: 9124
+9815:
+  inflow: [9138]
+  outflow: 9168
+9816:
+  inflow: []
+  outflow:
+9817:
+  inflow: [9127]
+  outflow: 9118
+9818:
+  inflow: [9030]
+  outflow: 9106
+9820:
+  inflow: [9100]
+  outflow: 9201
+9821:
+  inflow: [9113:
+  inflow: []
+  outflow:
+9110]
+  outflow: 9109
+9822:
+  inflow: [9106:
+  inflow: []
+  outflow:
+9031]
+  outflow:
+9823:
+  inflow: [9015]
+  outflow: 9099
+9824:
+  inflow: []
+  outflow:
+9825:
+  inflow: []
+  outflow: 9152s
+9827:
+  inflow: []
+  outflow: 9315
+9828:
+  inflow: [9308]
+  outflow:
+9829:
+  inflow: [9063:
+  inflow: []
+  outflow:
+9170]
+  outflow: 9101
+9830:
+  inflow: [9085:
+  inflow: []
+  outflow:
+9150:
+  inflow: []
+  outflow:
+9151]
+  outflow: 9084
+9831:
+  inflow: []
+  outflow: 9076
+9832:
+  inflow: []
+  outflow:
+9833:
+  inflow: []
+  outflow: 9310
+9835:
+  inflow: [9832:
+  inflow: []
+  outflow:
+9840]
+  outflow: 9250
+9836:
+  inflow: [9298:
+  inflow: []
+  outflow:
+9123]
+  outflow: 9059
+9837:
+  inflow: [9059]
+  outflow: 9012
+9838:
+  inflow: [9255:
+  inflow: []
+  outflow:
+9839]
+  outflow:
+9839:
+  inflow: []
+  outflow:
+9840:
+  inflow: [9309:
+  inflow: []
+  outflow:
+9310]
+  outflow:
+9841:
+  inflow: []
+  outflow: 9192
+9843:
+  inflow: []
+  outflow:
+9844:
+  inflow: []
+  outflow:
+9846:
+  inflow: [9040:
+  inflow: []
+  outflow:
+9051]
+  outflow:
+9847:
+  inflow: [9257:
+  inflow: []
+  outflow:
+9846]
+  outflow:
+9848:
+  inflow: [9013:
+  inflow: []
+  outflow:
+9047]
+  outflow:
+9850:
+  inflow: [9137]
+  outflow: 9115
+9851:
+  inflow: [9115]
+  outflow:
+9852:
+  inflow: [9851]
+  outflow: 9097
+9857:
+  inflow: []
+  outflow: 9252
+9858:
+  inflow: [9181:
+  inflow: []
+  outflow:
+9146]
+  outflow:
+9859:
+  inflow: [9858]
+  outflow:
+9860:
+  inflow: [9859]
+  outflow:
+9861:
+  inflow: [9860:
+  inflow: []
+  outflow:
+9876]
+  outflow:
+9862:
+  inflow: [9111:
+  inflow: []
+  outflow:
+9148]
+  outflow: 9083
+9863:
+  inflow: []
+  outflow: 9116
+9864:
+  inflow: []
+  outflow: 9145
+9865:
+  inflow: []
+  outflow: 9130
+9867:
+  inflow: []
+  outflow: 9267
+9868:
+  inflow: [9475:
+  inflow: []
+  outflow:
+9476]
+  outflow: 9428
+9871:
+  inflow: []
+  outflow: 9174
+9874:
+  inflow: []
+  outflow:
+9875:
+  inflow: [9326:
+  inflow: []
+  outflow:
+9066]
+  outflow: 9277
+9876:
+  inflow: [9083] # incomplete
+  outflow:
+9877:
+  inflow: [9320]
+  outflow: 9190
+9879:
+  inflow: []
+  outflow:
+9881:
+  inflow: []
+  outflow:
+9885:
+  inflow: []
+  outflow:
+9895:
+  inflow: []
+  outflow:
+9898:
+  inflow: []
+  outflow:
+9901:
+  inflow: []
+  outflow:
+9930:
+  inflow: []
+  outflow:
+# CATALUÑA
+9701:
+  inflow: [9434, 9435]
+  outflow: 9410
+9706:
+  inflow: [9415]
+  outflow:
+9707:
+  inflow: [9706]
+  outflow:
+9708:
+  inflow: [9707]
+  outflow: 9440
+9712:
+  inflow: [9470, 9471]
+  outflow:
+9713:
+  inflow: [9712]
+  outflow:
+9714:
+  inflow: [9469, 9455, 9468, 9467]
+  outflow: 9445
+9716:
+  inflow: [9406]
+  outflow:
+9717:
+  inflow: [9405]
+  outflow:
+9719:
+  inflow: [9412]
+  outflow:
+# TAJO
+3006:
+  inflow: [3500, 3005, 3269, 3270]
+  outflow: 3006
+3007:
+  inflow: [3006]
+  outflow: 3007
+3008:
+  inflow: [3007]
+  outflow: 3008
+3009:
+  inflow: [3009]
+  outflow: 3149
+3013:
+  inflow: []
+  outflow:
+3016:
+  inflow: [3152]
+  outflow:
+3019:
+  inflow: []
+  outflow:
+3043:
+  inflow: []
+  outflow:
+3050:
+  inflow: []
+  outflow:
+3065:
+  inflow: []
+  outflow:
+3066:
+  inflow: []
+  outflow:
+3069:
+  inflow: []
+  outflow:
+3073:
+  inflow: []
+  outflow:
+3074:
+  inflow: []
+  outflow:
+3079:
+  inflow: []
+  outflow:
+3111:
+  inflow: []
+  outflow:
+3112:
+  inflow: []
+  outflow:
+3113:
+  inflow: []
+  outflow:
+3114:
+  inflow: []
+  outflow:
+3115:
+  inflow: []
+  outflow:
+3127:
+  inflow: []
+  outflow:
+3128:
+  inflow: []
+  outflow:
+3141:
+  inflow: []
+  outflow:
+3142:
+  inflow: []
+  outflow:
+3143:
+  inflow: []
+  outflow:
+3145:
+  inflow: []
+  outflow:
+3148:
+  inflow: []
+  outflow:
+3151:
+  inflow: []
+  outflow:
+3152:
+  inflow: []
+  outflow:
+3154:
+  inflow: []
+  outflow:
+3155:
+  inflow: []
+  outflow:
+3156:
+  inflow: []
+  outflow:
+3157:
+  inflow: []
+  outflow:
+3160:
+  inflow: []
+  outflow:
+3166:
+  inflow: []
+  outflow:
+3181:
+  inflow: []
+  outflow:
+3189:
+  inflow: []
+  outflow:
+3190:
+  inflow: []
+  outflow:
+3195:
+  inflow: []
+  outflow:
+3196:
+  inflow: []
+  outflow:
+3199:
+  inflow: []
+  outflow:
+3201:
+  inflow: []
+  outflow:
+3203:
+  inflow: []
+  outflow:
+3208:
+  inflow: []
+  outflow:
+3227:
+  inflow: []
+  outflow:
+3247:
+  inflow: []
+  outflow:
+3252:
+  inflow: []
+  outflow:
+3263:
+  inflow: []
+  outflow:
+3264:
+  inflow: []
+  outflow:
+3285:
+  inflow: []
+  outflow:
+3287
