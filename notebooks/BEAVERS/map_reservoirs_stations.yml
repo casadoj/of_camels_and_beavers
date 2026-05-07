@@ -264,19 +264,13 @@
   outflow:2144]
   outflow:
 2032:
-  inflow: [2529:
-  inflow: []
-  outflow:2535:
-  inflow: []
-  outflow:2550]
+  inflow: [2529, 2535, 2550]
   outflow: 2102
 2033:
   inflow: [2031]
   outflow:
 2034:
-  inflow: [2033:
-  inflow: []
-  outflow:2113]
+  inflow: [2033, 2113]
   outflow: 2541
 2036:
   inflow: [2538]
@@ -288,17 +282,13 @@
   inflow: [2081]
   outflow: 2140
 2039:
-  inflow: [2501:
-  inflow: []
-  outflow:2503]
+  inflow: [2501, 2503]
   outflow: 2092
 2040:
   inflow: [2110]
   outflow: 2161
 2041:
-  inflow: [2546:
-  inflow: []
-  outflow:2088]
+  inflow: [2546, 2088]
   outflow:
 2042:
   inflow: [2046]
@@ -314,40 +304,16 @@
   outflow: 2514
 # EBRO
 9801:
-  inflow: [9178:
-  inflow: []
-  outflow:
-9203:
-  inflow: []
-  outflow:
-9202]
+  inflow: [9178, 9203, 9202]
   outflow: 9026
 9802:
   inflow: [9210]
   outflow: 9121
 9803:
-  inflow: [9231:
-  inflow: []
-  outflow:
-9099:
-  inflow: []
-  outflow:
-9014:
-  inflow: []
-  outflow:
-9112]
+  inflow: [9231, 9099, 9014, 9112]
   outflow:
 9804:
-  inflow: [9803:
-  inflow: []
-  outflow:
-9176:
-  inflow: []
-  outflow:
-9025:
-  inflow: []
-  outflow:
-9017]
+  inflow: [9803, 9176, 9025, 9017]
   outflow: 9210
 9805:
   inflow: [9161]
@@ -359,10 +325,7 @@
   inflow: []
   outflow:
 9808:
-  inflow: [9236:
-  inflow: []
-  outflow:
-9294]
+  inflow: [9236, 9294]
   outflow: 9238
 9809:
   inflow: []
@@ -371,13 +334,7 @@
   inflow: []
   outflow: 9039
 9812:
-  inflow: [9056:
-  inflow: []
-  outflow:
-9008:
-  inflow: []
-  outflow:
-9129]
+  inflow: [9056, 9008, 9129]
   outflow: 9125
 9813:
   inflow: [9124]
@@ -401,16 +358,10 @@
   inflow: [9100]
   outflow: 9201
 9821:
-  inflow: [9113:
-  inflow: []
-  outflow:
-9110]
+  inflow: [9113, 9110]
   outflow: 9109
 9822:
-  inflow: [9106:
-  inflow: []
-  outflow:
-9031]
+  inflow: [9106, 9031]
   outflow:
 9823:
   inflow: [9015]
@@ -420,7 +371,7 @@
   outflow:
 9825:
   inflow: []
-  outflow: 9152s
+  outflow: 9152
 9827:
   inflow: []
   outflow: 9315
@@ -428,19 +379,10 @@
   inflow: [9308]
   outflow:
 9829:
-  inflow: [9063:
-  inflow: []
-  outflow:
-9170]
+  inflow: [9063, 9170]
   outflow: 9101
 9830:
-  inflow: [9085:
-  inflow: []
-  outflow:
-9150:
-  inflow: []
-  outflow:
-9151]
+  inflow: [9085, 9150, 9151]
   outflow: 9084
 9831:
   inflow: []
@@ -452,34 +394,22 @@
   inflow: []
   outflow: 9310
 9835:
-  inflow: [9832:
-  inflow: []
-  outflow:
-9840]
+  inflow: [9832, 9840]
   outflow: 9250
 9836:
-  inflow: [9298:
-  inflow: []
-  outflow:
-9123]
+  inflow: [9298, 9123]
   outflow: 9059
 9837:
   inflow: [9059]
   outflow: 9012
 9838:
-  inflow: [9255:
-  inflow: []
-  outflow:
-9839]
+  inflow: [9255, 9839]
   outflow:
 9839:
   inflow: []
   outflow:
 9840:
-  inflow: [9309:
-  inflow: []
-  outflow:
-9310]
+  inflow: [9309, 9310]
   outflow:
 9841:
   inflow: []
@@ -491,22 +421,13 @@
   inflow: []
   outflow:
 9846:
-  inflow: [9040:
-  inflow: []
-  outflow:
-9051]
+  inflow: [9040, 9051]
   outflow:
 9847:
-  inflow: [9257:
-  inflow: []
-  outflow:
-9846]
+  inflow: [9257, 9846]
   outflow:
 9848:
-  inflow: [9013:
-  inflow: []
-  outflow:
-9047]
+  inflow: [9013, 9047]
   outflow:
 9850:
   inflow: [9137]
@@ -521,10 +442,7 @@
   inflow: []
   outflow: 9252
 9858:
-  inflow: [9181:
-  inflow: []
-  outflow:
-9146]
+  inflow: [9181, 9146]
   outflow:
 9859:
   inflow: [9858]
@@ -533,16 +451,10 @@
   inflow: [9859]
   outflow:
 9861:
-  inflow: [9860:
-  inflow: []
-  outflow:
-9876]
+  inflow: [9860, 9876]
   outflow:
 9862:
-  inflow: [9111:
-  inflow: []
-  outflow:
-9148]
+  inflow: [9111, 9148]
   outflow: 9083
 9863:
   inflow: []
@@ -557,10 +469,7 @@
   inflow: []
   outflow: 9267
 9868:
-  inflow: [9475:
-  inflow: []
-  outflow:
-9476]
+  inflow: [9475, 9476]
   outflow: 9428
 9871:
   inflow: []
@@ -569,10 +478,7 @@
   inflow: []
   outflow:
 9875:
-  inflow: [9326:
-  inflow: []
-  outflow:
-9066]
+  inflow: [9326, 9066]
   outflow: 9277
 9876:
   inflow: [9083] # incomplete
