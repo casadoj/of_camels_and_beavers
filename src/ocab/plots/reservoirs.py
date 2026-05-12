@@ -1113,18 +1113,18 @@ def plot_reservoir_timeseries(
                              {"yaxis.type": "linear", "yaxis.title.text": "mm" },
                              [0, 1, 2]
                          ]),
+                    dict(label="Sqrt Scale", method="update",
+                         args=[
+                             {"y": y_sqrt},
+                             {"yaxis.type": "linear", "yaxis.title.text": "sqrt mm"},
+                             [0, 1, 2]
+                         ]),
                     dict(label="Log Scale", method="update",
                          args=[
                              {"y": y_raw}, 
                              {"yaxis.type": "log", "yaxis.title.text": "log mm"},
                              [0, 1, 2]
                          ]),
-                    dict(label="Sqrt Scale", method="update",
-                         args=[
-                             {"y": y_sqrt},
-                             {"yaxis.type": "linear", "yaxis.title.text": "sqrt mm"},
-                             [0, 1, 2]
-                         ])
                 ],
             )
         ],
