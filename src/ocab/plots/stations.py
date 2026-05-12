@@ -861,7 +861,7 @@ def plot_station_timeseries(
             mode='markers',
             name='Budyko',
             marker=dict(color='sienna', size=8, line=dict(width=1, color='white')),
-            customdata=aridiy.index.year,
+            customdata=aridity.index.year,
             hovertemplate="<b>Year: %{customdata}</b><br>Arid. Index: %{x:.2f}<br>Evap. Index: %{y:.2f}<extra></extra>",
             showlegend=False
         ),
@@ -936,18 +936,18 @@ def plot_station_timeseries(
                              {"yaxis.type": "linear", "yaxis.title.text": "mm"},
                              [0, 1]
                          ]),
+                    dict(label="Sqrt Scale", method="update",
+                         args=[
+                             {"y": y_sqrt},
+                             {"yaxis.type": "linear", "yaxis.title.text": "sqrt mm"},
+                             [0, 1]
+                         ]),
                     dict(label="Log Scale", method="update",
                          args=[
                              {"y": y_raw}, 
                              {"yaxis.type": "log", "yaxis.title.text": "log mm"},
                              [0, 1]
                          ]),
-                    dict(label="Sqrt Scale", method="update",
-                         args=[
-                             {"y": y_sqrt},
-                             {"yaxis.type": "linear", "yaxis.title.text": "sqrt mm"},
-                             [0, 1]
-                         ])
                 ],
             )
         ],
