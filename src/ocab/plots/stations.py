@@ -647,11 +647,12 @@ def plot_station_timeseries(
 
     # compute annual time series
     ts_y = compute_annual_timeseries(ts, rule='YS-OCT')
+    ts_y.index += pd.DateOffset(months=6) # to adapt labels in the plots
 
     # add traces
     fig.add_trace(
         go.Bar(
-            x=ts_y.index + pd.DateOffset(months=6), 
+            x=ts_y.index, 
             y=ts_y['precip_mm'], 
             name="Precipitation", 
             marker_color=c_precip, 
@@ -664,7 +665,7 @@ def plot_station_timeseries(
         row=row, col=col
     )
     fig.add_trace(go.Scatter(
-            x=ts_y.index + pd.DateOffset(months=6), 
+            x=ts_y.index, 
             y=ts_y['temp_degC'], 
             name="Temperature",
             line=dict(color=c_temp, width=2),
@@ -675,7 +676,7 @@ def plot_station_timeseries(
         row=row, col=col, secondary_y=True
     )
     fig.add_trace(go.Scatter(
-            x=ts_y.index + pd.DateOffset(months=6), 
+            x=ts_y.index, 
             y=ts_y['pet_mm'], 
             name="PET",
             line=dict(color=c_pet, width=2),
@@ -687,7 +688,7 @@ def plot_station_timeseries(
     )
     fig.add_trace(
         go.Scatter(
-            x=ts_y.index + pd.DateOffset(months=6), 
+            x=ts_y.index, 
             y=ts_y['discharge_mm'], 
             name="Discharge",
             line=dict(color=c_dis, width=2),
@@ -802,9 +803,7 @@ def plot_station_timeseries(
 
     # calculate indices
     aridity = ts_y['pet_mm'] / ts_y['precip_mm']
-    aridity.index += pd.DateOffset(months=6)
     evaporativity = (ts_y['precip_mm'] - ts_y['discharge_mm']) / ts_y['precip_mm']
-    evaporativity.index += pd.DateOffset(months=6)
 
     # plot limits
     round = 0.2
@@ -862,7 +861,7 @@ def plot_station_timeseries(
             mode='markers',
             name='Budyko',
             marker=dict(color='sienna', size=8, line=dict(width=1, color='white')),
-            customdata=ts_y.index.year,
+            customdata=aridiy.index.year,
             hovertemplate="<b>Year: %{customdata}</b><br>Arid. Index: %{x:.2f}<br>Evap. Index: %{y:.2f}<extra></extra>",
             showlegend=False
         ),
