@@ -15,7 +15,7 @@ Both datasets will be published freely on Zenodo to enhance model intercompariso
 
 <p align="center">
   <a href="https://doi.org/10.4995/ia.25084">
-    <img src="./paper/fig1_seleccion_estaciones.jpg" width="100%" alt="Spatial distribution of selected stations in Spain.">
+    <img src="./paper/master_thesis/fig1_seleccion_estaciones.jpg" width="100%" alt="Spatial distribution of selected stations in Spain.">
   </a>
   <br>
   <em><b>Figure 1:</b> Selection of gauging stations in CAMELS-ES v1.</em>

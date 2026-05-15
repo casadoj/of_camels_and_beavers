@@ -12,8 +12,8 @@ from plotly.subplots import make_subplots
 import plotly.io as pio
 
 
-from ocab.plots.utils import compute_annual_timeseries, compute_monthly_climatology, define_y_limits
-from ocab.signatures import annual_runoff, baseflow_index, flashiness_index, slope_fdc, budyko
+from ocab.plots.utils import compute_annual_timeseries, compute_monthly_climatology, compute_climatology, define_y_limits
+from ocab.signatures import baseflow_index, flashiness_index, slope_fdc, budyko
 
 logger = logging.getLogger(__name__)
 
@@ -473,25 +473,26 @@ def plot_station_timeseries(
     ### --- SIGNATURES & CLIMATOLOGY VALUES ---
 
     # Compute hydrological signatures
-    avg_dis = annual_runoff(ts['discharge_cms'], area)
+    # avg_dis = annual_runoff(ts['discharge_cms'], area)
     _, bfi = baseflow_index(ts['discharge_cms'])
     fi = flashiness_index(ts['discharge_cms'])
     fdc_dis, slope = slope_fdc(ts['discharge_mm'])
 
     # Calculate climatology values
-    avg_precip = ts['precip_mm'].mean()
-    avg_temp = ts['temp_degC'].mean()
-    avg_pet = ts['pet_mm'].mean()
+    climatology = compute_climatology(ts)
+    # avg_precip = ts['precip_mm'].mean()
+    # avg_temp = ts['temp_degC'].mean()
+    # avg_pet = ts['pet_mm'].mean()
 
     signature_text = (
         "<b>Catchment Properties</b><br>"
         f"Area: {area:.0f} km²<br>"
         f"Regime: {regime}<br>"
         "<br><b>Climatology</b><br>"
-        f"Discharge: {avg_dis:.0f} mm/year<br>"
-        f"Precipitation: {avg_precip * 365:.0f} mm/year<br>"
-        f"PET: {avg_pet * 365:.0f} mm/year<br>"
-        f"Temperature: {avg_temp:.1f} °C<br>"
+        f"Discharge: {climatology.discharge_mm:.0f} mm/year<br>"
+        f"Precipitation: {climatology.precip_mm * 365:.0f} mm/year<br>"
+        f"PET: {climatology.pet_mm * 365:.0f} mm/year<br>"
+        f"Temperature: {climatology.temp_degC:.1f} °C<br>"
         "<br><b>Hydrological Signatures</b>"
         f"<br>Baseflow Index: {bfi:.2f}<br>"
         f"Flashiness Index: {fi:.2f}<br>"
