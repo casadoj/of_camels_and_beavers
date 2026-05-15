@@ -30,20 +30,6 @@
             gap: 10px;
             max-height: 90vh;
         }
-        /* h1 {
-            margin-left: -30px;
-            width: fit-content;
-            padding: 10px 35px;
-            border-radius: 8px;
-            font-size: 1.5rem;
-            pointer-events: auto;
-            color: #333;
-            text-shadow: 
-                -2px -2px 0 #fff,  
-                2px -2px 0 #fff,
-                -2px  2px 0 #fff,
-                2px  2px 0 #fff;
-        } */
         #sidebar { 
             position: fixed;
             top: 50%;
@@ -73,7 +59,6 @@
             color: #333;
             line-height: 20px;
         }
-
         .info.legend i {
             width: 16px;
             height: 16px;
@@ -82,6 +67,23 @@
             opacity: 0.9;
             border-radius: 3px;
             border: 1px solid rgba(0,0,0,0.1);
+        }
+        .legend-selector {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .legend-selector label {
+            display: block;
+            cursor: pointer;
+            font-weight: normal;
+            margin: 3px 0;
+        }
+
+        .legend-selector input {
+            margin-right: 5px;
+            vertical-align: middle;
         }
         .basin-item { 
             padding: 10px; 
@@ -272,19 +274,6 @@
                     interactive: true,
                     onEachFeature: function(feature, layer) {
                         let name = toTitleCase(feature.properties.NOM_DEMAR) || "Unknown Basin";
-                        
-                        // 1. Click polygon to zoom
-                        const zoomOptions = {
-                            paddingTopLeft: [150, 20],
-                            paddingBottomRight: [100, 20],
-                            duration: 1.5
-                        };
-                        layer.on('click', function() {
-                            map.fitBounds(layer.getBounds(), zoomOptions);
-                        });
-
-                        // show name on hover
-                        layer.bindTooltip(name, { sticky: true });
 
                         // Store the name and the layer reference for sorting
                         basinItems.push({ name: name, layer: layer });
@@ -364,20 +353,53 @@
             return str.toLowerCase().replace(/(^|\s|-)\p{L}/gu, s => s.toUpperCase());
         }
 
-        // Load Stations GeoJSON file
-        function getStationColor(d) {
-            return d > 2000 ? '#3b4cc0' :
-                d > 1800 ? '#5a77ef' :
-                d > 1600 ? '#809fff' :
-                d > 1400 ? '#a6bdff' :
-                d > 1200 ? '#c9d4ed' :
-                d > 1000 ? '#edd1d2' :
-                d > 800  ? '#f9adac' :
-                d > 600  ? '#f7847e' :
-                d > 400  ? '#e5534b' :
-                d > 200  ? '#c1272d' :
-                            '#67000d';
+        // Configuration for the different symbology modes
+        const symbologyConfig = {
+            discharge_mm: {
+                label: "mm/yr",
+                grades: [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000],
+                colors: ['#67000d', '#c1272d', '#e5534b', '#f7847e', '#f9adac', '#edd1d2', '#c9d4ed', '#a6bdff', '#809fff', '#5a77ef', '#3b4cc0']
+            },
+            precip_mm: {
+                label: "mm/yr",
+                grades: [200, 300, 400, 500, 600, 700, 800, 900, 1000, 1200, 1400],
+                colors: ['#f7fbff', '#e3eef9', '#cfe1f2', '#b5d4e9', '#93c3df', '#6daed5', '#4b97c9', '#2f7ebc', '#1864aa', '#0a4a90', '#08306b']
+            },
+            temp_degC: {
+                label: '°C',
+                grades: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22],
+                colors: ['#fff5f0', '#fee0d2', '#fcbba1', '#fc9272', '#fb6a4a', '#ef3b2c', '#cb181d', '#a50f15', '#8b0000', '#67000d', '#3f0007'],
+            },
+            pet_mm: {
+                label: "mm/yr",
+                grades: [400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400],
+                colors: ['#ffffd4', '#feeaa1', '#fed363', '#fdb42f', '#f99214', '#f16e07', '#e14b03', '#c63102', '#a51e01', '#7f0f01', '#540601']            }
+        };
+
+        let currentVariable = 'discharge_mm'; // Default variable
+
+        // New helper function to get color based on the current mode
+        function getStationColor(d, variable) {
+            const config = symbologyConfig[variable];
+            // Loop backwards through grades to find the highest match
+            for (let i = config.grades.length - 1; i >= 0; i--) {
+                if (d >= config.grades[i]) return config.colors[i];
+            }
+            return config.colors[0];
         }
+
+        // Function to update all markers on the map when the variable changes
+        function updateStationSymbology() {
+            if (!stations) return;
+            stations.eachLayer(function(layer) {
+                const val = layer.feature.properties[currentVariable];
+                layer.setStyle({
+                    fillColor: getStationColor(val, currentVariable)
+                });
+            });
+        }
+        
+        // Load Stations GeoJSON file
         fetch('./layers/stations.geojson')
             .then(res => {
 				if (!res.ok) throw new Error("Could not load stations GeoJSON file");
@@ -391,7 +413,7 @@
                             radius: 5,
                             color: 'white',
                             weight: 2,
-                            fillColor: getStationColor(feature.properties.discharge_mm), //'maroon',
+                            fillColor: getStationColor(feature.properties[currentVariable], currentVariable),
                             fillOpacity: 1,
                             pane: 'stationPane'
                         });
@@ -400,30 +422,24 @@
                         let props = feature.properties;
                         let id = props.ID || props.id || "ID";
                         let name = toTitleCase(props.name || "Unknown");
-                        let river = toTitleCase(props.river || "Unknown");
-                        let basin = toTitleCase(props.basin || "Unknown");
-                        let catchment = props.catch_skm || "Unknown";
-                        let start = props.start || "Unknown";
-                        let end = props.end || "Unknown";
-                        let regime = (props.regime || "Unknown").toLowerCase();
-                        let discharge = (props.discharge_mm || "Unknown");
-                        
+
                         // tooltip
                         layer.bindTooltip(String(id), {
                             permanent: true,
                             direction: 'top',
                             className: 'station-label',
-                            opacity: 0 // Start invisible
+                            opacity: 0
                         });
 
                         // Pop-up window
                         layer.bindPopup(`
-                            <strong>${id} - ${name}</strong><br>
-                            River: ${river} (${basin})<br>
-                            Catchment: ${catchment} km²<br>
-                            Discharge: ${discharge} mm/yr<br>
-                            Period: ${start}-${end}<br>
-                            Regime: ${regime}<br>
+                            <strong>${id} - ${props.name}</strong><br>
+                            River: ${toTitleCase(props.river)} (${toTitleCase(props.basin)})<br>
+                            Catchment: ${props.catchment_skm} km²<br>
+                            Discharge: ${props.discharge_mm != null ? Math.round(props.discharge_mm) : 'N/A'} mm/yr<br>
+                            Precipitation: ${props.precip_mm != null ? Math.round(props.precip_mm) : 'N/A'} mm/yr<br>
+                            Period: ${props.start}-${props.end}<br>
+                            Regime: ${props.regime}<br>
                             <a href="./timeseries/stations/plots/${id}.html" target="_blank" rel="noopener noreferrer">
                                 View Time Series
                             </a>
@@ -432,17 +448,12 @@
                         // Trigger subbasin drawing when the popup opens
                         layer.on('popupopen', function() {
                             // Remove old subbasin
-                            if (subbasinReservoir) {
-                                map.removeLayer(subbasinReservoir);
-                            }
-                            if (subbasinStation) {
-                                map.removeLayer(subbasinStation);
-                            }
+                            if (subbasinReservoir) map.removeLayer(subbasinReservoir);
+                            if (subbasinStation) map.removeLayer(subbasinStation);
 
                             if (allSubbasinsStations) {
                                 subbasinStation = L.geoJSON(allSubbasinsStations, {
                                     filter: function(f) {
-                                        // Force both to strings to ensure the comparison works
                                         let subId = f.properties.id || f.properties.ID;
                                         return String(subId) === String(id);
                                     },
@@ -468,13 +479,13 @@
                             }
                         });
 
-                        // Cleanup: Remove subbasin when popup closes
-                        layer.on('popupclose', function() {
-                            if (subbasinStation) {
-                                map.removeLayer(subbasinStation);
-                                subbasinStation = null;
-                            }
-                        });
+                        // // Cleanup: Remove subbasin when popup closes
+                        // layer.on('popupclose', function() {
+                        //     if (subbasinStation) {
+                        //         map.removeLayer(subbasinStation);
+                        //         subbasinStation = null;
+                        //     }
+                        // });
                     }
                 }).addTo(map);
             });
@@ -561,13 +572,13 @@
                             }
                         });
 
-                        // Cleanup: Remove subbasin when popup closes
-                        layer.on('popupclose', function() {
-                            if (subbasinReservoir) {
-                                map.removeLayer(subbasinReservoir);
-                                subbasinReservoir = null;
-                            }
-                        });
+                        // // Cleanup: Remove subbasin when popup closes
+                        // layer.on('popupclose', function() {
+                        //     if (subbasinReservoir) {
+                        //         map.removeLayer(subbasinReservoir);
+                        //         subbasinReservoir = null;
+                        //     }
+                        // });
                     }
                 });
                 // Initial check: Only add if already zoomed in
@@ -575,7 +586,7 @@
                     reservoirs.addTo(map);
                 }
             });
-
+        
         // Listen for zoom changes
         map.on('zoomend', function() {
             const zoom = map.getZoom();
@@ -619,23 +630,66 @@
             }
         });
 
+        // Remove highlighted subbasin by clicking the background
+        map.on('click', function (e) {
+            if (subbasinStation) {
+                map.removeLayer(subbasinStation);
+                subbasinStation = null;
+            }
+            if (subbasinReservoir) {
+                map.removeLayer(subbasinReservoir);
+                subbasinReservoir = null;
+            }
+        });
+
         // Legend
         var legend = L.control({ position: 'bottomright' });
 
         legend.onAdd = function (map) {
-            var div = L.DomUtil.create('div', 'info legend'),
-                grades = [0, 200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000],
-                labels = ['<strong>Discharge (mm/yr)</strong><br>'];
+            var div = L.DomUtil.create('div', 'info legend');
+            
+            // Stop map clicks from bleeding through the legend
+            L.DomEvent.disableClickPropagation(div);
 
-            // Loop through our intervals and generate a label with a colored square for each interval
-            for (var i = 0; i < grades.length; i++) {
-                div.innerHTML +=
-                    labels.push(
-                        '<i style="background:' + getStationColor(grades[i] + 1) + '"></i> ' +
-                        grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] : '+')
-                    );
+            // Create an internal function so we can redraw the legend easily
+            function draw() {
+                const config = symbologyConfig[currentVariable];
+
+                // 1. The Variable Selector
+                let content = `<div class="legend-selector" style="margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">
+                    <div class="selector-options">
+                        <label><input type="radio" name="mode" value="discharge_mm" ${currentVariable === 'discharge_mm' ? 'checked' : ''}> <strong>Discharge</strong></label>
+                        <label><input type="radio" name="mode" value="precip_mm" ${currentVariable === 'precip_mm' ? 'checked' : ''}> <strong>Precipitation</strong></label>
+                        <label><input type="radio" name="mode" value="temp_degC" ${currentVariable === 'temp_degC' ? 'checked' : ''}> <strong>Temperature</strong></label>
+                        <label><input type="radio" name="mode" value="pet_mm" ${currentVariable === 'pet_mm' ? 'checked' : ''}> <strong>PET</strong></label>
+                    </div>
+                </div>`;
+
+                // 2. The Color Scale
+                content += `<strong>${config.label}</strong><br>`;
+                for (var i = 0; i < config.grades.length; i++) {
+                    let isLast = (i === config.grades.length - 1);
+                    content += `
+                        <div style="display: flex; align-items: center; margin-top: 2px;">
+                            <i style="background:${config.colors[i]}; width: 18px; height: 18px; margin-right: 8px; display: inline-block; opacity: 1;"></i>
+                            <span style="line-height: 18px;">${config.grades[i]}${isLast ? '+' : ''}</span>
+                        </div>`;
+                }
+                
+                div.innerHTML = content;
+
+                // 3. Add event listeners to the radio buttons
+                const inputs = div.querySelectorAll('input[name="mode"]');
+                inputs.forEach(input => {
+                    input.onchange = function() {
+                        currentVariable = this.value;
+                        updateStationSymbology(); // Update the markers
+                        draw(); // Redraw the legend scale
+                    };
+                });
             }
-            div.innerHTML = labels.join('<br>');
+
+            draw();
             return div;
         };
 

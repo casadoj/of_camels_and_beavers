@@ -14,6 +14,7 @@ aggregation = {
 }
 
 rounding = {
+    'discharge_mm': 1,
     'storage_mcm': 3,
     'filling': 3,
     'inflow_cms': 3,
@@ -63,6 +64,26 @@ def compute_annual_timeseries(
     ts_year.replace(0, np.nan, inplace=True)
 
     return ts_year.round(rounding)
+
+
+def compute_climatology(
+        timeseries: pd.DataFrame, 
+        rule: str = 'YS-OCT'
+    ) -> pd.DataFrame:
+    """Computes climatological values.
+    
+    Parameters
+    ----------
+    timeseries: pd.DataFrame
+        Daily time series
+    rule: string
+        How to aggregate the years. By default, it uses hydrological years (start in October)
+    """
+
+    timeseries_year = compute_annual_timeseries(timeseries, rule)
+    climatology = pd.DataFrame(timeseries_year.mean(skipna=True, axis=0)).transpose()
+
+    return climatology.round(rounding).squeeze()
 
 
 def compute_annual_timeseries(
