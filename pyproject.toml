@@ -30,6 +30,7 @@ dependencies = [
     "seaborn>=0.13.2",
     "tqdm>=4.67.3",
     "xarray>=2025.11.0",
+    "xclim>=0.61.0",
     "zarr>=3.1.5",
 ]
 
