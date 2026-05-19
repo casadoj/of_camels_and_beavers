@@ -46,7 +46,7 @@ class Config:
         self.path_records = Path(paths['records'])
         self.path_dataset = Path(paths['dataset']) / self.name / f'v{'_'.join(self.version.split('.'))}'
         self.path_attributes = self.path_dataset / 'attributes' / self.prefix
-        self.path_timeseries = self.path_dataset / 'timeseries' / self.prefix
+        self.path_timeseries = self.path_dataset / 'timeseries'
         self.path_gis = self.path_dataset / 'GIS'
         self.path_plots = self.path_dataset / 'plots'
         self.path_efas = Path(paths.get('EFAS', None))
