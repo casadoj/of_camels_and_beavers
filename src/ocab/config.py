@@ -56,3 +56,10 @@ class Config:
         # Ensure directories exist
         for path in [self.path_gis, self.path_plots, self.path_attributes, self.path_timeseries]:
             path.mkdir(parents=True, exist_ok=True)
+
+        # SAMPLING
+        
+        model = self.cfg['model']
+        self.train_size = model['train_size']
+        self.val_size = model['val_size']
+        self.seed = model['seed']

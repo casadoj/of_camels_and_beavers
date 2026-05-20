@@ -26,7 +26,7 @@ dataset:
     crs: 4326
 
 # LSTM model configuration
-modelo:
+model:
     train_size: .6
     val_size: .2
     seed: 123
