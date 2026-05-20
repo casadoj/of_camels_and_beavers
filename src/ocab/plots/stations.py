@@ -473,16 +473,12 @@ def plot_station_timeseries(
     ### --- SIGNATURES & CLIMATOLOGY VALUES ---
 
     # Compute hydrological signatures
-    # avg_dis = annual_runoff(ts['discharge_cms'], area)
     _, bfi = baseflow_index(ts['discharge_cms'])
     fi = flashiness_index(ts['discharge_cms'])
-    fdc_dis, slope = slope_fdc(ts['discharge_mm'])
+    _, slope = slope_fdc(ts['discharge_mm'])
 
     # Calculate climatology values
     climatology = compute_climatology(ts)
-    # avg_precip = ts['precip_mm'].mean()
-    # avg_temp = ts['temp_degC'].mean()
-    # avg_pet = ts['pet_mm'].mean()
 
     signature_text = (
         "<b>Catchment Properties</b><br>"
@@ -490,8 +486,8 @@ def plot_station_timeseries(
         f"Regime: {regime}<br>"
         "<br><b>Climatology</b><br>"
         f"Discharge: {climatology.discharge_mm:.0f} mm/year<br>"
-        f"Precipitation: {climatology.precip_mm * 365:.0f} mm/year<br>"
-        f"PET: {climatology.pet_mm * 365:.0f} mm/year<br>"
+        f"Precipitation: {climatology.precip_mm:.0f} mm/year<br>"
+        f"PET: {climatology.pet_mm:.0f} mm/year<br>"
         f"Temperature: {climatology.temp_degC:.1f} °C<br>"
         "<br><b>Hydrological Signatures</b>"
         f"<br>Baseflow Index: {bfi:.2f}<br>"

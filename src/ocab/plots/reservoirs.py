@@ -492,9 +492,7 @@ def plot_reservoir_timeseries(
     ### --- SIGNATURES & CLIMATOLOGY VALUES ---
 
     # compute flow duration curve
-    fdc_precip, _ = slope_fdc(ts['precip_mm'])
-    fdc_inflow, _ = slope_fdc(ts['inflow_mm'])
-    fdc_outflow, slope_outflow = slope_fdc(ts['outflow_mm'])
+    _, slope_outflow = slope_fdc(ts['outflow_mm'])
 
     # --- SIGNATRUES & CLIMATOLOGY ---
 
@@ -503,9 +501,6 @@ def plot_reservoir_timeseries(
     fi_outflow = flashiness_index(ts['outflow_cms'])
 
     # Calculate Climatology
-    # climatology = ts.mean(skipna=True)
-    # vars = [var for var in climatology.index if var.endswith('_mm')]
-    # climatology[vars] *= 365 # transform to mm/year
     climatology = compute_climatology(ts)
 
     signature_text = (
