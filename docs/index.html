@@ -435,7 +435,7 @@
                         layer.bindPopup(`
                             <strong>${id} - ${props.name}</strong><br>
                             River: ${toTitleCase(props.river)} (${toTitleCase(props.basin)})<br>
-                            Catchment: ${props.catchment_skm} km²<br>
+                            Catchment: ${props.catch_skm} km²<br>
                             Discharge: ${props.discharge_mm != null ? Math.round(props.discharge_mm) : 'N/A'} mm/yr<br>
                             Precipitation: ${props.precip_mm != null ? Math.round(props.precip_mm) : 'N/A'} mm/yr<br>
                             Period: ${props.start}-${props.end}<br>
@@ -506,12 +506,6 @@
                         let props =  feature.properties;
                         let id = props.ID || props.id || "ID";
                         let name = toTitleCase(props.name || props.NAME || "Reservoir");
-                        let river = toTitleCase(props.RIVER || props.river || "River");
-                        let basin = toTitleCase(props.basin || props.BASIN || "Basin");
-                        let capacity = props.cap_mcm || props.CAP_MCM || "Capacity";
-                        let catchment = props.catch_skm || props.CATCH_SKM || "Catchment";
-                        let start = props.start || "Unknown";
-                        let end = props.end || "Unknown";
 
                         // tooltip
                         layer.bindTooltip(String(id), {
@@ -524,10 +518,10 @@
                         // Pop-up window
                         layer.bindPopup(`
                             <strong>${id} - ${name}</strong><br>
-                            River: ${river} (${basin})<br>
-                            Capacity: ${capacity} hm³<br>
-                            Catchment: ${catchment} km²<br>
-                            Period: ${start}-${end}<br>
+                            River: ${toTitleCase(props.river)} (${toTitleCase(props.basin)})<br>
+                            Capacity: ${props.cap_mcm} hm³<br>
+                            Catchment: ${props.catch_skm} km²<br>
+                            Period: ${props.start}-${props.end}<br>
                             <a href="./timeseries/reservoirs/plots/${id}.html" target="_blank" rel="noopener noreferrer">
                                 Explore Time Series
                             </a>
