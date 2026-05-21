@@ -3,6 +3,7 @@
 This folder contains Jupyter Notebooks used to develop the two datasets:
 
 * [_ACA_](./ACA/) contains the notebook that pre-processes the raw data from Agència Catalana de l'Aigua.
+* [_Andalucia_](./Andalucia/) contains the notebooks that pre-process the raw data from Hidrosur.
 * [_BEAVERS_](./BEAVERS/) contains the notebooks used to develop the dataset of Spanish reservoirs.
 * [_CAMELS_](./CAMELS/) contains the notebooks used to develop the dataset of Spanish gauging stations.
 
