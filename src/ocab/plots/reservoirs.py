@@ -714,7 +714,7 @@ def create_reservoir_html(
                         "&entry." + stationEntryId + "=" + stationId + 
                         "&entry." + emailEntryId + "=" + encodeURIComponent(userEmail) + 
                         "&entry." + startEntry1Id + "=" + start + 
-                        "&entry." + endEntry1Id + "=" + end
+                        "&entry." + endEntry1Id + "=" + end +
                         "&entry." + startEntry2Id + "=" + start + 
                         "&entry." + endEntry2Id + "=" + end;
 
