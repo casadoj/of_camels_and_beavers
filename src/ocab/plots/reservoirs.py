@@ -1,15 +1,18 @@
+from pathlib import Path
+# from typing import Optional
+import logging
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.io as pio
-from typing import Optional
-import logging
 
-logger = logging.getLogger(__name__)
 
 from ocab.plots.utils import compute_annual_timeseries, compute_monthly_climatology, compute_climatology, define_y_limits
 from ocab.signatures import baseflow_index, flashiness_index, slope_fdc, budyko
+
+logger = logging.getLogger(__name__)
 
 
 def plot_reservoir_timeseries(
@@ -611,17 +614,29 @@ def create_reservoir_html(
 
     fig.update_layout(height=None, width=None, autosize=True)
 
+    # # Convert figure to HTML div string
+    # plotly_html = fig.to_html(
+    #     full_html=False, 
+    #     include_plotlyjs='cdn',
+    #     config={'responsive': True}
+    # )
+
     # Convert figure to HTML div string
-    plotly_html = fig.to_html(
+    plotly_html = pio.to_html(
+        fig, 
         full_html=False, 
         include_plotlyjs='cdn',
-        config={'responsive': True}
+        include_mathjax=False,
+        config={'responsive': True, 'displaylogo': False}
     )
+
+    title = Path(path).stem
 
     full_page_html = f"""
         <html>
         <head>
             <meta charset="utf-8" />
+            <title>{title}</title>
             <style>
                 body {{ 
                     margin: 0; padding: 0; height: 100vh; width: 100vw;
