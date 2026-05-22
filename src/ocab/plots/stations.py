@@ -591,10 +591,13 @@ def create_station_html(
         config={'responsive': True, 'displaylogo': False}
     )
 
+    title = Path(path).stem
+
     full_page_html = f"""
         <html>
         <head>
             <meta charset="utf-8" />
+            <title>{title}</title>
             <style>
                 body {{ 
                     margin: 0; padding: 0; height: 100vh; width: 100vw;
