@@ -444,7 +444,7 @@ def plot_station_timeseries(
 
     row, col = 4, 2
 
-    # calculate indices
+    # Compute indicis
     aridity = ts_y['pet_mm'] / ts_y['precip_mm']
     evaporativity = (ts_y['precip_mm'] - ts_y['discharge_mm']) / ts_y['precip_mm']
 
@@ -496,21 +496,40 @@ def plot_station_timeseries(
         row=row, col=col
     )
 
-    # Add annual values
+    # Observed discharge
     fig.add_trace(
         go.Scatter(
             x=aridity, 
             y=evaporativity,
             mode='markers',
             name='Budyko',
-            # marker=dict(color='sienna', size=8, line=dict(width=1, color='white')),
-            marker=dict(color='lightslategrey', size=8, line=dict(width=1, color='white')),
+            marker=dict(color=c_obs, size=8, line=dict(width=1, color='white')),
             customdata=aridity.index.year,
             hovertemplate="<b>Year: %{customdata}</b><br>Arid. Index: %{x:.2f}<br>Evap. Index: %{y:.2f}<extra></extra>",
+            legendgroup="Q",
             showlegend=False
         ),
         row=row, col=col
     )
+
+    # Simulated discharge
+    if 'discharge_mm_sim' in ts_y.columns:
+        evaporativity_sim = (ts_y['precip_mm'] - ts_y['discharge_mm_sim']) / ts_y['precip_mm']
+        fig.add_trace(
+            go.Scatter(
+                x=aridity, 
+                y=evaporativity_sim,
+                mode='markers',
+                name='Budyko',
+                marker=dict(color=c_sim, size=8, line=dict(width=1, color='white')),
+                customdata=aridity.index.year,
+                hovertemplate="<b>Year: %{customdata}</b><br>Arid. Index: %{x:.2f}<br>Evap. Index: %{y:.2f}<extra></extra>",
+                visible='legendonly',
+                legendgroup="Q_sim",
+                showlegend=False
+            ),
+            row=row, col=col
+        )
 
     # set axes
     fig.update_xaxes(
