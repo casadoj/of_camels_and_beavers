@@ -450,8 +450,8 @@ def plot_station_timeseries(
 
     # plot limits
     round = 0.2
-    xlim = [0, max(1.4, np.ceil(aridity.max() / round) * round)]
-    ylim = [0, 1.4]
+    xlim = [0, max(1.5, np.ceil(aridity.max() / round) * round)]
+    ylim = [min(0, np.floor(aridity.min() / round) * round), 1.0]
 
     # Theoretical lines
     line_props = dict(color='grey', width=1)
