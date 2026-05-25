@@ -95,7 +95,8 @@ def plot_stations_map(
 
 def plot_station_timeseries(
     ts: pd.DataFrame,
-    area: float,
+    # area: float,
+    attrs: pd.Series,
     regime: Optional[str] = None,
     save: bool = False,
     **kwargs
@@ -121,17 +122,24 @@ def plot_station_timeseries(
     ------------------
     alpha: float
         Transparency of the precipitation bar plots
-    c_dis: string
-        Color used to plot discharge
+    c_obs: string
+        Color used to plot observed discharge
+    c_pet: string
+        Color used to plot potential evapotranspiration
     c_precip: string
         Color used to plot precipitation
+    c_sim: string
+        Color used to plot simulated discharge
+    c_temp: string
+        Color used to plot temperature
     title: string
         Figure title
     """
 
     # Extract keywords
     alpha = kwargs.get('alpha', 0.2)
-    c_dis = kwargs.get('c_dis', 'darkslategrey')
+    c_obs = kwargs.get('c_obs', 'darkslategrey')
+    c_sim = kwargs.get('c_sim', 'darkorange')
     c_precip = kwargs.get('c_precip', 'lightblue')
     c_temp = kwargs.get('c_temp', 'darkred')
     c_pet = kwargs.get('c_pet', 'darkseagreen') #'olivedrab')
@@ -178,12 +186,25 @@ def plot_station_timeseries(
             x=ts.index, 
             y=ts['discharge_mm'], 
             name="Discharge", 
-            line=dict(color=c_dis, width=1), 
+            line=dict(color=c_obs, width=1), 
             legendgroup="Q",
             showlegend=False
         ),
         row=row, col=col
     )
+    if 'discharge_mm_sim' in ts.columns:
+        fig.add_trace(
+            go.Scatter(
+                x=ts.index, 
+                y=ts['discharge_mm_sim'], 
+                name="Simulation", 
+                line=dict(color=c_sim, width=1, dash='dot'), 
+                visible='legendonly',
+                legendgroup="Q_sim",
+                showlegend=False
+            ),
+            row=row, col=col
+        )
 
     # set axes properties
     fig.update_yaxes(
@@ -207,7 +228,7 @@ def plot_station_timeseries(
             marker=dict(
                 symbol='line-ns-open',
                 size=10,
-                color=c_dis,
+                color=c_obs,
                 line_width=1
             ),
             legendgroup="Q",
@@ -261,6 +282,7 @@ def plot_station_timeseries(
             name="Temperature",
             line=dict(color=c_temp, width=2),
             legendgroup="T",
+            visible='legendonly',
             showlegend=True,
             hovertemplate="<b>Year: %{x|%Y}</b><br>T: %{y:.1f} °C<extra></extra>"
         ), 
@@ -272,6 +294,7 @@ def plot_station_timeseries(
             name="PET",
             line=dict(color=c_pet, width=2),
             legendgroup="PET",
+            visible='legendonly',
             showlegend=True,
             hovertemplate="<b>Year: %{x|%Y}</b><br>PET: %{y:.0f} mm<extra></extra>"
         ), 
@@ -282,13 +305,27 @@ def plot_station_timeseries(
             x=ts_y.index, 
             y=ts_y['discharge_mm'], 
             name="Discharge",
-            line=dict(color=c_dis, width=2),
+            line=dict(color=c_obs, width=2),
             legendgroup="Q",
             showlegend=True,
             hovertemplate="<b>Year: %{x|%Y}</b><br>Q: %{y:.0f} mm<extra></extra>"
         ),
         row=row, col=col
     )
+    if 'discharge_mm_sim' in ts_y.columns:
+        fig.add_trace(
+            go.Scatter(
+                x=ts_y.index, 
+                y=ts_y['discharge_mm_sim'], 
+                name="Simulation",
+                line=dict(color=c_sim, width=1.8, dash='dot'), 
+                visible='legendonly',
+                legendgroup="Q_sim",
+                showlegend=True,
+                hovertemplate="<b>Year: %{x|%Y}</b><br>Q: %{y:.0f} mm<extra></extra>"
+            ),
+            row=row, col=col
+        )
 
     # set axes properties
     scale_y = 100
@@ -339,6 +376,7 @@ def plot_station_timeseries(
             name="Temperature", 
             line=dict(color=c_temp, width=2),
             legendgroup="T",
+            visible='legendonly',
             showlegend=False
         ),
         row=row, col=col, secondary_y=True
@@ -348,6 +386,7 @@ def plot_station_timeseries(
             x=ts_m.index, 
             y=ts_m['pet_mm'], 
             name="PET", 
+            visible='legendonly',
             line=dict(color=c_pet, width=2),
             legendgroup="PET",
             showlegend=False
@@ -359,12 +398,25 @@ def plot_station_timeseries(
             x=ts_m.index, 
             y=ts_m['discharge_mm'], 
             name="Discharge", 
-            line=dict(color=c_dis, width=2),
+            line=dict(color=c_obs, width=2),
             legendgroup="Q",
             showlegend=False
         ), 
         row=row, col=col
     )
+    if 'discharge_mm_sim' in ts_m.columns:
+        fig.add_trace(
+            go.Scatter(
+                x=ts_m.index, 
+                y=ts_m['discharge_mm_sim'], 
+                name="Simulation", 
+                line=dict(color=c_sim, width=1.8, dash='dot'), 
+                visible='legendonly',
+                legendgroup="Q_sim",
+                showlegend=False
+            ), 
+            row=row, col=col
+        )
 
     # set axes properties
     scale_m = 2
@@ -451,7 +503,8 @@ def plot_station_timeseries(
             y=evaporativity,
             mode='markers',
             name='Budyko',
-            marker=dict(color='sienna', size=8, line=dict(width=1, color='white')),
+            # marker=dict(color='sienna', size=8, line=dict(width=1, color='white')),
+            marker=dict(color='lightslategrey', size=8, line=dict(width=1, color='white')),
             customdata=aridity.index.year,
             hovertemplate="<b>Year: %{customdata}</b><br>Arid. Index: %{x:.2f}<br>Evap. Index: %{y:.2f}<extra></extra>",
             showlegend=False
@@ -482,7 +535,7 @@ def plot_station_timeseries(
 
     signature_text = (
         "<b>Catchment Properties</b><br>"
-        f"Area: {area:.0f} km²<br>"
+        f"Area: {attrs['catch_skm']:.0f} km²<br>"
         f"Regime: {regime}<br>"
         "<br><b>Climatology</b><br>"
         f"Discharge: {climatology.discharge_mm:.0f} mm/year<br>"
@@ -495,8 +548,26 @@ def plot_station_timeseries(
         f"Slope FDC: {slope:.2f}<br>"
     )
 
+    if 'KGE' in attrs.index or 'NSE' in attrs.index:
+        performance_text = "<br><b>Model performance</b><br>"
+        if 'NSE' in attrs.index:
+            performance_text += f"NSE: {attrs['NSE']:.2f}<br>"
+        if 'KGE' in attrs.index:
+            performance_text += f"KGE: {attrs['KGE']:.2f}<br>"
+        if 'Beta-KGE' in attrs.index:
+            performance_text += f"Bias: {attrs['Beta-KGE']:.2f}<br>"
+        if 'Alpha-NSE' in attrs.index:
+            performance_text += f"Variability: {attrs['Alpha-NSE']:.2f}<br>"
+        if 'Pearson-r' in attrs.index:
+            performance_text += f"Correlation: {attrs['Pearson-r']:.2f}<br>"
+        
+    # Append it to the main text
+    signature_text += performance_text
+
     # Update Layout & Scale Buttons
     y_raw = [ts['precip_mm'], ts['discharge_mm']]
+    if 'discharge_mm_sim' in ts.columns:
+        y_raw += [ts['discharge_mm_sim']]
     y_sqrt = [trace**.5 for trace in y_raw]
     fig.update_layout(
         title_text=f"<b>{title if title else ''}</b>",
@@ -525,19 +596,19 @@ def plot_station_timeseries(
                          args=[
                              {"y": y_raw},
                              {"yaxis.type": "linear", "yaxis.title.text": "mm"},
-                             [0, 1]
+                             [0, 1, 2]
                          ]),
                     dict(label="Sqrt Scale", method="update",
                          args=[
                              {"y": y_sqrt},
                              {"yaxis.type": "linear", "yaxis.title.text": "sqrt mm"},
-                             [0, 1]
+                             [0, 1, 2]
                          ]),
                     dict(label="Log Scale", method="update",
                          args=[
                              {"y": y_raw}, 
                              {"yaxis.type": "log", "yaxis.title.text": "log mm"},
-                             [0, 1]
+                             [0, 1, 2]
                          ]),
                 ],
             )

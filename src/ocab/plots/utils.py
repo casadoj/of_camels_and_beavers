@@ -7,6 +7,7 @@ aggregation = {
     'precip_mm': 'sum',
     'pet_mm': 'sum',
     'discharge_mm': 'sum',
+    'discharge_mm_sim': 'sum',
     'inflow_mm': 'sum',
     'outflow_mm': 'sum',
     'storage_mcm': 'mean',
@@ -15,6 +16,7 @@ aggregation = {
 
 rounding = {
     'discharge_mm': 1,
+    'discharge_mm_sim': 1,
     'storage_mcm': 3,
     'filling': 3,
     'inflow_cms': 3,

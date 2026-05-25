@@ -373,13 +373,24 @@
             pet_mm: {
                 label: "mm/yr",
                 grades: [400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400],
-                colors: ['#ffffd4', '#feeaa1', '#fed363', '#fdb42f', '#f99214', '#f16e07', '#e14b03', '#c63102', '#a51e01', '#7f0f01', '#540601']            }
+                colors: ['#ffffd4', '#feeaa1', '#fed363', '#fdb42f', '#f99214', '#f16e07', '#e14b03', '#c63102', '#a51e01', '#7f0f01', '#540601']
+            },
+            KGE: {
+                label: "-",
+                grades: [-0.41, -0.2, 0.0, 0.2, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+                colors: ['#7f0000', '#b82e3d', '#d96870', '#f0aaae', '#e2e2e2', '#c5d3f4', '#9fb6f1', '#7597eb', '#4a75dc', '#3b4cc0', '#1a237e']
+            }
         };
 
         let currentVariable = 'discharge_mm'; // Default variable
 
         // New helper function to get color based on the current mode
         function getStationColor(d, variable) {
+            // If the KGE value is missing, mark it as transparent
+            if (variable === 'KGE' && (d === null || d === undefined || isNaN(d))) {
+                return 'transparent';
+            }
+
             const config = symbologyConfig[variable];
             // Loop backwards through grades to find the highest match
             for (let i = config.grades.length - 1; i >= 0; i--) {
@@ -393,9 +404,10 @@
             if (!stations) return;
             stations.eachLayer(function(layer) {
                 const val = layer.feature.properties[currentVariable];
+                const colorValue = getStationColor(val, currentVariable);
                 layer.setStyle({
                     fillColor: getStationColor(val, currentVariable)
-                });
+                });               
             });
         }
         
@@ -409,11 +421,14 @@
                 console.log("Data loaded successfully:", data);
                 stations = L.geoJSON(data, {
                     pointToLayer: function (feature, latlng) {
+                        const val = feature.properties[currentVariable];
+                        const colorValue = getStationColor(val, currentVariable);
+
                         return L.circleMarker(latlng, {
                             radius: 5,
                             color: 'white',
                             weight: 2,
-                            fillColor: getStationColor(feature.properties[currentVariable], currentVariable),
+                            fillColor: colorValue,
                             fillOpacity: 1,
                             pane: 'stationPane'
                         });
@@ -478,14 +493,6 @@
                                 }
                             }
                         });
-
-                        // // Cleanup: Remove subbasin when popup closes
-                        // layer.on('popupclose', function() {
-                        //     if (subbasinStation) {
-                        //         map.removeLayer(subbasinStation);
-                        //         subbasinStation = null;
-                        //     }
-                        // });
                     }
                 }).addTo(map);
             });
@@ -565,14 +572,6 @@
                                 }
                             }
                         });
-
-                        // // Cleanup: Remove subbasin when popup closes
-                        // layer.on('popupclose', function() {
-                        //     if (subbasinReservoir) {
-                        //         map.removeLayer(subbasinReservoir);
-                        //         subbasinReservoir = null;
-                        //     }
-                        // });
                     }
                 });
                 // Initial check: Only add if already zoomed in
@@ -649,13 +648,22 @@
             function draw() {
                 const config = symbologyConfig[currentVariable];
 
-                // 1. The Variable Selector
                 let content = `<div class="legend-selector" style="margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">
-                    <div class="selector-options">
-                        <label><input type="radio" name="mode" value="discharge_mm" ${currentVariable === 'discharge_mm' ? 'checked' : ''}> <strong>Discharge</strong></label>
-                        <label><input type="radio" name="mode" value="precip_mm" ${currentVariable === 'precip_mm' ? 'checked' : ''}> <strong>Precipitation</strong></label>
-                        <label><input type="radio" name="mode" value="temp_degC" ${currentVariable === 'temp_degC' ? 'checked' : ''}> <strong>Temperature</strong></label>
-                        <label><input type="radio" name="mode" value="pet_mm" ${currentVariable === 'pet_mm' ? 'checked' : ''}> <strong>PET</strong></label>
+                    <div class="selector-group" style="margin-bottom: 8px;">
+                        <span style="display: block; font-size: 11px; text-transform: uppercase; color: #666; font-weight: bold; margin-bottom: 3px;">Variable</span>
+                        <div class="selector-options">
+                            <label><input type="radio" name="mode" value="discharge_mm" ${currentVariable === 'discharge_mm' ? 'checked' : ''}> <strong>Discharge</strong></label>
+                            <label><input type="radio" name="mode" value="precip_mm" ${currentVariable === 'precip_mm' ? 'checked' : ''}> <strong>Precipitation</strong></label>
+                            <label><input type="radio" name="mode" value="temp_degC" ${currentVariable === 'temp_degC' ? 'checked' : ''}> <strong>Temperature</strong></label>
+                            <label><input type="radio" name="mode" value="pet_mm" ${currentVariable === 'pet_mm' ? 'checked' : ''}> <strong>PET</strong></label>
+                        </div>
+                    </div>
+
+                    <div class="selector-group">
+                        <span style="display: block; font-size: 11px; text-transform: uppercase; color: #666; font-weight: bold; margin-bottom: 3px;">Performance</span>
+                        <div class="selector-options">
+                            <label><input type="radio" name="mode" value="KGE" ${currentVariable === 'KGE' ? 'checked' : ''}> <strong>KGE</strong></label>
+                        </div>
                     </div>
                 </div>`;
 
