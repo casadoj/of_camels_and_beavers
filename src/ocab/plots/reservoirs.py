@@ -419,9 +419,9 @@ def plot_reservoir_timeseries(
     evaporativity = (ts_y['precip_mm'] - ts_y['outflow_mm']) / ts_y['precip_mm']
 
     # plot limits
-    round = 0.2
-    xlim = [0, max(1.4, np.ceil(aridity.max() / round) * round)]
-    ylim = [0, 1.4]
+    round = 0.5
+    xlim = [0, max(1.01, np.ceil(aridity.max() / round) * round)]
+    ylim = [min(0, np.floor(aridity.min() / round) * round), 1.0]
 
     # Theoretical lines
     line_props = dict(color='grey', width=1)
