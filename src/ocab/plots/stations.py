@@ -449,8 +449,8 @@ def plot_station_timeseries(
     evaporativity = (ts_y['precip_mm'] - ts_y['discharge_mm']) / ts_y['precip_mm']
 
     # plot limits
-    round = 0.2
-    xlim = [0, max(1.5, np.ceil(aridity.max() / round) * round)]
+    round = 0.5
+    xlim = [0, max(1.01, np.ceil(aridity.max() / round) * round)]
     ylim = [min(0, np.floor(aridity.min() / round) * round), 1.0]
 
     # Theoretical lines
