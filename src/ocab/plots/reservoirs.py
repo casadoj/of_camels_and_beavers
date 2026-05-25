@@ -473,9 +473,10 @@ def plot_reservoir_timeseries(
             y=evaporativity,
             mode='markers',
             name='Budyko',
-            marker=dict(color='sienna', size=8, line=dict(width=1, color='white')),
+            marker=dict(color=c_out, size=8, line=dict(width=1, color='white')),
             customdata=aridity.index.year,
             hovertemplate="<b>Year: %{customdata}</b><br>Arid. Index: %{x:.2f}<br>Evap. Index: %{y:.2f}<extra></extra>",
+            legendgroup="Outflow",
             showlegend=False
         ),
         row=row, col=col
