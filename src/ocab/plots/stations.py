@@ -585,8 +585,10 @@ def plot_station_timeseries(
 
     # Update Layout & Scale Buttons
     y_raw = [ts['precip_mm'], ts['discharge_mm']]
+    update_traces = [0, 1]
     if 'discharge_mm_sim' in ts.columns:
         y_raw += [ts['discharge_mm_sim']]
+        update_traces += [2]
     y_sqrt = [trace**.5 for trace in y_raw]
     fig.update_layout(
         title_text=f"<b>{title if title else ''}</b>",
@@ -615,19 +617,19 @@ def plot_station_timeseries(
                          args=[
                              {"y": y_raw},
                              {"yaxis.type": "linear", "yaxis.title.text": "mm"},
-                             [0, 1, 2]
+                             update_traces
                          ]),
                     dict(label="Sqrt Scale", method="update",
                          args=[
                              {"y": y_sqrt},
                              {"yaxis.type": "linear", "yaxis.title.text": "sqrt mm"},
-                             [0, 1, 2]
+                             update_traces
                          ]),
                     dict(label="Log Scale", method="update",
                          args=[
                              {"y": y_raw}, 
                              {"yaxis.type": "log", "yaxis.title.text": "log mm"},
-                             [0, 1, 2]
+                             update_traces
                          ]),
                 ],
             )
