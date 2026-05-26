@@ -455,6 +455,7 @@
                             Precipitation: ${props.precip_mm != null ? Math.round(props.precip_mm) : 'N/A'} mm/yr<br>
                             Period: ${props.start}-${props.end}<br>
                             Regime: ${props.regime}<br>
+                            KGE: ${props.KGE != null ? Number(props.KGE).toFixed(2) : 'N/A'}<br>
                             <a href="./timeseries/stations/plots/${id}.html" target="_blank" rel="noopener noreferrer">
                                 Explore Time Series
                             </a>
