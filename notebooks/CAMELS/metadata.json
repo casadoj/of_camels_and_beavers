@@ -1,0 +1,39 @@
+{
+    "variables": {
+        "discharge_cms": { 
+            "long_name": "discharge", 
+            "units": "m³/s" 
+        },
+        "discharge_mm": { 
+            "long_name": "specific discharge", 
+            "units": "mm/d" 
+        },
+        "temp_degC": { 
+            "long_name": "mean temperature", 
+            "units": "°C" 
+        },
+        "temp_max_degC": { 
+            "long_name": "maximum temperature", 
+            "units": "°C" 
+        },
+        "temp_min_degC": { 
+            "long_name": "minimum temperature", 
+            "units": "°C" 
+        },
+        "pet_mm": { 
+            "long_name": "potential evapotranspiration", 
+            "units": "mm/d" 
+        },
+        "precip_mm": { 
+            "long_name": "precipitation", 
+            "units": "mm" 
+        }
+    },
+    "Timezone": "Europe/Madrid",
+    "Sources":[
+        "Discharge: Anuario de Aforos curated by CEDEX (Spanish Ministry of Environment) and the River Basin Authorities",
+        "ROCIO-IBEB: meteorological observations created by AEMet (Spanish Meteorological Agency)",
+        "CERRA-Land: meteorological reanalysis created by C3S (Copernicus Climate Change Service)",
+        "EMO1: meteorological observations created by CEMS (Copernicus Emergency Management Service)"
+  ]
+}
