@@ -9,6 +9,7 @@ import logging
 from datetime import datetime
 import geopandas as gpd
 import xarray as xr
+from pyproj import CRS
 
 logging.basicConfig(
     level=logging.INFO,
@@ -24,7 +25,7 @@ logger = logging.getLogger(__name__)
 def read_data(
         input_path: Union[str, Path], 
         chunks: Optional[Dict] = None,
-        crs: Optional[Union[int, str]] = None
+        # crs: Optional[Union[int, str]] = None
     ) -> xr.Dataset:
     """Reads input maps in either NetCDF or Zarr format.
 
@@ -68,8 +69,8 @@ def read_data(
                 data_vars='minimal',
                 compat='override',
                 engine='netcdf4'
-                ).astype('float32')
-        except:
+            )
+        except Exception as e:
             logger.info(f'MFDataset failed, attempting static load: {e}')
             # for static maps
             ds = xr.Dataset({
@@ -83,14 +84,21 @@ def read_data(
             engine='zarr', 
             zarr_format=3, 
             chunks={} if chunks is None else chunks, 
-            consolidated=False
+            consolidated=False,
+            decode_coords='all'
         )
 
-    if 'wgs_1984' in ds:
-        ds = ds.drop_vars('wgs_1984')
-    
     # Assign Coordinate Reference System
-    ds = ds.rio.write_crs(4326 if crs is None else crs)
+    if 'wgs_1984' in ds:
+        projection = 'wgs_1984'
+    elif 'rotated_pole' in ds:
+        projection = 'rotated_pole'
+    else:
+        projection = None
+    if projection is not None:
+        crs = CRS.from_cf(ds[projection].attrs)
+        ds = ds.drop_vars(projection)
+        ds = ds.rio.write_crs(crs)
 
     return ds
 
@@ -183,8 +191,8 @@ def basin_statistics(
         output.mkdir(parents=True, exist_ok=True)
 
     # define spatial dimensions
-    x_dim = next((d for d in ['lon', 'longitude', 'x'] if d in data.dims), 'x')
-    y_dim = next((d for d in ['lat', 'latitude', 'y'] if d in data.dims), 'y')
+    x_dim = next((d for d in ['lon', 'longitude', 'x', 'rlon'] if d in data.dims), 'x')
+    y_dim = next((d for d in ['lat', 'latitude', 'y', 'rlat'] if d in data.dims), 'y')
     data = data.rio.set_spatial_dims(x_dim=x_dim, y_dim=y_dim)
     if weight is not None:
         weight = weight.rio.set_spatial_dims(x_dim=x_dim, y_dim=y_dim)
@@ -203,8 +211,7 @@ def basin_statistics(
     for ID in tqdm(basins.index, desc='basins'):
         
         if output is not None:
-            # fileout = output / f'{ID:04}.nc'
-            fileout = output / f'{ID:04}.parquet'
+            fileout = output / f'{ID}.parquet'
             if fileout.exists() and  not overwrite:
                 logger.info(f'Output file {fileout} already exists. Moving forward to the next basin')
                 continue
@@ -234,9 +241,8 @@ def basin_statistics(
         if output is None:
             results.append(data_basin)
         else:
-            # data_basin.to_netcdf(fileout)
             df = data_basin.to_dataframe()
-            df.drop(['crs', 'spatial_ref', 'wgs_1984', 'id'], axis=1, errors='ignore', inplace=True)
+            df.drop(['crs', 'spatial_ref', 'wgs_1984', 'rotated_pole', 'id'], axis=1, errors='ignore', inplace=True)
             df.round(decimals).to_parquet(fileout)
 
     end_time = time.perf_counter()
