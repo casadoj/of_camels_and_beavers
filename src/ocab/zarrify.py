@@ -11,6 +11,7 @@ import numpy as np
 import xarray as xr
 import zarr
 from zarr.codecs import BloscCodec
+from pyproj import CRS
 from typing import Tuple, Optional, Literal, Union
 from itertools import product
 
@@ -57,6 +58,7 @@ def nc_to_zarr(
     resample: str (optional)
         Aggregation method used when resampling to daily frequency: 'mean', 'max', 'min', 'sum'.
     """
+
     # 1. Setup Logging
     log_file = "zarrify_{}.log".format(datetime.now().strftime("%Y%m%d_%H%M%S"))
     logging.basicConfig(
@@ -71,6 +73,7 @@ def nc_to_zarr(
     start_time = time.time()
 
     logger.info(f"Starting conversion. Input: {input_path}, Output: {target_store}")
+    target_store = Path(target_store)
     
     # 2. Read data
     try:
@@ -78,8 +81,38 @@ def nc_to_zarr(
             input_path,
             engine='netcdf4',
             # parallel=True,
-            chunks={'time': 365}
-            ).astype('float32')
+            chunks={'time': 365},
+            data_vars='minimal',
+            coords='minimal',
+            compat='override'
+        )
+        
+        # assign Coordinate Reference System
+        for projection in ['wgs_1984', 'rotated_pole']:
+            if projection in ds:
+                crs = CRS.from_cf(ds[projection].attrs)
+                ds = ds.rio.write_crs(crs)
+                break
+
+        # define spatial dimensions
+        x_dim = next((d for d in ['lon', 'longitude', 'x', 'rlon'] if d in ds.dims), None)
+        y_dim = next((d for d in ['lat', 'latitude', 'y', 'rlat'] if d in ds.dims), None)
+        if x_dim and y_dim:
+            ds = ds.rio.set_spatial_dims(x_dim=x_dim, y_dim=y_dim)
+        else:
+            logger.warning('Could not automatically determine spatial dimensions.')
+
+        # Identify 2D geographic coordinates
+        geo_lat = next((c for c in ['lat', 'latitude'] if c in ds.variables), None)
+        geo_lon = next((c for c in ['lon', 'longitude'] if c in ds.variables), None)
+
+        # remove extra coordinates
+        ds = ds.squeeze()
+        core_coords = {'time', x_dim, y_dim, projection, geo_lat, geo_lon} - {None}
+        extra_coords = [coord for coord in ds.coords if coord not in core_coords]
+        if extra_coords:
+            logger.info(f"Dropping extra coordinates: {extra_coords}")
+            ds = ds.drop_vars(extra_coords, errors='ignore')
         
         # define variable to extract
         variables = list(ds.data_vars)
@@ -90,8 +123,7 @@ def nc_to_zarr(
             if len(variables) != 1:
                 raise ValueError(f"Expected one variable in the dataset, found: {variables}")
             variable = variables[0]
-
-        da = ds[variable]
+        da = ds[variable].astype('float32')
 
         if len(chunks) != da.ndim:
             raise ValueError("Chunks must match the dataset dimensions")
@@ -118,10 +150,12 @@ def nc_to_zarr(
         raise ValueError("Shard size should be multiples of the chunk size")
 
     # 3. Create Zarr V3 Structure
-    if os.path.isdir(target_store):
+    # if os.path.isdir(target_store):
+    if target_store.is_dir():
         root = zarr.open_group(target_store, mode='a', zarr_format=3)
     else:
         root = zarr.create_group(target_store, overwrite=True, zarr_format=3)
+
     if ds.attrs:
         root.attrs.update(_clean_attrs(ds.attrs))
 
@@ -133,12 +167,45 @@ def nc_to_zarr(
                 name=dim,
                 data=data,
                 dimension_names=[dim],
-                attributes=_clean_attrs(da[dim].attrs),
+                attributes=_clean_attrs(da.coords[dim].attrs),
                 chunks=(len(data),)
             )
 
     # Define V3 compressor
     compressor = BloscCodec(cname='zstd', clevel=5, shuffle='bitshuffle')
+
+    # Define variable attributes
+    var_attrs = _clean_attrs(da.attrs)
+    for projection in ['rotated_pole', 'wgs_1984']:
+        if projection in da.coords:
+            var_attrs['grid_mapping'] = projection
+            if projection not in root:
+                logger.info(f"Saving CRS coordinate '{projection}' to Zarr root")
+                root.create_array(
+                    name=projection,
+                    data=da.coords[projection].values,
+                    dimension_names=[],
+                    attributes=_clean_attrs(da.coords[projection].attrs),
+                    chunks=()
+                )
+            break
+
+    # Save 2D Geographic Coordinates
+    spatial_chunks = chunks[1:]
+    for geo_coord in [geo_lat, geo_lon]:
+        if geo_coord and geo_coord in ds and geo_coord not in root:
+            logger.info(f"Saving 2D coordinate array '{geo_coord}' to Zarr root")
+            coord_da = ds[geo_coord]
+            root.create_array(
+                name=geo_coord,
+                data=coord_da.values,
+                dimension_names=list(coord_da.dims),
+                attributes=_clean_attrs(coord_da.attrs),
+                chunks=spatial_chunks,
+                compressors=[compressor]
+            )
+
+    # Save variable
     z_array = root.create_array(
         name=variable,
         shape=shape,
@@ -147,7 +214,7 @@ def nc_to_zarr(
         dtype='f4',
         dimension_names=list(da.dims),
         compressors=[compressor],
-        attributes=_clean_attrs(da.attrs)
+        attributes=var_attrs
     )
 
     # 4. Tiled streaming write
