@@ -615,13 +615,6 @@ def create_reservoir_html(
 
     fig.update_layout(height=None, width=None, autosize=True)
 
-    # # Convert figure to HTML div string
-    # plotly_html = fig.to_html(
-    #     full_html=False, 
-    #     include_plotlyjs='cdn',
-    #     config={'responsive': True}
-    # )
-
     # Convert figure to HTML div string
     plotly_html = pio.to_html(
         fig, 
@@ -637,7 +630,7 @@ def create_reservoir_html(
         <html>
         <head>
             <meta charset="utf-8" />
-            <title>{title}</title>
+            <title>beaverses_{title}</title>
             <style>
                 body {{ 
                     margin: 0; padding: 0; height: 100vh; width: 100vw;
