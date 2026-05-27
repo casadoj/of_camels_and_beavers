@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Optional, Union
 import logging
+import calendar
 
 import numpy as np
 import pandas as pd
@@ -365,7 +366,10 @@ def plot_station_timeseries(
             marker_color=c_precip, 
             opacity=1 - alpha,
             legendgroup="P",
-            showlegend=False
+            showlegend=False,
+            text=[calendar.month_abbr[i] for i in ts_m.index],
+            textposition='none',
+            hovertemplate="<b>Month: %{text}</b><br>P: %{y:.0f} mm<extra></extra>"
         ), 
         row=row, col=col
     )
@@ -377,7 +381,9 @@ def plot_station_timeseries(
             line=dict(color=c_temp, width=2),
             legendgroup="T",
             visible='legendonly',
-            showlegend=False
+            showlegend=False,
+            text=[calendar.month_abbr[i] for i in ts_m.index],
+            hovertemplate="<b>Month: %{text}</b><br>Tmean: %{y:.1f} °C<extra></extra>"
         ),
         row=row, col=col, secondary_y=True
     )
@@ -389,7 +395,9 @@ def plot_station_timeseries(
             visible='legendonly',
             line=dict(color=c_pet, width=2),
             legendgroup="PET",
-            showlegend=False
+            showlegend=False,
+            text=[calendar.month_abbr[i] for i in ts_m.index],
+            hovertemplate="<b>Month: %{text}</b><br>PET: %{y:.0f} mm<extra></extra>"
         ),
         row=row, col=col
     )
@@ -400,7 +408,9 @@ def plot_station_timeseries(
             name="Discharge", 
             line=dict(color=c_obs, width=2),
             legendgroup="Q",
-            showlegend=False
+            showlegend=False,
+            text=[calendar.month_abbr[i] for i in ts_m.index],
+            hovertemplate="<b>Month: %{text}</b><br>Q: %{y:.0f} mm<extra></extra>"
         ), 
         row=row, col=col
     )
@@ -551,7 +561,6 @@ def plot_station_timeseries(
 
     # Calculate climatology values
     climatology = compute_climatology(ts)
-
     signature_text = (
         "<b>Catchment Properties</b><br>"
         f"Area: {attrs['catch_skm']:.0f} km²<br>"
@@ -689,7 +698,7 @@ def create_station_html(
         <html>
         <head>
             <meta charset="utf-8" />
-            <title>{title}</title>
+            <title>camelses_{title}</title>
             <style>
                 body {{ 
                     margin: 0; padding: 0; height: 100vh; width: 100vw;
