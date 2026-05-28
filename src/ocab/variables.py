@@ -5,7 +5,7 @@ DECIMALS = {
     'discharge_mm': 6,
     'temp_degC': 6,
     'temp_max_degC': 6,
-    'temp_max_degC': 6,
+    'temp_min_degC': 6,
     'precip_mm': 6,
     'pet_mm': 6,
 }
