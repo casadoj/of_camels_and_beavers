@@ -12,6 +12,10 @@
             "long_name": "mean temperature", 
             "units": "°C" 
         },
+        "temp_dtr_degC": {
+            "long_name": "diurnal temperature range",
+            "units": "°C"
+        },
         "temp_max_degC": { 
             "long_name": "maximum temperature", 
             "units": "°C" 
@@ -24,9 +28,21 @@
             "long_name": "potential evapotranspiration", 
             "units": "mm/d" 
         },
+        "precip_frac": {
+            "long_name": "precipitation francion area",
+            "units": "-"
+        },
         "precip_mm": { 
             "long_name": "precipitation", 
             "units": "mm" 
+        },
+        "precip_max_mm": {
+            "long_name": "maximum precipitation",
+            "units": "mm"
+        },
+        "precip_std_mm": {
+            "long_name": "precipitation standard deviation",
+            "units": "mm"
         }
     },
     "Timezone": "Europe/Madrid",
