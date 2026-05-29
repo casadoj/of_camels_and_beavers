@@ -4,6 +4,7 @@ DECIMALS = {
     # discharge
     'discharge_cms': 3,
     'discharge_mm': 6,
+    'discharge_mm_sim': 6,
     # temperature
     'temp_degC': 6,
     'temp_dtr_degC': 6, 
@@ -24,7 +25,7 @@ RENAME = {
     'avgtemp_mean': 'temp_degC',
     'maxtemp_mean': 'temp_max_degC',
     'mintemp_mean': 'temp_min_degC',
-    'rngtemp_mean': 'temp_dtr_degC', # diurnal temperature range
+    'rngtemp_mean': 'temp_dtr_degC',
     # precipitation
     'pr_mean': 'precip_mm', 
     'precipitation_frac': 'precip_frac',
