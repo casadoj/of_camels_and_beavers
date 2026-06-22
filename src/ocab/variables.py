@@ -17,6 +17,16 @@ DECIMALS = {
     'precip_std_mm': 6,
     # potential evapotranspiration
     'pet_mm': 6,
+    # reservoir storage
+    'storage_mcm': 3,
+    'filling': 3,
+    # reservoir level
+    'level_masl': 3,
+    # reservoir flows
+    'inflow_cms': 3,
+    'inflow_mm': 6,
+    'outflow_cms': 3,
+    'outflow_mm': 6,
 }
 
 RENAME = {
@@ -35,4 +45,11 @@ RENAME = {
     # potential evapotranspiration
     'e0_mean': 'pet_mm',
     'pet_mean': 'pet_mm',
+    # reservoir storage
+    'storage': 'storage_mcm',
+    # reservoir level
+    'inflow': 'inflow_cms',
+    'outflow': 'outflow_cms',
+    # reservoir flows
+    'level': 'level_masl',
 }
