@@ -1,4 +1,4 @@
-# Experiment 1: Dynamic Embedding
+# Test Dynamic Embedding
 
 ***Date**: 23-06-2026*
 

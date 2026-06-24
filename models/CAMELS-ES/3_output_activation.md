@@ -1,4 +1,4 @@
-# Experiment 2: Output Activation
+# Test Output Activation
 
 ***Date**: 23-06-2026*
 

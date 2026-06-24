@@ -1,4 +1,4 @@
-# Experiment 0: Hidden Size
+# Test Hidden Size
 
 ***Date**: 24-06-2026*
 
