@@ -766,7 +766,7 @@ def create_station_html(
                     const startEntry2Id = "1136531299";
                     const endEntry2Id = "530564783";
                     const startEntry3Id = "1646852203";
-                    const endEntry3ID = "2002260210";
+                    const endEntry3Id = "2002260210";
 
                     const userEmail = localStorage.getItem('userEmail') || "";
                     const filename = window.location.pathname.split('/').pop();
