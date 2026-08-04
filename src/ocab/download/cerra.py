@@ -47,7 +47,12 @@ def parse_args():
     
     # Set up argument parser
     parser = argparse.ArgumentParser(
-        description='Download CERRA data from the CopernicusClimate Data Store.'
+        description=
+            """Download CERRA or CERRA-Land data from the CopernicusClimate Data Store.
+            The original data is in Lambert Conformal Conic projection and covers all Europe.
+            If the '--area' option is specified, the data will be regridded to a regular lat/lon 
+            grid (projection EPSG:4326) with the specified extent.
+            """
     )
     parser.add_argument(
         '-p',
@@ -64,8 +69,8 @@ def parse_args():
         choices=['tp', '2t'],
         help=(
             "Variable to be downloaded: "
-            "'tp':   total precipitation (kg/m2)"
-            "'2t': 2m temperature (K)"
+            "'tp'   total precipitation (kg/m2), "
+            "'2t' 2m temperature (K)"
         )
     )
     parser.add_argument(
