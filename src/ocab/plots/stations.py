@@ -765,6 +765,8 @@ def create_station_html(
                     const endEntry1Id = "2001326573";
                     const startEntry2Id = "1136531299";
                     const endEntry2Id = "530564783";
+                    const startEntry3Id = "1646852203";
+                    const endEntry3ID = "2002260210";
 
                     const userEmail = localStorage.getItem('userEmail') || "";
                     const filename = window.location.pathname.split('/').pop();
@@ -778,7 +780,9 @@ def create_station_html(
                         "&entry." + startEntry1Id + "=" + start + 
                         "&entry." + endEntry1Id + "=" + end +
                         "&entry." + startEntry2Id + "=" + start + 
-                        "&entry." + endEntry2Id + "=" + end;
+                        "&entry." + endEntry2Id + "=" + end +
+                        "&entry." + startEntry3Id + "=" + start + 
+                        "&entry." + endEntry3Id + "=" + end;
 
                     document.getElementById('form-container').innerHTML = 
                         '<iframe src="' + finalUrl + '" frameborder="0">Loading form…</iframe>';
