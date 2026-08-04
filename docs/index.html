@@ -36,7 +36,7 @@
             left: 20px;
             transform: translateY(-50%);
             width: 175px;
-            max-height: 575px;
+            max-height: 625px;
             background: rgba(255, 255, 255, 0.85);
             padding: 15px; 
             border-radius: 10px;
@@ -45,6 +45,42 @@
             pointer-events: auto;
             z-index: 1000;
             font-family: Arial, Helvetica, sans-serif;
+        }
+        #search-container {
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        #station-search {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px;
+            border: 1px solid #bbb;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+
+        #search-results {
+            position: absolute;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ccc;
+            border-top: none;
+            max-height: 180px;
+            overflow-y: auto;
+            display: none;
+            z-index: 2000;
+        }
+
+        .search-item {
+            padding: 6px 10px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .search-item:hover {
+            background: #e8f4ff;
         }
         .info.legend {
             position: fixed;
@@ -176,12 +212,18 @@
 </head>
 <body>
 
-    <div id="ui-container">
-        <!-- <h1>Of Camels and Beavers</h1> -->
-        <div id="sidebar">
-            <h3>Of Camels and Beavers</h3>
-            <div id="basin-list">Loading basins...</div>
+    <div id="sidebar">
+        <h3>Of Camels and Beavers</h3>
+        <div id="search-container">
+            <input
+                id="station-search"
+                type="text"
+                placeholder="Search station or reservoir"
+                autocomplete="off">
+            <div id="search-results"></div>
         </div>
+
+        <div id="basin-list">Loading basins...</div>
     </div>
 
     <div id="map"></div>
@@ -204,6 +246,7 @@
         var subbasinReservoir = null;
         var smallRivers = null;
         var stations = null;
+        const searchIndex = [];
         
         // Add the Relief Map (OpenTopoMap)
         var relief = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
@@ -453,6 +496,16 @@
                         let props = feature.properties;
                         let id = props.ID || props.id || "ID";
                         let name = toTitleCase(props.name || "Unknown");
+                        let river = toTitleCase(props.river || "Unknown");
+                        let basin = toTitleCase(props.basin || "Unknown");
+
+                        searchIndex.push({
+                            id: String(id),
+                            name: name,
+                            river: river,
+                            layer: layer,
+                            type: "station"
+                        });
 
                         // tooltip
                         layer.bindTooltip(String(id), {
@@ -464,8 +517,8 @@
 
                         // Pop-up window
                         layer.bindPopup(`
-                            <strong>${id} - ${props.name}</strong><br>
-                            River: ${toTitleCase(props.river)} (${toTitleCase(props.basin)})<br>
+                            <strong>${id} - ${name}</strong><br>
+                            River: ${river} (${basin})<br>
                             Catchment: ${props.catch_skm} km²<br>
                             Discharge: ${props.discharge_mm != null ? Math.round(props.discharge_mm) : 'N/A'} mm/yr<br>
                             Precipitation: ${props.precip_mm != null ? Math.round(props.precip_mm) : 'N/A'} mm/yr<br>
@@ -530,6 +583,16 @@
                         let props =  feature.properties;
                         let id = props.ID || props.id || "ID";
                         let name = toTitleCase(props.name || props.NAME || "Reservoir");
+                        let river = toTitleCase(props.river || "Unknown");
+                        let basin = toTitleCase(props.basin || "Unknown");
+
+                        searchIndex.push({
+                            id: String(id),
+                            name: name,
+                            river: river,
+                            layer: layer,
+                            type: "reservoir"
+                        });
 
                         // tooltip
                         layer.bindTooltip(String(id), {
@@ -542,7 +605,7 @@
                         // Pop-up window
                         layer.bindPopup(`
                             <strong>${id} - ${name}</strong><br>
-                            River: ${toTitleCase(props.river)} (${toTitleCase(props.basin)})<br>
+                            River: ${river} (${basin})<br>
                             Capacity: ${props.cap_mcm} hm³<br>
                             Catchment: ${props.catch_skm} km²<br>
                             Period: ${props.start}-${props.end}<br>
@@ -597,6 +660,54 @@
                 }
             });
         
+            const input = document.getElementById("station-search");
+            const results = document.getElementById("search-results");
+
+            input.addEventListener("input", function () {
+
+                const q = this.value.trim().toLowerCase();
+
+                results.innerHTML = "";
+
+                if (q.length === 0) {
+                    results.style.display = "none";
+                    return;
+                }
+
+                const matches = searchIndex.filter(item =>
+                    item.id.toLowerCase().includes(q) ||
+                    item.name.toLowerCase().includes(q) ||
+                    item.river.toLowerCase().includes(q)
+                );
+
+                matches.slice(0,20).forEach(item => {
+
+                    const div = document.createElement("div");
+                    div.className = "search-item";
+
+                    div.innerHTML =
+                        `<strong>${item.id}</strong> ${item.name} (${item.type})`;
+
+                    div.onclick = function() {
+                        results.style.display = "none";
+                        input.value = item.id;
+                        item.layer.openPopup();
+
+                        // if (item.layer.getLatLng) {
+                        //     map.flyTo(item.layer.getLatLng(), 11, {
+                        //         duration: 1.2
+                        //     });
+                        // }
+                    };
+
+                    results.appendChild(div);
+                });
+
+                results.style.display =
+                    matches.length ? "block" : "none";
+
+            });
+
         // Listen for zoom changes
         map.on('zoomend', function() {
             const zoom = map.getZoom();
@@ -651,6 +762,13 @@
                 subbasinReservoir = null;
             }
         });
+
+        // Close search results when clicking outside the search container
+        document.addEventListener("click", function(e){
+        if (!document.getElementById("search-container").contains(e.target)) {
+            results.style.display = "none";
+        }
+    });
 
         // Legend
         var legend = L.control({ position: 'bottomright' });
