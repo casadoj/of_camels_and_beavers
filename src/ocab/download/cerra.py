@@ -24,7 +24,7 @@ VARIABLES = {
             'time': ['06:00'],
             'data_format': 'netcdf',
         },
-        'regridding_method': 'conservative',
+        'regridding_method': 'bilinear', # 'conservative' requires boundaries
     },
     '2t': {
         'dataset': 'reanalysis-cerra-single-levels',
