@@ -686,18 +686,12 @@
                     div.className = "search-item";
 
                     div.innerHTML =
-                        `<strong>${item.id}</strong> ${item.name} (${item.type})`;
+                        `<strong>${item.id}</strong> ${item.name} (${item.river})\n<em>${item.type}</em>`;
 
                     div.onclick = function() {
                         results.style.display = "none";
                         input.value = item.id;
                         item.layer.openPopup();
-
-                        // if (item.layer.getLatLng) {
-                        //     map.flyTo(item.layer.getLatLng(), 11, {
-                        //         duration: 1.2
-                        //     });
-                        // }
                     };
 
                     results.appendChild(div);
