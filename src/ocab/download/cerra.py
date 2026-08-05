@@ -26,7 +26,7 @@ VARIABLES = {
         },
         'regridding_method': 'bilinear', # 'conservative' requires boundaries
     },
-    '2t': {
+    't2m': {
         'dataset': 'reanalysis-cerra-single-levels',
         'request': {
             "variable": ['2m_temperature'],
@@ -44,8 +44,8 @@ VARIABLES = {
 }
 
 def parse_args():
-    
-    # Set up argument parser
+    """Set up argument parser"""
+
     parser = argparse.ArgumentParser(
         description=
             """Download CERRA or CERRA-Land data from the CopernicusClimate Data Store.
@@ -66,11 +66,11 @@ def parse_args():
         '--var',
         type=str,
         required=True,
-        choices=['tp', '2t'],
+        choices=['tp', 't2m'],
         help=(
             "Variable to be downloaded: "
             "'tp'   total precipitation (kg/m2), "
-            "'2t' 2m temperature (K)"
+            "'t2m' 2m temperature (K)"
         )
     )
     parser.add_argument(
@@ -106,6 +106,7 @@ def parse_args():
 
 def main():
 
+    # parse arguments
     args = parse_args()
 
     # output path
@@ -113,7 +114,7 @@ def main():
     path_out.mkdir(parents=True, exist_ok=True)
 
     if args.area is not None:
-        # output grid
+        # create output grid
         lat_max, lon_min, lat_min, lon_max = args.area
         target = xr.Dataset(
             coords={
@@ -122,20 +123,19 @@ def main():
             }
         )
 
-        # ouput NetCDF compression
-        encoding = {
-            args.var: {
-                "zlib": True,
-                "complevel": 1,
-                "shuffle": True,
-            }
+    # ouput NetCDF compression
+    encoding = {
+        args.var: {
+            "zlib": True,
+            "complevel": 1,
+            "shuffle": True,
         }
+    }
 
     # extract variable configuration
     cfg = VARIABLES[args.var]
     dataset = cfg['dataset']
     request = cfg['request'].copy()
-    regridder = None
     method = cfg['regridding_method']
 
     # Loop through years to download data
@@ -164,10 +164,10 @@ def main():
                 # open dataset
                 with xr.open_dataset(temp_file) as ds:
                     ds = ds.rename({"latitude": "lat", "longitude": "lon"})
-        
+
                     # define regridder
-                    if regridder is None:
-                        weights_file = path_out / f'weights_{args.var}_{args.resolution:.2f}_{method}.nc'
+                    weights_file = path_out.parent / f'weights_{args.var}_{args.resolution:.2f}_{method}.nc'
+                    if weights_file.exists():
                         regridder = xe.Regridder(
                             ds, 
                             target, 
@@ -176,6 +176,14 @@ def main():
                             filename=weights_file,
                             reuse_weights=True,
                         )
+                    else:
+                        regridder = xe.Regridder(
+                            ds, 
+                            target, 
+                            method=method, 
+                            periodic=False,
+                        )
+                        regridder.to_netcdf(weights_file)
         
                     # regrid and define projection
                     ds_regrid = regridder(ds)
