@@ -78,14 +78,14 @@ def parse_args():
         '--start',
         type=int,
         default=1984,
-        help='Start year for data download.'
+        help='Start year.'
     )
     parser.add_argument(
         '-e',
         '--end',
         type=int,
         default=datetime.now().year - 1,
-        help='End year for data download.'
+        help='End year.'
     )
     parser.add_argument(
         '-a',
@@ -163,7 +163,7 @@ def main():
         
                 # open dataset
                 with xr.open_dataset(temp_file) as ds:
-                    ds = ds.rename({"latitude": "lat", "longitude": "lon"})
+                    ds = ds.rename({"valid_time": "time", "latitude": "lat", "longitude": "lon"})
 
                     # define regridder
                     weights_file = path_out.parent / f'weights_{args.var}_{args.resolution:.2f}_{method}.nc'
