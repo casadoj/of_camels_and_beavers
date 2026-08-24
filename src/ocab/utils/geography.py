@@ -41,7 +41,11 @@ def compute_pixel_area(
 
     # 3. Convert 2D geographic latitude array to radians
     lat_var = 'lat' if 'lat' in ds else('latitude' if 'latitude' in ds else y_dim)
-    lat_rad = np.radians(ds[lat_var])
+    lat = ds[lat_var]
+    if lat.ndim == 1:
+         # broadcast to 2D
+         lat, _ = xr.broadcast(lat, ds[x_dim])
+    lat_rad = np.radians(lat)
 
     # 4. Spherical grid cell area formula: Area = R² * cos(lat) * d_lat * d_lon
     area = (R**2) * np.cos(lat_rad) * d_lat_rad * d_lon_rad
