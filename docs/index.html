@@ -5,12 +5,11 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body, html { 
-            /* display: flex;  */
             margin: 0; 
             gap: 0; 
             height: 100%;
             width: 100%;
-            font-family: sans-serif
+            font-family: sans-serif;
         }
         #map { 
             position: absolute;
@@ -109,17 +108,42 @@
             padding-bottom: 10px;
             border-bottom: 1px solid #ccc;
         }
-
         .legend-selector label {
             display: block;
             cursor: pointer;
             font-weight: normal;
             margin: 3px 0;
         }
-
         .legend-selector input {
             margin-right: 5px;
             vertical-align: middle;
+        }
+        /* Styles for dataset selection buttons */
+        .dataset-btn-group {
+            display: flex;
+            gap: 3px;
+            margin: 4px 0 8px 0;
+            transition: opacity 0.2s ease;
+        }
+        .dataset-btn-group.inactive {
+            opacity: 0.4;
+        }
+        .dataset-btn {
+            flex: 1;
+            padding: 3px 2px;
+            font-size: 9px;
+            font-weight: bold;
+            border: 1px solid #007bff;
+            background: white;
+            color: #007bff;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        .dataset-btn.active, .dataset-btn:hover {
+            background: #007bff;
+            color: white;
         }
         .basin-item { 
             padding: 10px; 
@@ -130,17 +154,6 @@
         .basin-item:hover { 
             background: #e9f5ff; 
             color: #007bff;
-        }
-        .triangle-marker {
-            width: 0;
-            height: 0;
-            border-left: 6px solid transparent;
-            border-right: 6px solid transparent;
-            border-top: 10px solid dimgrey;
-            filter: drop-shadow(1px 0 0 white) 
-                drop-shadow(-1px 0 0 white) 
-                drop-shadow(0 1px 0 white) 
-                drop-shadow(0 -1px 0 white);
         }
         .station-label {
             background: transparent !important;
@@ -174,7 +187,6 @@
         .reservoir-label::before { 
             display: none !important;
         }
-        /* GitHub and YouTube logos */
         #github-logo {
             position: absolute;
             bottom: 20px;
@@ -230,16 +242,13 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Initialize map centered on Spain
         var map = L.map('map').setView([40.4167, -3.7037], 6);
 
-        // Add a clean base map
         var standard = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         });
         standard.addTo(map);
 
-        // Declare subbasins layers
         var allSubbasinsStations = null;
         var subbasinStation = null;
         var allSubbasinsReservoirs = null;
@@ -248,13 +257,11 @@
         var stations = null;
         const searchIndex = [];
         
-        // Add the Relief Map (OpenTopoMap)
         var relief = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
             maxZoom: 17,
             attribution: 'Map data: &copy; OSM, SRTM | Style: &copy; OpenTopoMap'
         });
         
-        // Create a specific pane for basins & rivers to keep them at the bottom
         map.createPane('basinPane');
         map.getPane('basinPane').style.zIndex = 200;
         map.createPane('subbasinPane');
@@ -268,14 +275,12 @@
         map.createPane('stationPane');
         map.getPane('stationPane').style.zIndex = 500;
 
-        // Add a layer toggle (Top Right corner)
         var baseMaps = {
             "Relief (DEM)": relief,
             "Standard Map": standard
         };
         L.control.layers(baseMaps).addTo(map);
 
-        // Load Subbasins Stations GeoJSON
         fetch('./layers/stations_basins_web.geojson')
             .then(res => res.json())
             .then(data => {
@@ -284,7 +289,6 @@
             })
             .catch(err => console.error("Error loading subbasins stations:", err));
 
-        // Load Subbasins Reservoirs GeoJSON
         fetch('./layers/reservoirs_basins_web.geojson')
             .then(res => res.json())
             .then(data => {
@@ -293,7 +297,6 @@
             })
             .catch(err => console.error("Error loading subbasins reservoirs:", err));
         
-        // Load Basins GeoJSON
         fetch('./layers/basin_authorities.geojson')
             .then(res => {
                 if (!res.ok) throw new Error("Could not load Basins GeoJSON file");
@@ -317,16 +320,12 @@
                     interactive: true,
                     onEachFeature: function(feature, layer) {
                         let name = toTitleCase(feature.properties.NOM_DEMAR) || "Unknown Basin";
-
-                        // Store the name and the layer reference for sorting
                         basinItems.push({ name: name, layer: layer });
                     }
                 }).addTo(map);
 
-                // Sort alphabetically by name
                 basinItems.sort((a, b) => a.name.localeCompare(b.name));
 
-                // Add sorted items to the sidebar
                 basinItems.forEach(item => {
                     const div = document.createElement('div');
                     div.className = 'basin-item';
@@ -344,7 +343,6 @@
                 });
             });
 
-        // Load Rivers GeoJSON
         fetch('./layers/rivers.geojson')
             .then(res => {
                 if (!res.ok) throw new Error("Could not load Rivers GeoJSON file");
@@ -365,7 +363,6 @@
                 }).addTo(map);
             });
 
-        // Load Small Rivers GeoJSON
         fetch('./layers/rivers_smaller.geojson')
             .then(res => {
                 if (!res.ok) throw new Error("Could not load Small Rivers GeoJSON file");
@@ -384,23 +381,21 @@
                     },
                     interactive: false
                 });
-                // Initial check: Only add if already zoomed in
                 if (map.getZoom() >= 11) {
                     smallRivers.addTo(map);
                 }
             });
         
-        // Helper function for Title Case
         function toTitleCase(str) {
             if (!str) return "";
             return str.toLowerCase().replace(/(^|\s|-)\p{L}/gu, s => s.toUpperCase());
         }
 
-        // Configuration for the different symbology modes
         const symbologyConfig = {
             discharge_mm: {
                 label: "mm/yr",
-                grades: [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000],
+                // grades: [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000],
+                grades: [0, 50, 100, 150, 200, 300, 400, 600, 800, 1000, 2000],
                 colors: ['#67000d', '#c1272d', '#e5534b', '#f7847e', '#f9adac', '#edd1d2', '#c9d4ed', '#a6bdff', '#809fff', '#5a77ef', '#3b4cc0']
             },
             precip_mm: {
@@ -440,47 +435,126 @@
             }
         };
 
-        let currentVariable = 'discharge_mm'; // Default variable
+        let currentVariable = 'discharge_mm';
+        let currentDataset = 'rocio'; // Options: 'rocio', 'cerra', 'emo'
+        const meteoVariables = ['precip_mm', 'temp_degC', 'pet_mm'];
 
-        // New helper function to get color based on the current mode
+        function getActiveProperty(props, variable = currentVariable, dataset = currentDataset) {
+            let key;
+            if (meteoVariables.includes(variable)) {
+                key = `${variable}_${dataset}`;
+            } else {
+                key = variable;
+            }
+
+            const rawVal = props[key];
+            if (rawVal === null || rawVal === undefined || rawVal === "") {
+                return null;
+            }
+            const num = Number(rawVal);
+            return isNaN(num) ? null : num;
+        }
+
         function getStationColor(d, variable) {
-            // If the KGE value is missing, mark it as transparent
             const performanceMetrics = ['KGE', 'Beta-KGE', 'Alpha-NSE', 'Pearson-r'];
             if (performanceMetrics.includes(variable) && (d === null || d === undefined || isNaN(d))) {
                 return 'transparent';
             }
+            if (d === null || d === undefined || isNaN(d)) {
+                return '#cccccc'; // Default color for missing values
+            }
 
             const config = symbologyConfig[variable];
-            // Loop backwards through grades to find the highest match
+            if (!config) return '#cccccc';
+
             for (let i = config.grades.length - 1; i >= 0; i--) {
                 if (d >= config.grades[i]) return config.colors[i];
             }
             return config.colors[0];
         }
 
-        // Function to update all markers on the map when the variable changes
+        function buildStationPopup(props) {
+            let id = props.ID || props.id || "ID";
+            let name = toTitleCase(props.name || "Unknown");
+            let river = toTitleCase(props.river || "Unknown");
+            let basin = toTitleCase(props.basin || "Unknown");
+
+            // Fetch values corresponding to the selected dataset
+            let precipVal = getActiveProperty(props, 'precip_mm', currentDataset);
+            let tempVal = getActiveProperty(props, 'temp_degC', currentDataset);
+            let petVal = getActiveProperty(props, 'pet_mm', currentDataset);
+
+            // Friendly label for the active dataset
+            const datasetLabels = {
+                'rocio': 'ROCIO-IBEB',
+                'cerra': 'CERRA',
+                'emo': 'EMO1'
+            };
+            const activeDatasetLabel = datasetLabels[currentDataset] || currentDataset.toUpperCase();
+            
+            // Helper function to create clean two-column rows with aligned values
+            const makeRow = (label, val) => `
+                <div style="display: flex; justify-content: space-between; gap: 12px; margin: 1px 0;">
+                    <span style="color: #555;">${label}:</span>
+                    <span style="font-weight: 500; text-align: right;">${val}</span>
+                </div>
+            `;
+
+            return `
+                <strong>${id} - ${name}</strong><br>
+                ${makeRow('River', `${river} (${basin})`)}
+                ${makeRow('Catchment', `${props.catch_skm} km²`)}
+                <hr style="margin: 4px 0; border: 0; border-top: 1px solid #ddd;">
+                <small><strong>Meteorology (${activeDatasetLabel})</strong></small><br>
+                ${makeRow('Precipitation', `${precipVal != null ? Math.round(precipVal) : 'N/A'} mm/yr`)}
+                ${makeRow('Temperature', `${tempVal != null ? Number(tempVal).toFixed(1) : 'N/A'} °C`)}
+                ${makeRow('PET', `${petVal != null ? Math.round(petVal) : 'N/A'} mm/yr`)}
+                <hr style="margin: 4px 0; border: 0; border-top: 1px solid #ddd;">
+                <small><strong>Hydrology</strong></small><br>
+                ${makeRow('Discharge', `${props.discharge_mm != null ? Math.round(props.discharge_mm) : 'N/A'} mm/yr`)}
+                ${makeRow('Period', `${props.start}-${props.end}`)}
+                ${makeRow('Regime', `${props.regime}`)}
+                <hr style="margin: 4px 0; border: 0; border-top: 1px solid #ddd;">
+                <small><strong>Performance</strong></small><br>
+                ${makeRow('KGE', `${props.KGE != null ? Number(props.KGE).toFixed(2) : 'N/A'}`)}
+                <hr style="margin: 4px 0; border: 0; border-top: 1px solid #ddd;">
+                <a href="./timeseries/stations/plots/${id}.html" target="_blank" rel="noopener noreferrer">
+                    Explore Time Series
+                </a>
+            `;
+        }
+
         function updateStationSymbology() {
             if (!stations) return;
             stations.eachLayer(function(layer) {
-                const val = layer.feature.properties[currentVariable];
-                const colorValue = getStationColor(val, currentVariable);
+                const val = getActiveProperty(layer.feature.properties, currentVariable, currentDataset);
+
+                // 1. Update marker color
                 layer.setStyle({
                     fillColor: getStationColor(val, currentVariable)
-                });               
+                });
+
+                // 2. Re-build HTML popup content with updated currentDataset values
+                const newPopupContent = buildStationPopup(layer.feature.properties);
+                layer.setPopupContent(newPopupContent);
+
+                // 3. If popup is currently open on screen, update its DOM immediately without closing
+                if (layer.isPopupOpen && layer.isPopupOpen()) {
+                    layer.getPopup().setContent(newPopupContent);
+                }
             });
         }
         
-        // Load Stations GeoJSON file
-        fetch('./layers/stations.geojson')
+        fetch('./layers/stations_new.geojson')
             .then(res => {
-				if (!res.ok) throw new Error("Could not load stations GeoJSON file");
-				return res.json();
-			})
+                if (!res.ok) throw new Error("Could not load stations GeoJSON file");
+                return res.json();
+            })
             .then(data => {
                 console.log("Data loaded successfully:", data);
                 stations = L.geoJSON(data, {
                     pointToLayer: function (feature, latlng) {
-                        const val = feature.properties[currentVariable];
+                        const val = getActiveProperty(feature.properties, currentVariable, currentDataset);
                         const colorValue = getStationColor(val, currentVariable);
 
                         return L.circleMarker(latlng, {
@@ -497,7 +571,6 @@
                         let id = props.ID || props.id || "ID";
                         let name = toTitleCase(props.name || "Unknown");
                         let river = toTitleCase(props.river || "Unknown");
-                        let basin = toTitleCase(props.basin || "Unknown");
 
                         searchIndex.push({
                             id: String(id),
@@ -507,7 +580,6 @@
                             type: "station"
                         });
 
-                        // tooltip
                         layer.bindTooltip(String(id), {
                             permanent: true,
                             direction: 'top',
@@ -515,24 +587,9 @@
                             opacity: 0
                         });
 
-                        // Pop-up window
-                        layer.bindPopup(`
-                            <strong>${id} - ${name}</strong><br>
-                            River: ${river} (${basin})<br>
-                            Catchment: ${props.catch_skm} km²<br>
-                            Discharge: ${props.discharge_mm != null ? Math.round(props.discharge_mm) : 'N/A'} mm/yr<br>
-                            Precipitation: ${props.precip_mm != null ? Math.round(props.precip_mm) : 'N/A'} mm/yr<br>
-                            Period: ${props.start}-${props.end}<br>
-                            Regime: ${props.regime}<br>
-                            KGE: ${props.KGE != null ? Number(props.KGE).toFixed(2) : 'N/A'}<br>
-                            <a href="./timeseries/stations/plots/${id}.html" target="_blank" rel="noopener noreferrer">
-                                Explore Time Series
-                            </a>
-                        `);
+                        layer.bindPopup(buildStationPopup(props));
 
-                        // Trigger subbasin drawing when the popup opens
                         layer.on('popupopen', function() {
-                            // Remove old subbasin
                             if (subbasinReservoir) map.removeLayer(subbasinReservoir);
                             if (subbasinStation) map.removeLayer(subbasinStation);
 
@@ -551,7 +608,6 @@
                                     }
                                 }).addTo(map);
 
-                                // Zoom in to the subbasins
                                 const bounds = subbasinStation.getBounds();
                                 if (bounds.isValid()) {
                                     map.fitBounds(bounds, {
@@ -567,7 +623,6 @@
                 }).addTo(map);
             });
 
-        // Load Reservoirs GeoJSON file
         let reservoirs;
         fetch('./layers/reservoirs.geojson')
             .then(res => {
@@ -580,7 +635,7 @@
                         pane: 'reservoirPane'
                     },
                     onEachFeature: function (feature, layer) {
-                        let props =  feature.properties;
+                        let props = feature.properties;
                         let id = props.ID || props.id || "ID";
                         let name = toTitleCase(props.name || props.NAME || "Reservoir");
                         let river = toTitleCase(props.river || "Unknown");
@@ -594,15 +649,13 @@
                             type: "reservoir"
                         });
 
-                        // tooltip
                         layer.bindTooltip(String(id), {
                             permanent: true,
                             direction: 'top',
                             className: 'reservoir-label',
-                            opacity: 0 // Start invisible
+                            opacity: 0
                         });
 
-                        // Pop-up window
                         layer.bindPopup(`
                             <strong>${id} - ${name}</strong><br>
                             River: ${river} (${basin})<br>
@@ -614,20 +667,13 @@
                             </a>
                         `);
 
-                        // Trigger subbasin drawing when the popup opens
                         layer.on('popupopen', function() {
-                            // Remove old subbasin
-                            if (subbasinReservoir) {
-                                map.removeLayer(subbasinReservoir);
-                            }
-                            if (subbasinStation) {
-                                map.removeLayer(subbasinStation);
-                            }
+                            if (subbasinReservoir) map.removeLayer(subbasinReservoir);
+                            if (subbasinStation) map.removeLayer(subbasinStation);
 
                             if (allSubbasinsReservoirs) {
                                 subbasinReservoir = L.geoJSON(allSubbasinsReservoirs, {
                                     filter: function(f) {
-                                        // Force both to strings to ensure the comparison works
                                         let subId = f.properties.id || f.properties.ID;
                                         return String(subId) === String(id);
                                     },
@@ -640,7 +686,6 @@
                                     }
                                 }).addTo(map);
 
-                                // Zoom in to the subbasins
                                 const bounds = subbasinReservoir.getBounds();
                                 if (bounds.isValid()) {
                                     map.fitBounds(bounds, {
@@ -654,7 +699,6 @@
                         });
                     }
                 });
-                // Initial check: Only add if already zoomed in
                 if (map.getZoom() >= 8) {
                     reservoirs.addTo(map);
                 }
@@ -664,9 +708,7 @@
             const results = document.getElementById("search-results");
 
             input.addEventListener("input", function () {
-
                 const q = this.value.trim().toLowerCase();
-
                 results.innerHTML = "";
 
                 if (q.length === 0) {
@@ -681,10 +723,8 @@
                 );
 
                 matches.slice(0,20).forEach(item => {
-
                     const div = document.createElement("div");
                     div.className = "search-item";
-
                     div.innerHTML =
                         `<strong>${item.id}</strong> ${item.name} (${item.river})<br><em>${item.type}</em>`;
 
@@ -697,36 +737,26 @@
                     results.appendChild(div);
                 });
 
-                results.style.display =
-                    matches.length ? "block" : "none";
-
+                results.style.display = matches.length ? "block" : "none";
             });
 
-        // Listen for zoom changes
         map.on('zoomend', function() {
             const zoom = map.getZoom();
             
-            // visibility station ID labels
             if (stations) {
                 stations.eachLayer(function(layer) {
                     const tooltip = layer.getTooltip();
-                    if (tooltip) {
-                        tooltip.setOpacity(zoom >= 10 ? 1 : 0);
-                    }
+                    if (tooltip) tooltip.setOpacity(zoom >= 10 ? 1 : 0);
                 });
             }
 
-            // visibility reservoir ID labels
             if (reservoirs) {
                 reservoirs.eachLayer(function(layer) {
                     const tooltip = layer.getTooltip();
-                    if (tooltip) {
-                        tooltip.setOpacity(zoom >= 11 ? 1 : 0);
-                    }
+                    if (tooltip) tooltip.setOpacity(zoom >= 11 ? 1 : 0);
                 });
             }
 
-            // visibility small rivers
             if (smallRivers) {
                 if (map.getZoom() >= 11) {
                     if (!map.hasLayer(smallRivers)) map.addLayer(smallRivers);
@@ -735,7 +765,6 @@
                 }
             }
 
-            // visibility of the reservoir layer
             if (reservoirs) {
                 if (map.getZoom() >= 8) {
                     if (!map.hasLayer(reservoirs)) map.addLayer(reservoirs);
@@ -745,7 +774,6 @@
             }
         });
 
-        // Remove highlighted subbasin by clicking the background
         map.on('click', function (e) {
             if (subbasinStation) {
                 map.removeLayer(subbasinStation);
@@ -757,34 +785,45 @@
             }
         });
 
-        // Close search results when clicking outside the search container
         document.addEventListener("click", function(e){
-        if (!document.getElementById("search-container").contains(e.target)) {
-            results.style.display = "none";
-        }
-    });
+            if (!document.getElementById("search-container").contains(e.target)) {
+                results.style.display = "none";
+            }
+        });
 
-        // Legend
+        // Legend Control
         var legend = L.control({ position: 'bottomright' });
 
         legend.onAdd = function (map) {
             var div = L.DomUtil.create('div', 'info legend');
-            
-            // Stop map clicks from bleeding through the legend
             L.DomEvent.disableClickPropagation(div);
 
-            // Create an internal function so we can redraw the legend easily
             function draw() {
                 const config = symbologyConfig[currentVariable];
+                const isMeteo = meteoVariables.includes(currentVariable);
 
                 let content = `<div class="legend-selector" style="margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">
                     <div class="selector-group" style="margin-bottom: 8px;">
-                        <span style="display: block; font-size: 11px; text-transform: uppercase; color: #666; font-weight: bold; margin-bottom: 3px;">Variable</span>
+                        <span style="display: block; font-size: 11px; text-transform: uppercase; color: #666; font-weight: bold; margin-bottom: 3px;">Climatology</span>
+
+                        <span style="display: block; font-size: 10px; text-transform: uppercase; color: #666; margin-bottom: 3px;">Meteorology</span>
+                        
+                        <!-- Dataset selection buttons placed directly between METEOROLOGY and the three variables -->
+                        <div class="dataset-btn-group ${!isMeteo ? 'inactive' : ''}">
+                            <button class="dataset-btn ${currentDataset === 'rocio' ? 'active' : ''}" data-dataset="rocio">ROCIO-IBEB</button>
+                            <button class="dataset-btn ${currentDataset === 'cerra' ? 'active' : ''}" data-dataset="cerra">CERRA</button>
+                            <button class="dataset-btn ${currentDataset === 'emo' ? 'active' : ''}" data-dataset="emo">EMO1</button>
+                        </div>
+
                         <div class="selector-options">
-                            <label><input type="radio" name="mode" value="discharge_mm" ${currentVariable === 'discharge_mm' ? 'checked' : ''}> <strong>Discharge</strong></label>
                             <label><input type="radio" name="mode" value="precip_mm" ${currentVariable === 'precip_mm' ? 'checked' : ''}> <strong>Precipitation</strong></label>
                             <label><input type="radio" name="mode" value="temp_degC" ${currentVariable === 'temp_degC' ? 'checked' : ''}> <strong>Temperature</strong></label>
                             <label><input type="radio" name="mode" value="pet_mm" ${currentVariable === 'pet_mm' ? 'checked' : ''}> <strong>PET</strong></label>
+                        </div>
+
+                        <span style="display: block; font-size: 10px; text-transform: uppercase; color: #666; margin-top: 5px; margin-bottom: 3px;">Hydrology</span>
+                        <div class="selector-options">
+                            <label><input type="radio" name="mode" value="discharge_mm" ${currentVariable === 'discharge_mm' ? 'checked' : ''}> <strong>Discharge</strong></label>
                         </div>
                     </div>
 
@@ -799,7 +838,6 @@
                     </div>
                 </div>`;
 
-                // 2. The Color Scale
                 content += `<strong>${config.label}</strong><br>`;
                 for (var i = 0; i < config.grades.length; i++) {
                     let isLast = (i === config.grades.length - 1);
@@ -812,13 +850,29 @@
                 
                 div.innerHTML = content;
 
-                // 3. Add event listeners to the radio buttons
+                // Variable change listeners
                 const inputs = div.querySelectorAll('input[name="mode"]');
                 inputs.forEach(input => {
                     input.onchange = function() {
                         currentVariable = this.value;
-                        updateStationSymbology(); // Update the markers
-                        draw(); // Redraw the legend scale
+                        updateStationSymbology();
+                        draw();
+                    };
+                });
+
+                // Dataset button listeners
+                const datasetBtns = div.querySelectorAll('.dataset-btn');
+                datasetBtns.forEach(btn => {
+                    btn.onclick = function(e) {
+                        e.stopPropagation(); // Prevents map click event from closing open popups
+                        currentDataset = this.getAttribute('data-dataset');
+                        
+                        // Update marker colors and live popup content without closing
+                        updateStationSymbology();
+                        
+                        // Update button visual active states without destroying legend DOM
+                        datasetBtns.forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
                     };
                 });
             }
@@ -845,11 +899,9 @@
             }
         }
 
-        // Initialize the check
         checkUserEmail();
     </script>
     
-    <!-- GitHub repository -->
     <a href="https://github.com/casadoj/of_camels_and_beavers" 
         id="github-logo" 
         target="_blank" 
@@ -857,7 +909,6 @@
         title="GitHub Repository">
         <img src="./img/github_logo_white.png" alt="GitHub Repository">
     </a>
-    <!-- Tutorial -->
     <a href="https://www.youtube.com/watch?v=YOUR_VIDEO_ID" 
         id="youtube-logo" 
         target="_blank" 
@@ -865,7 +916,6 @@
         title="Watch Tutorial">
         <img src="./img/youtube_logo_white.png" alt="Tutorial">
     </a>
-    <!-- Zenodo repository -->
      <a href="https://zenodo.org/records/15040948" 
         id="zenodo-logo" 
         target="_blank" 
