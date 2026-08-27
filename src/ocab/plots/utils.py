@@ -1,46 +1,74 @@
 import numpy as np
 import pandas as pd
-from typing import Optional
+from typing import Dict, List, Optional, Tuple
 
-aggregation = {
-    'temp_degC': 'mean',
-    'precip_mm': 'sum',
-    'pet_mm': 'sum',
+AGGREGATION = {
     'discharge_mm': 'sum',
-    'discharge_mm_sim': 'sum',
+    # 'discharge_mm_sim': 'sum',
+    'filling': 'mean',
     'inflow_mm': 'sum',
     'outflow_mm': 'sum',
+    'pet_mm': 'sum',
+    'precip_mm': 'sum',
     'storage_mcm': 'mean',
-    'filling': 'mean',
+    'temp_degC': 'mean',
 }
 
-rounding = {
+ROUNDING = {
     'discharge_mm': 1,
-    'discharge_mm_sim': 1,
-    'storage_mcm': 3,
+    # 'discharge_mm_sim': 1,
     'filling': 3,
     'inflow_cms': 3,
     'inflow_mm': 1,
     'outflow_cms': 3,
     'outflow_mm': 1,
-    'temp_degC': 1,
-    'precip_mm': 1,
     'pet_mm': 1,
+    'precip_mm': 1,
+    'temp_degC': 1,
+    'storage_mcm': 3,
 }
+
+
+def _define_mapping(timeseries: pd.DataFrame, mapping: Dict) -> Dict:
+    """
+    Finds the mapping between the columns of a time series with some action to be applied on
+    it, such as aggregation, rounding, etc
+
+    Parameters:
+    -----------
+    timeseries: pandas.DataFrame
+        The mapping will be applied to its columns
+    mapping: dictionary
+        It contains the simplified variable names (e.g. variable_unit) and the value to be mapped
+
+    Returns:
+    --------
+    dictionary
+        A dictionary that maps the action to be applied upon the columns in 'timeseries' whose name 
+        starts with one of the values in 'mapping'
+    """
+    dct = {}
+    for key, value in mapping.items():
+        cols = timeseries.columns[timeseries.columns.str.startswith(key)]
+        if len(cols) > 0:
+            dct.update({col: value for col in cols}),
+    return dct
+
 
 def compute_monthly_climatology(timeseries: pd.DataFrame) -> pd.DataFrame:
     """Creates a monthly climatology by resampling the daily data and then averaging across months."""
 
-    agg_logic = {var: func for var, func in aggregation.items() if var in timeseries.columns}
+    agg_logic = _define_mapping(timeseries, AGGREGATION)
     if len(agg_logic) == 0:
         raise ValueError("No variables in the timeseries match the aggregation logic.")
+    round_logic = _define_mapping(timeseries, ROUNDING)
     
     # resample to monthly time series
     ts_monthly = timeseries.resample('MS').agg(agg_logic)
     # compute monthly averages
     ts_monthly = ts_monthly.groupby(ts_monthly.index.month).mean()
 
-    return ts_monthly.round(rounding)
+    return ts_monthly.round(round_logic)
 
 
 def compute_annual_timeseries(
@@ -57,15 +85,16 @@ def compute_annual_timeseries(
         How to aggregate the years. By default, it uses hydrological years (start in October)
     """
 
-    agg_logic = {var: func for var, func in aggregation.items() if var in timeseries.columns}
+    agg_logic = _define_mapping(timeseries, AGGREGATION)
     if len(agg_logic) == 0:
         raise ValueError("No variables in the timeseries match the aggregation logic.")
+    round_logic = _define_mapping(timeseries, ROUNDING)
     
     # resample to yearly time series
     ts_year = timeseries.resample(rule).agg(agg_logic)
     ts_year.replace(0, np.nan, inplace=True)
 
-    return ts_year.round(rounding)
+    return ts_year.round(round_logic)
 
 
 def compute_climatology(
@@ -85,7 +114,8 @@ def compute_climatology(
     timeseries_year = compute_annual_timeseries(timeseries, rule)
     climatology = pd.DataFrame(timeseries_year.mean(skipna=True, axis=0)).transpose()
 
-    return climatology.round(rounding).squeeze()
+    round_logic = _define_mapping(climatology, ROUNDING)
+    return climatology.round(round_logic).squeeze()
 
 
 def compute_annual_timeseries(
@@ -107,17 +137,20 @@ def compute_annual_timeseries(
         if series.isna().all():
             return np.nan
         return series.mean() * len(series)
-    
-    agg_logic = {}
-    for var, func in aggregation.items():
-        if var not in timeseries.columns:
-            continue
-        if func == 'sum':
-            agg_logic[var] = scaled_sum
-        else:
-            agg_logic[var] = func
+
+    agg_logic = _define_mapping(timeseries, AGGREGATION)
+    agg_logic = {col: scaled_sum if func == 'sum' else func for col, func in agg_logic.items()}
+    # agg_logic = {}
+    # for var, func in AGGREGATION.items():
+    #     if var not in timeseries.columns:
+    #         continue
+    #     if func == 'sum':
+    #         agg_logic[var] = scaled_sum
+    #     else:
+    #         agg_logic[var] = func
     if len(agg_logic) == 0:
         raise ValueError("No variables in the timeseries match the aggregation logic.")
+    round_logic = _define_mapping(timeseries, ROUNDING)
     
     # 1. Resample and aggregate
     resampled = timeseries.resample(rule)
@@ -132,15 +165,15 @@ def compute_annual_timeseries(
 
     ts_year.replace(0, np.nan, inplace=True)
 
-    return ts_year.round(rounding)
+    return ts_year.round(round_logic)
 
 
 def define_y_limits(
         df: pd.DataFrame,
         round_primary: int,
         scale: float = 1,
-        cols_primary: list = ['precip_mm', 'discharge_mm', 'pet_mm'],
-        cols_secondary: Optional[list] = ['temp_degC']
+        cols_primary: Tuple = ('precip_mm', 'discharge_mm', 'pet_mm'),
+        cols_secondary: Optional[Tuple] = ('temp_degC')
 ):
     """
     """
@@ -150,6 +183,7 @@ def define_y_limits(
     # 1. Define mm limits
 
     # extract values
+    cols_primary = df.columns[df.columns.str.startswith(cols_primary)]
     pri_vals = df[cols_primary].values.flatten()
     pri_vals = pri_vals[~np.isnan(pri_vals)]   
 
@@ -163,6 +197,7 @@ def define_y_limits(
         round_sec = round_primary / scale
 
         # extract values
+        cols_secondary = df.columns[df.columns.str.startswith(cols_secondary)]
         sec_vals = df[cols_secondary].values.flatten()
         sec_vals = sec_vals[~np.isnan(sec_vals)]
 

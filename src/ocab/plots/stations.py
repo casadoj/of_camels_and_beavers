@@ -15,6 +15,7 @@ import plotly.io as pio
 
 from ocab.plots.utils import compute_annual_timeseries, compute_monthly_climatology, compute_climatology, define_y_limits
 from ocab.signatures import baseflow_index, flashiness_index, slope_fdc, budyko
+import ocab.meteorology as METEO
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +43,7 @@ def plot_stations_map(
     size = kwargs.get('size', 12)
     color = kwargs.get('color', 'steelblue')
     marker = kwargs.get('marker', 'o')
-    
+
     # set up plot
     proj = ccrs.PlateCarree()
     fig, ax = plt.subplots(
@@ -146,6 +147,23 @@ def plot_station_timeseries(
     c_pet = kwargs.get('c_pet', 'darkseagreen') #'olivedrab')
     title = kwargs.get('title', None)
 
+    # detect available meteo datasets
+    available_datasets = {
+        name: suffix
+        for name, suffix in METEO.DATASETS.items()
+        if any(f'_{suffix}' in col for col in ts.columns)
+    }
+    if not available_datasets:
+        available_datasets = {'Default': ''}
+
+    # Default meteo dataset
+    default_dataset = 'ROCIO-IBEB'
+    default_suffix = available_datasets[default_dataset]
+
+    # is the station simulated?
+    has_sim = 'discharge_mm_sim' in ts.columns
+    name_dis_obs = 'Discharge (obs)' if has_sim else 'Discharge'
+
     # Setup Grid
     fig = make_subplots(
         rows=4, cols=2,
@@ -168,37 +186,43 @@ def plot_station_timeseries(
 
     row, col = 1, 1
 
-    # add traces
+    # precipitation
     fig.add_trace(
         go.Bar(
             x=ts.index, 
-            y=ts['precip_mm'], 
+            y=ts[f'precip_mm_{default_suffix}'], 
             name="Precipitation", 
             marker_color=c_precip, 
             opacity=1 - alpha,
             marker_line_width=0,
+            visible=True,
             legendgroup="P",
             showlegend=False,
         ),
         row=row, col=col
     )
+
+    # observed discharge
     fig.add_trace(
         go.Scatter(
             x=ts.index, 
             y=ts['discharge_mm'], 
-            name="Discharge", 
+            name=name_dis_obs, 
             line=dict(color=c_obs, width=1), 
+            visible=True,
             legendgroup="Q",
             showlegend=False
         ),
         row=row, col=col
     )
-    if 'discharge_mm_sim' in ts.columns:
+    
+    # simulated discharge
+    if has_sim:
         fig.add_trace(
             go.Scatter(
                 x=ts.index, 
                 y=ts['discharge_mm_sim'], 
-                name="Simulation", 
+                name="Discharge (sim)", 
                 line=dict(color=c_sim, width=1, dash='dot'), 
                 visible='legendonly',
                 legendgroup="Q_sim",
@@ -206,7 +230,7 @@ def plot_station_timeseries(
             ),
             row=row, col=col
         )
-
+        
     # set axes properties
     fig.update_yaxes(
         title_text="mm", 
@@ -262,67 +286,70 @@ def plot_station_timeseries(
     ts_y = compute_annual_timeseries(ts, rule='YS-OCT')
     ts_y.index += pd.DateOffset(months=6) # to adapt labels in the plots
 
-    # add traces
+    # meteo traces
     fig.add_trace(
         go.Bar(
             x=ts_y.index, 
-            y=ts_y['precip_mm'], 
+            y=ts_y[f'precip_mm_{default_suffix}'], 
             name="Precipitation", 
             marker_color=c_precip, 
             opacity=1 - alpha,
-            legendgroup="P",
+            visible=True,
             showlegend=True,
-            # offset=0,
+            legendgroup="P",
             hovertemplate="<b>Year: %{x|%Y}</b><br>P: %{y:.0f} mm<extra></extra>"
         ),
         row=row, col=col
     )
     fig.add_trace(go.Scatter(
             x=ts_y.index, 
-            y=ts_y['temp_degC'], 
+            y=ts_y[f'temp_degC_{default_suffix}'], 
             name="Temperature",
             line=dict(color=c_temp, width=2),
-            legendgroup="T",
             visible='legendonly',
             showlegend=True,
+            legendgroup="T",
             hovertemplate="<b>Year: %{x|%Y}</b><br>T: %{y:.1f} °C<extra></extra>"
         ), 
         row=row, col=col, secondary_y=True
     )
     fig.add_trace(go.Scatter(
             x=ts_y.index, 
-            y=ts_y['pet_mm'], 
+            y=ts_y[f'pet_mm_{default_suffix}'], 
             name="PET",
             line=dict(color=c_pet, width=2),
-            legendgroup="PET",
             visible='legendonly',
             showlegend=True,
+            legendgroup="PET",
             hovertemplate="<b>Year: %{x|%Y}</b><br>PET: %{y:.0f} mm<extra></extra>"
         ), 
         row=row, col=col,
     )
+
+    # discharge traces
     fig.add_trace(
         go.Scatter(
             x=ts_y.index, 
             y=ts_y['discharge_mm'], 
-            name="Discharge",
+            name=name_dis_obs,
             line=dict(color=c_obs, width=2),
-            legendgroup="Q",
+            visible=True,
             showlegend=True,
+            legendgroup="Q",
             hovertemplate="<b>Year: %{x|%Y}</b><br>Q: %{y:.0f} mm<extra></extra>"
         ),
         row=row, col=col
     )
-    if 'discharge_mm_sim' in ts_y.columns:
+    if has_sim:
         fig.add_trace(
             go.Scatter(
                 x=ts_y.index, 
                 y=ts_y['discharge_mm_sim'], 
-                name="Simulation",
+                name="Discharge (sim)",
                 line=dict(color=c_sim, width=1.8, dash='dot'), 
                 visible='legendonly',
-                legendgroup="Q_sim",
                 showlegend=True,
+                legendgroup="Q_sim",
                 hovertemplate="<b>Year: %{x|%Y}</b><br>Q: %{y:.0f} mm<extra></extra>"
             ),
             row=row, col=col
@@ -357,16 +384,17 @@ def plot_station_timeseries(
     # compute monthly climatology
     ts_m = compute_monthly_climatology(ts)
 
-    # add traces
+    # meteo traces
     fig.add_trace(
         go.Bar(
             x=ts_m.index, 
-            y=ts_m['precip_mm'], 
+            y=ts_m[f'precip_mm_{default_suffix}'], 
             name="Precipitation", 
             marker_color=c_precip, 
             opacity=1 - alpha,
-            legendgroup="P",
+            visible=True,
             showlegend=False,
+            legendgroup="P",
             text=[calendar.month_abbr[i] for i in ts_m.index],
             textposition='none',
             hovertemplate="<b>Month: %{text}</b><br>P: %{y:.0f} mm<extra></extra>"
@@ -376,12 +404,12 @@ def plot_station_timeseries(
     fig.add_trace(
         go.Scatter(
             x=ts_m.index, 
-            y=ts_m['temp_degC'], 
+            y=ts_m[f'temp_degC_{default_suffix}'], 
             name="Temperature", 
             line=dict(color=c_temp, width=2),
-            legendgroup="T",
             visible='legendonly',
             showlegend=False,
+            legendgroup="T",
             text=[calendar.month_abbr[i] for i in ts_m.index],
             hovertemplate="<b>Month: %{text}</b><br>Tmean: %{y:.1f} °C<extra></extra>"
         ),
@@ -390,36 +418,39 @@ def plot_station_timeseries(
     fig.add_trace(
         go.Scatter(
             x=ts_m.index, 
-            y=ts_m['pet_mm'], 
+            y=ts_m[f'pet_mm_{default_suffix}'], 
             name="PET", 
-            visible='legendonly',
             line=dict(color=c_pet, width=2),
-            legendgroup="PET",
+            visible='legendonly',
             showlegend=False,
+            legendgroup="PET",
             text=[calendar.month_abbr[i] for i in ts_m.index],
             hovertemplate="<b>Month: %{text}</b><br>PET: %{y:.0f} mm<extra></extra>"
         ),
         row=row, col=col
     )
+
+    # discharge traces
     fig.add_trace(
         go.Scatter(
             x=ts_m.index, 
             y=ts_m['discharge_mm'], 
-            name="Discharge", 
+            name=name_dis_obs, 
             line=dict(color=c_obs, width=2),
-            legendgroup="Q",
+            visible=True,
             showlegend=False,
+            legendgroup="Q",
             text=[calendar.month_abbr[i] for i in ts_m.index],
             hovertemplate="<b>Month: %{text}</b><br>Q: %{y:.0f} mm<extra></extra>"
         ), 
         row=row, col=col
     )
-    if 'discharge_mm_sim' in ts_m.columns:
+    if has_sim:
         fig.add_trace(
             go.Scatter(
                 x=ts_m.index, 
                 y=ts_m['discharge_mm_sim'], 
-                name="Simulation", 
+                name="Discharge (sim)", 
                 line=dict(color=c_sim, width=1.8, dash='dot'), 
                 visible='legendonly',
                 legendgroup="Q_sim",
@@ -450,13 +481,15 @@ def plot_station_timeseries(
         row=row, col=col
     )
 
-    # --- PLOT 5: BUDYKO DIAGRAM ---
+    # # --- PLOT 5: BUDYKO DIAGRAM ---
 
     row, col = 4, 2
 
-    # Compute indicis
-    aridity = ts_y['pet_mm'] / ts_y['precip_mm']
-    evaporativity = (ts_y['precip_mm'] - ts_y['discharge_mm']) / ts_y['precip_mm']
+    # Compute indices
+    pet_y = ts_y[f'pet_mm_{default_suffix}']
+    precip_y = ts_y[f'precip_mm_{default_suffix}']
+    aridity = pet_y / precip_y 
+    evaporativity = (precip_y - ts_y['discharge_mm']) / precip_y
 
     # plot limits
     round = 0.5
@@ -523,8 +556,8 @@ def plot_station_timeseries(
     )
 
     # Simulated discharge
-    if 'discharge_mm_sim' in ts_y.columns:
-        evaporativity_sim = (ts_y['precip_mm'] - ts_y['discharge_mm_sim']) / ts_y['precip_mm']
+    if has_sim:
+        evaporativity_sim = (precip_y - ts_y['discharge_mm_sim']) / precip_y
         fig.add_trace(
             go.Scatter(
                 x=aridity, 
@@ -554,6 +587,36 @@ def plot_station_timeseries(
 
     ### --- SIGNATURES & CLIMATOLOGY VALUES ---
 
+    def get_signature_text(climatology: pd.Series, attrs: pd.Series, suffix: str) -> str:
+        text = (
+            "<b>Catchment Properties</b><br>"
+            f"Area: {attrs['catch_skm']:.0f} km²<br>"
+            f"Regime: {regime}<br>"
+            "<br><b>Climatology</b><br>"
+            f"Discharge: {climatology['discharge_mm']:.0f} mm/year<br>"
+            f"Precipitation: {climatology[f'precip_mm_{suffix}']:.0f} mm/year<br>"
+            f"PET: {climatology[f'pet_mm_{suffix}']:.0f} mm/year<br>"
+            f"Temperature: {climatology[f'temp_degC_{suffix}']:.1f} °C<br>"
+            "<br><b>Hydrological Signatures</b><br>"
+            f"Baseflow Index: {bfi:.2f}<br>"
+            f"Flashiness Index: {fi:.2f}<br>"
+            f"Slope FDC: {slope:.2f}<br>"
+        )
+        if 'KGE' in attrs.index or 'NSE' in attrs.index:
+            performance_text = "<br><b>Model performance</b><br>"
+            if 'NSE' in attrs.index:
+                performance_text += f"NSE: {attrs['NSE']:.2f}<br>"
+            if 'KGE' in attrs.index:
+                performance_text += f"KGE: {attrs['KGE']:.2f}<br>"
+            if 'Beta-KGE' in attrs.index:
+                performance_text += f"Bias: {attrs['Beta-KGE']:.2f}<br>"
+            if 'Alpha-NSE' in attrs.index:
+                performance_text += f"Variability: {attrs['Alpha-NSE']:.2f}<br>"
+            if 'Pearson-r' in attrs.index:
+                performance_text += f"Correlation: {attrs['Pearson-r']:.2f}<br>"
+            text += performance_text
+        return text
+
     # Compute hydrological signatures
     _, bfi = baseflow_index(ts['discharge_cms'])
     fi = flashiness_index(ts['discharge_cms'])
@@ -561,44 +624,134 @@ def plot_station_timeseries(
 
     # Calculate climatology values
     climatology = compute_climatology(ts)
-    signature_text = (
-        "<b>Catchment Properties</b><br>"
-        f"Area: {attrs['catch_skm']:.0f} km²<br>"
-        f"Regime: {regime}<br>"
-        "<br><b>Climatology</b><br>"
-        f"Discharge: {climatology.discharge_mm:.0f} mm/year<br>"
-        f"Precipitation: {climatology.precip_mm:.0f} mm/year<br>"
-        f"PET: {climatology.pet_mm:.0f} mm/year<br>"
-        f"Temperature: {climatology.temp_degC:.1f} °C<br>"
-        "<br><b>Hydrological Signatures</b>"
-        f"<br>Baseflow Index: {bfi:.2f}<br>"
-        f"Flashiness Index: {fi:.2f}<br>"
-        f"Slope FDC: {slope:.2f}<br>"
+
+    # add signature annotation
+    signature_text = get_signature_text(climatology, attrs, default_suffix)
+    fig.add_annotation(
+        name='signature_annotation',
+        text=signature_text, 
+        x=1, xanchor="left", xref="paper", 
+        y=0.5, yanchor="top", yref="paper", 
+        showarrow=False, 
+        align="left", 
+        bgcolor="rgba(0, 0, 0, 0)"
     )
 
-    if 'KGE' in attrs.index or 'NSE' in attrs.index:
-        performance_text = "<br><b>Model performance</b><br>"
-        if 'NSE' in attrs.index:
-            performance_text += f"NSE: {attrs['NSE']:.2f}<br>"
-        if 'KGE' in attrs.index:
-            performance_text += f"KGE: {attrs['KGE']:.2f}<br>"
-        if 'Beta-KGE' in attrs.index:
-            performance_text += f"Bias: {attrs['Beta-KGE']:.2f}<br>"
-        if 'Alpha-NSE' in attrs.index:
-            performance_text += f"Variability: {attrs['Alpha-NSE']:.2f}<br>"
-        if 'Pearson-r' in attrs.index:
-            performance_text += f"Correlation: {attrs['Pearson-r']:.2f}<br>"
-        
-    # Append it to the main text
-    signature_text += performance_text
+    # locate the index of the signature annotation
+    sig_annot_idx = next(
+        i for i, annot in enumerate(fig.layout.annotations)
+        if getattr(annot, 'name', None) == 'signature_annotation'
+    )
+
+    # --- BUTTONS SETUP ---
+
+    # ------------------------------------------------------------------
+    # Meteorology buttons
+    # ------------------------------------------------------------------
+
+    # Map target trace indices to restyle on meteo change
+    base_annual_idx = 4 if has_sim else 3
+    base_climo_idx = 9 if has_sim else 7
+    base_budyko_idx = 17 if has_sim else 14
+    meteo_target_indices = [
+        0,
+        base_annual_idx, base_annual_idx + 1, base_annual_idx + 2,
+        base_climo_idx, base_climo_idx + 1, base_climo_idx + 2,
+        base_budyko_idx
+    ]
+    if has_sim:
+        meteo_target_indices += [base_budyko_idx + 1]
+
+    meteo_buttons = []
+    for label, suffix in available_datasets.items():
+        # define time series
+        daily_p = ts[f'precip_mm_{suffix}']
+        annual_p = ts_y[f'precip_mm_{suffix}']
+        annual_t = ts_y[f'temp_degC_{suffix}']
+        annual_pet = ts_y[f'pet_mm_{suffix}']
+        climo_p = ts_m[f'precip_mm_{suffix}']
+        climo_t = ts_m[f'temp_degC_{suffix}']
+        climo_pet = ts_m[f'pet_mm_{suffix}']
+        budyko_arid = ts_y[f'pet_mm_{suffix}'] / ts_y[f'precip_mm_{suffix}'] 
+        budyko_evap = (ts_y[f'precip_mm_{suffix}'] - ts_y['discharge_mm']) / ts_y[f'precip_mm_{suffix}']
+
+        x = [ts.index, ts_y.index, ts_y.index, ts_y.index, ts_m.index, ts_m.index, ts_m.index, budyko_arid]
+        y = [daily_p, annual_p, annual_t, annual_pet, climo_p, climo_t, climo_pet, budyko_evap]
+
+        if has_sim:
+            budyko_evap_sim = (ts_y[f'precip_mm_{suffix}'] - ts_y['discharge_mm_sim']) / ts_y[f'precip_mm_{suffix}']
+            x += [budyko_arid]
+            y += [budyko_evap_sim]
+
+        # signature text
+        current_signature_text = get_signature_text(climatology, attrs, suffix)
+
+        meteo_buttons.append(
+            dict(
+                label=label,
+                method="update",
+                args=[{
+                        "x": x,
+                        "y": y
+                    },
+                    {
+                        f"annotations[{sig_annot_idx}].text": current_signature_text
+                    },
+                    meteo_target_indices
+                ]
+            )
+        )
+
+    # ------------------------------------------------------------------
+    # Scale buttons
+    # ------------------------------------------------------------------
 
     # Update Layout & Scale Buttons
-    y_raw = [ts['precip_mm'], ts['discharge_mm']]
-    update_traces = [0, 1]
-    if 'discharge_mm_sim' in ts.columns:
+    y_raw = [ts[f'precip_mm_{default_suffix}'], ts['discharge_mm']]
+    scale_target_indices = [0, 1]
+    if has_sim:
         y_raw += [ts['discharge_mm_sim']]
-        update_traces += [2]
-    y_sqrt = [trace**.5 for trace in y_raw]
+        scale_target_indices += [2]
+    y_sqrt = [trace**0.5 for trace in y_raw]
+
+    scale_buttons = [
+        dict(
+            label="Linear", 
+            method="update", 
+            args=[
+                {"y": y_raw},
+                {"yaxis.type": "linear", "yaxis.title.text": "mm"},
+                scale_target_indices
+            ]
+        ),
+        dict(
+            label="Square root", 
+            method="update",
+            args=[
+                {"y": y_sqrt},
+                {"yaxis.type": "linear", "yaxis.title.text": "sqrt mm"},
+                scale_target_indices
+            ]
+        ),
+        dict(
+            label="Logarithmic", 
+            method="update",
+            args=[
+                {"y": y_raw},
+                {"yaxis.type": "log", "yaxis.title.text": "log mm"},
+                scale_target_indices
+            ]
+        ),
+    ]
+
+    fig.update_layout(
+        meta=dict(
+            initial_scale="linear",
+            initial_meteo=default_dataset
+        )
+    )
+
+    # add titles and buttons
     fig.update_layout(
         title_text=f"<b>{title if title else ''}</b>",
         title_x=0.01,
@@ -619,37 +772,43 @@ def plot_station_timeseries(
         bargap=0.08, 
         barmode='overlay',
         updatemenus=[
+            # meteo dataset selection
             dict(
-                type="buttons", direction="down", active=0, x=1.02, xanchor="left", y=1, yanchor='top', showactive=True,
-                buttons=[
-                    dict(label="Linear Scale", method="update", 
-                         args=[
-                             {"y": y_raw},
-                             {"yaxis.type": "linear", "yaxis.title.text": "mm"},
-                             update_traces
-                         ]),
-                    dict(label="Sqrt Scale", method="update",
-                         args=[
-                             {"y": y_sqrt},
-                             {"yaxis.type": "linear", "yaxis.title.text": "sqrt mm"},
-                             update_traces
-                         ]),
-                    dict(label="Log Scale", method="update",
-                         args=[
-                             {"y": y_raw}, 
-                             {"yaxis.type": "log", "yaxis.title.text": "log mm"},
-                             update_traces
-                         ]),
-                ],
+                type="buttons",
+                direction="down",
+                active=0,
+                x=1, xanchor="left",
+                y=0.975, yanchor="top",
+                showactive=True,
+                buttons=meteo_buttons,
+            ),
+            # axis scale selection
+            dict(
+                type="buttons", 
+                direction="down", 
+                active=0, 
+                x=1, xanchor="left", 
+                y=0.75, yanchor='top', 
+                showactive=True,
+                buttons=scale_buttons,
             )
-        ],
+        ]
+    )
+
+    # add titles to the buttons
+    fig.add_annotation(
+        text="Meteorology",
+        x=1, xanchor="left",
+        y=0.975, yanchor="bottom",
+        showarrow=False,
     )
     fig.add_annotation(
-        text=signature_text, 
-        xref="paper", x=1.02, xanchor="left", 
-        yref="paper", y=0, yanchor="bottom",
-        showarrow=False, align="left", bgcolor="rgba(0, 0, 0, 0)"
+        text="Y-axis Scale",
+        x=1, xanchor="left",
+        y=0.75, yanchor="bottom",
+        showarrow=False,
     )
+
     fig.update_xaxes(
         range=[ts.index.min(), ts.index.max()],
         row=1, col=1
