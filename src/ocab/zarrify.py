@@ -52,9 +52,9 @@ def nc_to_zarr(
     target_store: str
         Path and name of the output Zarr store (extension needed).
     chunks: tuple of 3 ints
-        Chunk shape as 3 integers: time, lat, lon. Use -1 for full length of that dimension.
+        Chunk shape (time, lat, lon). Use -1 for full length of that dimension.
     shards: tuple of 3 ints
-        Shard shape as 3 integers: time, lat, lon. Use -1 for full length of that dimension.
+        Shard shape (time, lat, lon). Use -1 for full length of that dimension.
     resample: str (optional)
         Aggregation method used when resampling to daily frequency: 'mean', 'max', 'min', 'sum'.
     """
@@ -145,12 +145,12 @@ def nc_to_zarr(
     chunks = tuple(int(shape[i] if chunks[i] == -1 else chunks[i]) for i in range(len(chunks)))
     shards = tuple(int(shape[i] if shards[i] == -1 else shards[i]) for i in range(len(shards)))
     logger.info(f"Grid shape: {shape} | Chunks: {chunks} | Shards: {shards}")
-    # Validate chunk/shard dimensions
-    if any(s % c != 0 for s, c in zip(shards, chunks)):
-        raise ValueError("Shard size should be multiples of the chunk size")
+
+    # # Validate chunk/shard dimensions
+    # if any(s % c != 0 for s, c in zip(shards, chunks)):
+    #     raise ValueError("Shard size should be multiples of the chunk size")
 
     # 3. Create Zarr V3 Structure
-    # if os.path.isdir(target_store):
     if target_store.is_dir():
         root = zarr.open_group(target_store, mode='a', zarr_format=3)
     else:
@@ -189,7 +189,7 @@ def nc_to_zarr(
                     chunks=()
                 )
             break
-
+    
     # Save 2D Geographic Coordinates
     spatial_chunks = chunks[1:]
     for geo_coord in [geo_lat, geo_lon]:
@@ -223,8 +223,9 @@ def nc_to_zarr(
     times = range(0, shape[0], step_time)
     lats = range(0, shape[1], step_lat)
     lons = range(0, shape[2], step_lon)
-    tiles = product(times, lats, lons)
-    n_tiles = len(times) * len(lats) * len(lons)
+    tiles = list(product(times, lats, lons))
+    n_tiles = len(tiles)
+
     logger.info(f"Processing data in {n_tiles} spatial tiles")
     for time_o, lat_o, lon_o in tqdm(tiles, total=n_tiles, desc="Tiles"):
         time_f = min(time_o + step_time, shape[0])
@@ -243,10 +244,10 @@ def nc_to_zarr(
             z_array[time_o:time_f, lat_o:lat_f, lon_o:lon_f] = block.values
 
         except Exception as e:
-            logger.error(f"Tile failed -> Lat: {lat_o} Lon: {lon_o}: {e}")
+            logger.error(f"Tile failed -> Var: {var} Time: {time_o} Lat: {lat_o} Lon: {lon_o}: {e}")
             continue
 
-    # 5. Final Stats
+    # 5. Summary Stats
     duration = (time.time() - start_time) / 60
     final_size_gb = _get_dir_size(target_store)
     compression_ratio = logical_size_gb / final_size_gb if final_size_gb > 0 else 0
