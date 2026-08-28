@@ -788,7 +788,7 @@ def plot_station_timeseries(
                 direction="down", 
                 active=0, 
                 x=1, xanchor="left", 
-                y=0.75, yanchor='top', 
+                y=0.8, yanchor='top', 
                 showactive=True,
                 buttons=scale_buttons,
             )
@@ -797,15 +797,15 @@ def plot_station_timeseries(
 
     # add titles to the buttons
     fig.add_annotation(
-        text="Meteorology",
-        x=1, xanchor="left",
-        y=0.975, yanchor="bottom",
+        text="<b>Meteorology</b>",
+        x=1, xanchor="left", xref="paper",
+        y=0.975, yanchor="bottom", yref="paper",
         showarrow=False,
     )
     fig.add_annotation(
-        text="Y-axis Scale",
-        x=1, xanchor="left",
-        y=0.75, yanchor="bottom",
+        text="<b>Y-axis Scale</b>",
+        x=1, xanchor="left", xref="paper",
+        y=0.8, yanchor="bottom", yref="paper",
         showarrow=False,
     )
 
