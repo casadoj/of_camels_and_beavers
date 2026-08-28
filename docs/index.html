@@ -34,14 +34,26 @@
             z-index: 1000;
             font-family: Arial, Helvetica, sans-serif;
         }
-          #sidebar h3 {
+        #sidebar h3 {
+            /* Layout & Alignment */
+            display: flex;
+            align-items: center;
+            gap: 6px;
             margin-top: 0;
             margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e2e8f0;
+            /* Typography & Color */
+            color: #1e3a8a;
             font-size: 1.1rem;
             font-weight: 700;
             letter-spacing: -0.3px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #e2e8f0;
+        }
+        .sidebar-logo {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            flex-shrink: 0;
         }
         #search-container {
             margin-bottom: 10px;
@@ -180,7 +192,13 @@
 <body>
 
     <div id="sidebar">
-        <h3>Of Camels and Beavers</h3>
+        <!-- <h3>Of Camels and Beavers</h3> -->
+
+        <h3 class="sidebar-title">
+            <img src="img/logo_ocab_small.png" alt="Logo" class="sidebar-logo">
+            <span>Of Camels and Beavers</span>
+        </h3>
+
         <div id="search-container">
             <input
                 id="station-search"
@@ -476,6 +494,69 @@
                 }
             });
         }
+
+        function buildReservoirPopup(props) {
+            let id = props.ID || props.id || "ID";
+            let name = toTitleCase(props.name || props.NAME || "Reservoir");
+            let river = toTitleCase(props.river || "Unknown");
+            let basin = toTitleCase(props.basin || "Unknown");
+
+            let precipVal = getActiveProperty(props, 'precip_mm', currentDataset);
+            let tempVal = getActiveProperty(props, 'temp_degC', currentDataset);
+            let petVal = getActiveProperty(props, 'pet_mm', currentDataset);
+
+            const datasetLabels = { 'rocio': 'ROCIO-IBEB', 'cerra': 'CERRA', 'emo': 'EMO1' };
+            const activeDatasetLabel = datasetLabels[currentDataset] || currentDataset.toUpperCase();
+
+            const makeRow = (label, val) => `
+                <div style="display: flex; justify-content: space-between; gap: 12px; margin: 1px 0;">
+                    <span style="color: #555;">${label}:</span>
+                    <span style="font-weight: 500; text-align: right;">${val}</span>
+                </div>
+            `;
+
+            return `
+                <strong>${id} - ${name}</strong><br>
+                ${makeRow('River', `${river} (${basin})`)}
+                ${makeRow('Catchment', `${props.catch_skm != null ? props.catch_skm : 'N/A'} km²`)}
+                ${makeRow('Capacity', `${props.cap_mcm != null ? props.cap_mcm : 'N/A'} hm³`)}
+                <hr style="margin: 4px 0; border: 0; border-top: 1px solid #ddd;">
+                <small><strong>Meteorology (ROCIO-IBEB)</strong></small><br>
+                ${makeRow('Precipitation', `${precipVal != null ? Math.round(precipVal) : (props.precip_mm || 'N/A')} mm/yr`)}
+                ${makeRow('Temperature', `${tempVal != null ? Number(tempVal).toFixed(1) : (props.temp_degC || 'N/A')} °C`)}
+                ${makeRow('PET', `${petVal != null ? Math.round(petVal) : (props.pet_mm || 'N/A')} mm/yr`)}
+                <hr style="margin: 4px 0; border: 0; border-top: 1px solid #ddd;">
+                <small><strong>Hydrology</strong></small><br>
+                ${makeRow('Storage', `${props.storage_mcm != null ? props.storage_mcm : 'N/A'} hm³`)}
+                ${makeRow('Outflow', `${props.outflow_mm != null ? Math.round(props.outflow_mm) : 'N/A'} mm/yr`)}
+                ${makeRow('Period', `${props.start || 'N/A'}-${props.end || 'N/A'}`)}
+                ${makeRow('Use', `${props.main_use || 'N/A'}`)}
+                <hr style="margin: 4px 0; border: 0; border-top: 1px solid #ddd;">
+                <a href="./timeseries/reservoirs/plots/${id}.html" target="_blank" rel="noopener noreferrer" style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                    margin-top: 6px;
+                    padding: 6px 10px;
+                    background-color: #007bff;
+                    color: #ffffff !important;
+                    font-size: 11px;
+                    font-weight: 600;
+                    text-decoration: none !important;
+                    border-radius: 4px;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+                    transition: background-color 0.15s ease;
+                " 
+                onmouseover="this.style.backgroundColor='#0056b3';" 
+                onmouseout="this.style.backgroundColor='#007bff';">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg>
+                    Explore Time Series
+                </a>
+            `;
+        }
         
         fetch('./layers/stations.geojson')
             .then(res => res.json())
@@ -528,22 +609,12 @@
                         let id = props.ID || props.id || "ID";
                         let name = toTitleCase(props.name || props.NAME || "Reservoir");
                         let river = toTitleCase(props.river || "Unknown");
-                        let basin = toTitleCase(props.basin || "Unknown");
+                        // let basin = toTitleCase(props.basin || "Unknown");
 
                         searchIndex.push({ id: String(id), name: name, river: river, layer: layer, type: "reservoir" });
 
                         layer.bindTooltip(String(id), { permanent: true, direction: 'top', className: 'reservoir-label', opacity: 0 });
-
-                        layer.bindPopup(`
-                            <strong>${id} - ${name}</strong><br>
-                            River: ${river} (${basin})<br>
-                            Capacity: ${props.cap_mcm} hm³<br>
-                            Catchment: ${props.catch_skm} km²<br>
-                            Period: ${props.start}-${props.end}<br>
-                            <a href="./timeseries/reservoirs/plots/${id}.html" target="_blank" rel="noopener noreferrer">
-                                Explore Time Series
-                            </a>
-                        `);
+                        layer.bindPopup(buildReservoirPopup(props))
 
                         layer.on('popupopen', function() {
                             if (subbasinReservoir) map.removeLayer(subbasinReservoir);
