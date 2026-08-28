@@ -1,6 +1,31 @@
-# Of Camels and Beavers - Spain
 
-![Python_3.12](https://img.shields.io/badge/Python-%3E%3D3.12-blue?labelColor=343b41) &nbsp; [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) &nbsp; [![Docs](https://img.shields.io/badge/docs-online-blue.svg)](https://github.com/casadoj/of_camels_and_beavers/wiki)
+<p align="center">
+  <img src="./docs/img/logo_ocab.png" width="200" alt="Of Camels and Beavers Logo">
+</p>
+
+<h1 align="center">Of Camels and Beavers - Spain</h1>
+
+<p align="center">
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-%3E%3D3.12-blue?labelColor=343b41" alt="Python 3.12"></a>
+  <a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"></a>
+  <a href="https://github.com/casadoj/of_camels_and_beavers/wiki"><img src="https://img.shields.io/badge/docs-online-blue.svg" alt="Docs"></a>
+</p>
+
+<!-- <table>
+  <tr>
+    <td width="200" align="center">
+      <img src="./docs/img/logo_ocab.png" width="180" alt="Logo">
+    </td>
+    <td>
+      <h1>Of Camels and Beavers - Spain</h1>
+      <p>
+        <img src="https://img.shields.io/badge/Python-%3E%3D3.12-blue?labelColor=343b41" alt="Python">
+        <a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License"></a>
+        <a href="https://github.com/casadoj/of_camels_and_beavers/wiki"><img src="https://img.shields.io/badge/docs-online-blue.svg" alt="Docs"></a>
+      </p>
+    </td>
+  </tr>
+</table> -->
 
 ## Introduction
 
