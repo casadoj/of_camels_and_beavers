@@ -585,7 +585,7 @@ def plot_station_timeseries(
         row=row, col=col
     )
 
-    ### --- SIGNATURES & CLIMATOLOGY VALUES ---
+    ### --- SIGNATURES & CLIMATOLOGY ---
 
     def get_signature_text(climatology: pd.Series, attrs: pd.Series, suffix: str) -> str:
         text = (
