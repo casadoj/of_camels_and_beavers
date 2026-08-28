@@ -11,13 +11,14 @@ import plotly.io as pio
 
 from ocab.plots.utils import compute_annual_timeseries, compute_monthly_climatology, compute_climatology, define_y_limits
 from ocab.signatures import baseflow_index, flashiness_index, slope_fdc, budyko
+import ocab.meteorology as METEO
 
 logger = logging.getLogger(__name__)
 
 
 def plot_reservoir_timeseries(
     ts: pd.DataFrame,
-    attributes: pd.Series,
+    attrs: pd.Series,
     save: bool = False,
     **kwargs
     ):
@@ -60,10 +61,28 @@ def plot_reservoir_timeseries(
     title = kwargs.get('title', None)
 
     # extract time series
-    variables = ['filling', 'inflow_cms', 'inflow_mm', 'outflow_cms', 'outflow_mm', 'precip_mm', 'temp_degC', 'pet_mm']
+    variables = ['filling', 'inflow_cms', 'inflow_mm', 'outflow_cms', 'outflow_mm'] #, 'precip_mm', 'temp_degC', 'pet_mm']
     missing_vars = list(set(variables).difference(ts.columns))
     if len(missing_vars) > 0:
         ts[missing_vars] = np.nan
+
+    # detect available meteo datasets
+    available_datasets = {
+        name: suffix
+        for name, suffix in METEO.DATASETS.items()
+        if any(f'_{suffix}' in col for col in ts.columns)
+    }
+    if not available_datasets:
+        available_datasets = {'Default': ''}
+
+    # Default meteo dataset
+    default_dataset = 'ROCIO-IBEB'
+    default_suffix = available_datasets[default_dataset]
+
+    # TODO: once a simulation exists
+    # # is the station simulated?
+    # has_sim = 'outflow_mm_sim' in ts.columns
+    # name_dis_obs = 'Discharge (obs)' if has_sim else 'Discharge'
 
     # Setup grid
     fig = make_subplots(
@@ -91,12 +110,13 @@ def plot_reservoir_timeseries(
     fig.add_trace(
         go.Bar(
             x=ts.index, 
-            y=ts['precip_mm'], 
+            y=ts[f'precip_mm_{default_suffix}'], 
             name="Precipitation", 
             marker_color=c_precip, 
             opacity=1 - alpha,
             marker_line_width=0,
-            legendgroup="Precipitation",
+            visible=True,
+            legendgroup="P",
             showlegend=False
         ),
         row=row, col=col
@@ -107,7 +127,8 @@ def plot_reservoir_timeseries(
             y=ts['inflow_mm'], 
             name="Inflow", 
             line=dict(color=c_in, width=1), 
-            legendgroup="Inflow",
+            visible='legendonly',
+            legendgroup="I",
             showlegend=False
         ),
         row=row, col=col
@@ -118,7 +139,8 @@ def plot_reservoir_timeseries(
             y=ts['outflow_mm'], 
             name="Outflow", 
             line=dict(color=c_out, width=1), 
-            legendgroup="Outflow", 
+            visible=True,
+            legendgroup="O", 
             showlegend=False
         ),
         row=row, col=col
@@ -129,7 +151,8 @@ def plot_reservoir_timeseries(
             y=ts['filling'], 
             name="Filling", 
             line=dict(color=c_fill, width=1), 
-            legendgroup="Filling", 
+            visible=True,
+            legendgroup="F", 
             showlegend=False
         ), 
         row=row, col=col, secondary_y=True
@@ -142,8 +165,8 @@ def plot_reservoir_timeseries(
         ts, 
         round_mm_d, 
         scale_d,
-        cols_primary=['precip_mm', 'inflow_mm', 'outflow_mm'],
-        cols_secondary=['filling']
+        cols_primary=('precip_mm', 'inflow_mm', 'outflow_mm'),
+        cols_secondary=('filling')
     )
     fig.update_yaxes(
         title_text="mm", 
@@ -178,7 +201,8 @@ def plot_reservoir_timeseries(
                 color=c_in,
                 line_width=1
             ),
-            legendgroup="Inflow",
+            visible='legendonly',
+            legendgroup="I",
             showlegend=False,
             hoverinfo='x'
         ),
@@ -198,7 +222,7 @@ def plot_reservoir_timeseries(
                 color=c_out,
                 line_width=1
             ),
-            legendgroup="Outflow",
+            legendgroup="O",
             showlegend=False,
             hoverinfo='x'
         ),
@@ -218,7 +242,7 @@ def plot_reservoir_timeseries(
                 color=c_fill,
                 line_width=1
             ),
-            legendgroup="Filling",
+            legendgroup="F",
             showlegend=False,
             hoverinfo='x'
         ),
@@ -252,11 +276,11 @@ def plot_reservoir_timeseries(
     fig.add_trace(
         go.Bar(
             x=ts_y.index, 
-            y=ts_y['precip_mm'], 
+            y=ts_y[f'precip_mm_{default_suffix}'], 
             name="Precipitation", 
             marker_color=c_precip, 
             opacity=1 - alpha,
-            legendgroup="Precipitation",
+            legendgroup="P",
             showlegend=True,
             hovertemplate="<b>Year: %{x|%Y}</b><br>P: %{y:.0f} mm<extra></extra>"
         ),
@@ -268,7 +292,8 @@ def plot_reservoir_timeseries(
             y=ts_y['inflow_mm'], 
             name="Inflow",
             line=dict(color=c_in, width=2),
-            legendgroup="Inflow",
+            legendgroup="I",
+            visible='legendonly',
             showlegend=True,
             hovertemplate="<b>Year: %{x|%Y}</b><br>I: %{y:.0f} mm<extra></extra>"
         ),
@@ -280,7 +305,7 @@ def plot_reservoir_timeseries(
             y=ts_y['outflow_mm'], 
             name="Outflow",
             line=dict(color=c_out, width=2),
-            legendgroup="Outflow",
+            legendgroup="O",
             showlegend=True,
             hovertemplate="<b>Year: %{x|%Y}</b><br>O: %{y:.0f} mm<extra></extra>"
         ),
@@ -292,7 +317,7 @@ def plot_reservoir_timeseries(
             y=ts_y['filling'], 
             name="Filling",
             line=dict(color=c_fill, width=2),
-            legendgroup="Filling",
+            legendgroup="F",
             showlegend=True,
             hovertemplate="<b>Year: %{x|%Y}</b><br>F: %{y:.2f}<extra></extra>"
         ),
@@ -306,8 +331,8 @@ def plot_reservoir_timeseries(
         ts_y, 
         round_mm_y, 
         scale_y,
-        cols_primary=['precip_mm', 'inflow_mm', 'outflow_mm'],
-        cols_secondary=['filling']
+        cols_primary=('precip_mm', 'inflow_mm', 'outflow_mm'),
+        cols_secondary=('filling')
     )
     fig.update_yaxes(
         title_text="mm", 
@@ -339,11 +364,11 @@ def plot_reservoir_timeseries(
     fig.add_trace(
         go.Bar(
             x=ts_m.index, 
-            y=ts_m['precip_mm'], 
+            y=ts_m[f'precip_mm_{default_suffix}'], 
             name="Precipitation", 
             marker_color=c_precip, 
             opacity=1 - alpha,
-            legendgroup="Precipitation",
+            legendgroup="P",
             showlegend=False
         ), 
         row=row, col=col
@@ -354,7 +379,8 @@ def plot_reservoir_timeseries(
             y=ts_m['inflow_mm'], 
             name="Inflow", 
             line=dict(color=c_in, width=2),
-            legendgroup="Inflow",
+            visible='legendonly',
+            legendgroup="I",
             showlegend=False
         ), 
         row=row, col=col
@@ -365,7 +391,7 @@ def plot_reservoir_timeseries(
             y=ts_m['outflow_mm'], 
             name="Outflow", 
             line=dict(color=c_out, width=2),
-            legendgroup="Outflow",
+            legendgroup="O",
             showlegend=False
         ), 
         row=row, col=col
@@ -376,7 +402,7 @@ def plot_reservoir_timeseries(
             y=ts_m['filling'], 
             name="Filling", 
             line=dict(color=c_fill, width=2),
-            legendgroup="Filling",
+            legendgroup="F",
             showlegend=False
         ),
         row=row, col=col, secondary_y=True
@@ -389,8 +415,8 @@ def plot_reservoir_timeseries(
         ts_m, 
         round_mm_m,
         scale_m,
-        cols_primary=['precip_mm', 'inflow_mm', 'outflow_mm'],
-        cols_secondary=['filling']
+        cols_primary=('precip_mm', 'inflow_mm', 'outflow_mm'),
+        cols_secondary=('filling')
     )
     fig.update_yaxes(
         title_text="mm", 
@@ -415,8 +441,10 @@ def plot_reservoir_timeseries(
     row, col = 4, 2
 
     # calculate indices
-    aridity = ts_y['pet_mm'] / ts_y['precip_mm']
-    evaporativity = (ts_y['precip_mm'] - ts_y['outflow_mm']) / ts_y['precip_mm']
+    pet_y = ts_y[f'pet_mm_{default_suffix}']
+    precip_y = ts_y[f'precip_mm_{default_suffix}']
+    aridity = pet_y / precip_y 
+    evaporativity = (precip_y - ts_y['outflow_mm']) / precip_y
 
     # plot limits
     round = 0.5
@@ -466,7 +494,7 @@ def plot_reservoir_timeseries(
         row=row, col=col
     )
 
-    # Add annual values
+    # Observed outflow
     fig.add_trace(
         go.Scatter(
             x=aridity, 
@@ -493,44 +521,195 @@ def plot_reservoir_timeseries(
         row=row, col=col
     )
 
-    ### --- SIGNATURES & CLIMATOLOGY VALUES ---
+    ### --- SIGNATURES & CLIMATOLOGY ---
 
-    # compute flow duration curve
-    _, slope_outflow = slope_fdc(ts['outflow_mm'])
+    def get_signature_text(climatology: pd.Series, attrs: pd.Series, suffix: str) -> str:
+        text = (
+            "<b>Properties</b><br>"
+            f"Capacity: {attrs.cap_mcm:.1f} hm³<br>"
+            f"Surface: {attrs.area_skm:.1f} km²<br>"
+            f"Catchment: {attrs.catch_skm:.1f} km²<br>"
+            f"Deg. Regulation: {attrs.dor_d:.0f} days<br>"
+            f"Deg. Disruptivity: {attrs.dod_m * 1000:.0f} mm<br>"
+            f"Use: {attrs.main_use}<br>"
+            "<br><b>Climatology</b><br>"
+            f"Filling: {climatology.filling:.2f}<br>"
+            f"Inflow: {climatology.inflow_mm:.0f} mm/year<br>"
+            f"Outflow: {climatology.outflow_mm:.0f} mm/year<br>"
+            f"Precipitation: {climatology[f'precip_mm_{suffix}']:.0f} mm/year<br>"
+            f"PET: {climatology[f'pet_mm_{suffix}']:.0f} mm/year<br>"
+            f"Temperature: {climatology[f'temp_degC_{suffix}']:.1f} °C<br>"
+            "<br><b>Hydrological Signatures</b><br>"
+            f"Baseflow Index: {bfi:.2f}<br>"
+            f"Flashiness Index: {fi:.2f}<br>"
+            f"Slope FDC: {slope:.2f}<br>"
+        )
+        if 'KGE' in attrs.index or 'NSE' in attrs.index:
+            performance_text = "<br><b>Model performance</b><br>"
+            if 'NSE' in attrs.index:
+                performance_text += f"NSE: {attrs['NSE']:.2f}<br>"
+            if 'KGE' in attrs.index:
+                performance_text += f"KGE: {attrs['KGE']:.2f}<br>"
+            if 'Beta-KGE' in attrs.index:
+                performance_text += f"Bias: {attrs['Beta-KGE']:.2f}<br>"
+            if 'Alpha-NSE' in attrs.index:
+                performance_text += f"Variability: {attrs['Alpha-NSE']:.2f}<br>"
+            if 'Pearson-r' in attrs.index:
+                performance_text += f"Correlation: {attrs['Pearson-r']:.2f}<br>"
+            text += performance_text
+        return text
+    
+    # Compute hydrological signatures
+    _, bfi = baseflow_index(ts['outflow_cms'])
+    fi = flashiness_index(ts['outflow_cms'])
+    _, slope = slope_fdc(ts['outflow_mm'])
 
-    # --- SIGNATRUES & CLIMATOLOGY ---
-
-    # 1. Compute hydrological signatures
-    _, bfi_outflow = baseflow_index(ts['outflow_cms'])
-    fi_outflow = flashiness_index(ts['outflow_cms'])
-
-    # Calculate Climatology
+    # Calculate climatology values
     climatology = compute_climatology(ts)
 
-    signature_text = (
-        "<b>Properties</b><br>"
-        f"Capacity: {attributes.cap_mcm:.1f} hm³<br>"
-        f"Surface: {attributes.area_skm:.1f} km²<br>"
-        f"Catchment: {attributes.catch_skm:.1f} km²<br>"
-        f"Deg. Regulation: {attributes.dor_d:.0f} days<br>"
-        f"Deg. Disruptivity: {attributes.dod_m * 1000:.0f} mm<br>"
-        f"Use: {attributes.main_use}<br>"
-        "<br><b>Climatology</b><br>"
-        f"Filling: {climatology.filling:.2f}<br>"
-        f"Inflow: {climatology.inflow_mm:.0f} mm/year<br>"
-        f"Outflow: {climatology.outflow_mm:.0f} mm/year<br>"
-        f"Precipitation: {climatology.precip_mm:.0f} mm/year<br>"
-        f"PET: {climatology.pet_mm:.0f} mm/year<br>"
-        f"Temperature: {climatology.temp_degC:.1f} °C<br>"
-        "<br><b>Hydrological Signatures</b>"
-        f"<br>Baseflow Index: {bfi_outflow:.2f}<br>"
-        f"Flashiness Index: {fi_outflow:.2f}<br>"
-        f"Slope FDC: {slope_outflow:.2f}<br>"
+    # signature_text = (
+    #     "<b>Properties</b><br>"
+    #     f"Capacity: {attributes.cap_mcm:.1f} hm³<br>"
+    #     f"Surface: {attributes.area_skm:.1f} km²<br>"
+    #     f"Catchment: {attributes.catch_skm:.1f} km²<br>"
+    #     f"Deg. Regulation: {attributes.dor_d:.0f} days<br>"
+    #     f"Deg. Disruptivity: {attributes.dod_m * 1000:.0f} mm<br>"
+    #     f"Use: {attributes.main_use}<br>"
+    #     "<br><b>Climatology</b><br>"
+    #     f"Filling: {climatology.filling:.2f}<br>"
+    #     f"Inflow: {climatology.inflow_mm:.0f} mm/year<br>"
+    #     f"Outflow: {climatology.outflow_mm:.0f} mm/year<br>"
+    #     f"Precipitation: {climatology.precip_mm:.0f} mm/year<br>"
+    #     f"PET: {climatology.pet_mm:.0f} mm/year<br>"
+    #     f"Temperature: {climatology.temp_degC:.1f} °C<br>"
+    #     "<br><b>Hydrological Signatures</b>"
+    #     f"Baseflow Index: {bfi:.2f}<br>"
+    #     f"Flashiness Index: {fi:.2f}<br>"
+    #     f"Slope FDC: {slope:.2f}<br>"
+    # )
+
+    # add signature annotation
+    signature_text = get_signature_text(climatology, attrs, default_suffix)
+    fig.add_annotation(
+        name='signature_annotation',
+        text=signature_text, 
+        x=1, xanchor="left", xref="paper", 
+        y=0.5, yanchor="top", yref="paper", 
+        showarrow=False, 
+        align="left", 
+        bgcolor="rgba(0, 0, 0, 0)"
     )
 
+    # locate the index of the signature annotation
+    sig_annot_idx = next(
+        i for i, annot in enumerate(fig.layout.annotations)
+        if getattr(annot, 'name', None) == 'signature_annotation'
+    )
+
+    # --- BUTTONS SETUP ---
+
+    # ------------------------------------------------------------------
+    # Meteorology buttons
+    # ------------------------------------------------------------------
+
+    # Map target trace indices to restyle on meteo change
+    base_annual_idx = 7 #if has_sim else 7
+    base_climo_idx = 11 #if has_sim else 7
+    base_budyko_idx = 18 # if has_sim else 14
+    meteo_target_indices = [
+        0,
+        base_annual_idx,
+        base_climo_idx,
+        base_budyko_idx
+    ]
+    # if has_sim:
+    #     meteo_target_indices += [base_budyko_idx + 1]
+
+    meteo_buttons = []
+    for label, suffix in available_datasets.items():
+        # define time series
+        daily_p = ts[f'precip_mm_{suffix}']
+        annual_p = ts_y[f'precip_mm_{suffix}']
+        climo_p = ts_m[f'precip_mm_{suffix}']
+        budyko_arid = ts_y[f'pet_mm_{suffix}'] / ts_y[f'precip_mm_{suffix}'] 
+        budyko_evap = (ts_y[f'precip_mm_{suffix}'] - ts_y['outflow_mm']) / ts_y[f'precip_mm_{suffix}']
+
+        x = [ts.index, ts_y.index, ts_m.index, budyko_arid]
+        y = [daily_p, annual_p, climo_p, budyko_evap]
+        # if has_sim:
+        #     budyko_evap_sim = (ts_y[f'precip_mm_{suffix}'] - ts_y['outflow_mm_sim']) / ts_y[f'precip_mm_{suffix}']
+        #     x += [budyko_arid]
+        #     y += [budyko_evap_sim]
+
+        # signature text
+        current_signature_text = get_signature_text(climatology, attrs, suffix)
+
+        meteo_buttons.append(
+            dict(
+                label=label,
+                method="update",
+                args=[{
+                        "x": x,
+                        "y": y
+                    },
+                    {
+                        f"annotations[{sig_annot_idx}].text": current_signature_text
+                    },
+                    meteo_target_indices
+                ]
+            )
+        )
+
+    # ------------------------------------------------------------------
+    # Scale buttons
+    # ------------------------------------------------------------------
+
     # Update Layout & Scale Buttons
-    y_raw = [ts['precip_mm'], ts['inflow_mm'], ts['outflow_mm']]
+    y_raw = [ts[f'precip_mm_{default_suffix}'], ts['inflow_mm'], ts['outflow_mm']]
+    scale_target_indices = [0, 1, 2]
+    # if has_sim:
+    #     y_raw += [ts['outflow_mm_sim']]
+    #     scale_target_indices += [3]
     y_sqrt = [trace**.5 for trace in y_raw]
+
+    scale_buttons = [
+        dict(
+            label="Linear", 
+            method="update", 
+            args=[
+                {"y": y_raw},
+                {"yaxis.type": "linear", "yaxis.title.text": "mm"},
+                scale_target_indices
+            ]
+        ),
+        dict(
+            label="Square root", 
+            method="update",
+            args=[
+                {"y": y_sqrt},
+                {"yaxis.type": "linear", "yaxis.title.text": "sqrt mm"},
+                scale_target_indices
+            ]
+        ),
+        dict(
+            label="Logarithmic", 
+            method="update",
+            args=[
+                {"y": y_raw},
+                {"yaxis.type": "log", "yaxis.title.text": "log mm"},
+                scale_target_indices
+            ]
+        ),
+    ]
+
+    fig.update_layout(
+        meta=dict(
+            initial_scale="linear",
+            initial_meteo=default_dataset
+        )
+    )
+
+    # add titles and buttons
     fig.update_layout(
         title_text=f"<b>{title if title else ''}</b>",
         title_x=0.01,
@@ -551,37 +730,43 @@ def plot_reservoir_timeseries(
         bargap=0.08, 
         barmode='overlay',
         updatemenus=[
+            # meteo dataset selection
             dict(
-                type="buttons", direction="down", active=0, x=1.02, xanchor="left", y=1, yanchor='top', showactive=True,
-                buttons=[
-                    dict(label="Linear Scale", method="update", 
-                         args=[
-                             {"y": y_raw},
-                             {"yaxis.type": "linear", "yaxis.title.text": "mm" },
-                             [0, 1, 2]
-                         ]),
-                    dict(label="Sqrt Scale", method="update",
-                         args=[
-                             {"y": y_sqrt},
-                             {"yaxis.type": "linear", "yaxis.title.text": "sqrt mm"},
-                             [0, 1, 2]
-                         ]),
-                    dict(label="Log Scale", method="update",
-                         args=[
-                             {"y": y_raw}, 
-                             {"yaxis.type": "log", "yaxis.title.text": "log mm"},
-                             [0, 1, 2]
-                         ]),
-                ],
+                type="buttons",
+                direction="down",
+                active=0,
+                x=1, xanchor="left",
+                y=0.975, yanchor="top",
+                showactive=True,
+                buttons=meteo_buttons,
+            ),
+            # axis scale selection
+            dict(
+                type="buttons", 
+                direction="down", 
+                active=0, 
+                x=1, xanchor="left", 
+                y=0.8, yanchor='top', 
+                showactive=True,
+                buttons=scale_buttons,
             )
-        ],
+        ]
+    )
+
+    # add titles to the buttons
+    fig.add_annotation(
+        text="<b>Meteorology</b>",
+        x=1, xanchor="left", xref="paper",
+        y=0.975, yanchor="bottom", yref="paper",
+        showarrow=False,
     )
     fig.add_annotation(
-        text=signature_text, 
-        xref="paper", x=1.02, xanchor="left", 
-        yref="paper", y=0, yanchor="bottom",
-        showarrow=False, align="left", bgcolor="rgba(0, 0, 0, 0)"
+        text="<b>Y-axis Scale</b>",
+        x=1, xanchor="left", xref="paper",
+        y=0.8, yanchor="bottom", yref="paper",
+        showarrow=False,
     )
+
     fig.update_xaxes(
         range=[ts.index.min(), ts.index.max()],
         row=1, col=1
