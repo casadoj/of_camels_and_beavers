@@ -882,6 +882,8 @@ def create_reservoir_html(
                     const endEntry1Id = "314932285";
                     const startEntry2Id = "1590382732";
                     const endEntry2Id = "1770881539";
+                    const startEntry3Id = "208904126";
+                    const endEntry3Id = "1937793816";
 
                     const userEmail = localStorage.getItem('userEmail') || "";
                     const filename = window.location.pathname.split('/').pop();
@@ -895,7 +897,9 @@ def create_reservoir_html(
                         "&entry." + startEntry1Id + "=" + start + 
                         "&entry." + endEntry1Id + "=" + end +
                         "&entry." + startEntry2Id + "=" + start + 
-                        "&entry." + endEntry2Id + "=" + end;
+                        "&entry." + endEntry2Id + "=" + end +
+                        "&entry." + startEntry3Id + "=" + start +
+                        "&entry." + endEntry3Id + "=" + end;
 
                     document.getElementById('form-container').innerHTML = 
                         '<iframe src="' + finalUrl + '" frameborder="0">Loading form…</iframe>';
