@@ -437,7 +437,10 @@
             `;
 
             return `
-                <strong>${id} - ${name}</strong><br>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px;">
+                    <strong>${id} - ${name}</strong>
+                    <img src="./img/logo_CAMEL.png" alt="Logo" style="height: 32px; width: auto; object-fit: contain;">
+                </div>
                 ${makeRow('River', `${river} (${basin})`)}
                 ${makeRow('Catchment', `${props.catch_skm} km²`)}
                 <hr style="margin: 4px 0; border: 0; border-top: 1px solid #ddd;">
@@ -516,10 +519,13 @@
             `;
 
             return `
-                <strong>${id} - ${name}</strong><br>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px;">
+                    <strong>${id} - ${name}</strong>
+                    <img src="./img/logo_BEAVER.png" alt="Logo" style="height: 32px; width: auto; object-fit: contain;">
+                </div>
                 ${makeRow('River', `${river} (${basin})`)}
-                ${makeRow('Catchment', `${props.catch_skm != null ? props.catch_skm : 'N/A'} km²`)}
-                ${makeRow('Capacity', `${props.cap_mcm != null ? props.cap_mcm : 'N/A'} hm³`)}
+                ${makeRow('Catchment', `${props.catch_skm} km²`)}
+                ${makeRow('Capacity', `${props.cap_mcm}hm³`)}
                 <hr style="margin: 4px 0; border: 0; border-top: 1px solid #ddd;">
                 <small><strong>Meteorology (ROCIO-IBEB)</strong></small><br>
                 ${makeRow('Precipitation', `${precipVal != null ? Math.round(precipVal) : (props.precip_mm || 'N/A')} mm/yr`)}
@@ -527,7 +533,7 @@
                 ${makeRow('PET', `${petVal != null ? Math.round(petVal) : (props.pet_mm || 'N/A')} mm/yr`)}
                 <hr style="margin: 4px 0; border: 0; border-top: 1px solid #ddd;">
                 <small><strong>Hydrology</strong></small><br>
-                ${makeRow('Storage', `${props.storage_mcm != null ? props.storage_mcm : 'N/A'} hm³`)}
+                ${makeRow('Filling', `${props.filling != null ? props.filling * 100 : 'N/A'} %`)}
                 ${makeRow('Outflow', `${props.outflow_mm != null ? Math.round(props.outflow_mm) : 'N/A'} mm/yr`)}
                 ${makeRow('Period', `${props.start || 'N/A'}-${props.end || 'N/A'}`)}
                 ${makeRow('Use', `${props.main_use || 'N/A'}`)}
