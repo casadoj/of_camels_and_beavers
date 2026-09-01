@@ -1,0 +1,71 @@
+{
+    "variables": {
+        "outflow_cms": { 
+            "long_name": "outflow", 
+            "units": "m³/s" 
+        },
+        "outflow_mm": { 
+            "long_name": "specific outflow", 
+            "units": "mm/d" 
+        },
+        "inflow_cms": { 
+            "long_name": "inflow", 
+            "units": "m³/s" 
+        },
+        "inflow_mm": { 
+            "long_name": "specific inflow", 
+            "units": "mm/d" 
+        },
+        "storage_mcm": { 
+            "long_name": "storage", 
+            "units": "hm³" 
+        },
+        "filling": { 
+            "long_name": "filling", 
+            "units": "-" 
+        },
+        "temp_degC": { 
+            "long_name": "mean temperature", 
+            "units": "°C" 
+        },
+        "temp_dtr_degC": {
+            "long_name": "diurnal temperature range",
+            "units": "°C"
+        },
+        "temp_max_degC": { 
+            "long_name": "maximum temperature", 
+            "units": "°C" 
+        },
+        "temp_min_degC": { 
+            "long_name": "minimum temperature", 
+            "units": "°C" 
+        },
+        "pet_mm": { 
+            "long_name": "potential evapotranspiration", 
+            "units": "mm/d" 
+        },
+        "precip_frac": {
+            "long_name": "precipitation francion area",
+            "units": "-"
+        },
+        "precip_mm": { 
+            "long_name": "precipitation", 
+            "units": "mm" 
+        },
+        "precip_max_mm": {
+            "long_name": "maximum precipitation",
+            "units": "mm"
+        },
+        "precip_std_mm": {
+            "long_name": "precipitation standard deviation",
+            "units": "mm"
+        }
+    },
+    "Timezone": "Europe/Madrid",
+    "Sources":[
+        "Reservoir operations: Anuario de Aforos curated by CEDEX (Spanish Ministry of Environment) and the River Basin Authorities",
+        "ROCIO-IBEB: meteorological observations created by AEMet (Spanish Meteorological Agency)",
+        "CERRA-Land: meteorological reanalysis created by C3S (Copernicus Climate Change Service)",
+        "EMO1: meteorological observations created by CEMS (Copernicus Emergency Management Service)"
+  ]
+}
