@@ -6,5 +6,5 @@ DATASETS = {
 
 OFFSET_HOURS = {
     'ROCIO-IBEB': 24,
-    'EMO1': -6
+    'EMO1': 18
 }
