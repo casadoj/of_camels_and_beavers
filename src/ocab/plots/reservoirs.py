@@ -57,6 +57,7 @@ def plot_reservoir_timeseries(
     c_fill = kwargs.get('c_fill', 'darkslategrey')
     c_in = kwargs.get('c_line', 'seagreen')
     c_out = kwargs.get('c_line', 'darkred')
+    c_sim = kwargs.get('c_sim', 'darkorange')
     c_precip = kwargs.get('c_bar', 'lightblue')
     title = kwargs.get('title', None)
 
@@ -79,10 +80,8 @@ def plot_reservoir_timeseries(
     default_dataset = 'ROCIO-IBEB'
     default_suffix = available_datasets[default_dataset]
 
-    # TODO: once a simulation exists
-    # # is the station simulated?
-    # has_sim = 'outflow_mm_sim' in ts.columns
-    # name_dis_obs = 'Discharge (obs)' if has_sim else 'Discharge'
+    # is the station simulated?
+    has_sim = 'inflow_mm_sim' in ts.columns
 
     # Setup grid
     fig = make_subplots(
@@ -106,7 +105,7 @@ def plot_reservoir_timeseries(
 
     row, col = 1, 1
 
-    # add traces
+    # precipitation
     fig.add_trace(
         go.Bar(
             x=ts.index, 
@@ -121,30 +120,8 @@ def plot_reservoir_timeseries(
         ),
         row=row, col=col
     )
-    fig.add_trace(
-        go.Scatter(
-            x=ts.index, 
-            y=ts['inflow_mm'], 
-            name="Inflow", 
-            line=dict(color=c_in, width=1), 
-            visible='legendonly',
-            legendgroup="I",
-            showlegend=False
-        ),
-        row=row, col=col
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=ts.index, 
-            y=ts['outflow_mm'], 
-            name="Outflow", 
-            line=dict(color=c_out, width=1), 
-            visible=True,
-            legendgroup="O", 
-            showlegend=False
-        ),
-        row=row, col=col
-    )
+
+    # observed filling
     fig.add_trace(
         go.Scatter(
             x=ts.index, 
@@ -157,6 +134,48 @@ def plot_reservoir_timeseries(
         ), 
         row=row, col=col, secondary_y=True
     )
+    
+    # observed outflow
+    fig.add_trace(
+        go.Scatter(
+            x=ts.index, 
+            y=ts['outflow_mm'], 
+            name="Outflow", 
+            line=dict(color=c_out, width=1), 
+            visible=True,
+            legendgroup="O", 
+            showlegend=False
+        ),
+        row=row, col=col
+    )
+    # observed inflow
+    fig.add_trace(
+        go.Scatter(
+            x=ts.index, 
+            y=ts['inflow_mm'], 
+            name='Inflow (est)', 
+            line=dict(color=c_in, width=1), 
+            visible='legendonly',
+            legendgroup="I",
+            showlegend=False
+        ),
+        row=row, col=col
+    )
+
+    # simulated inflow
+    if has_sim:
+        fig.add_trace(
+            go.Scatter(
+                x=ts.index, 
+                y=ts['inflow_mm_sim'], 
+                name="Inflow (sim)", 
+                line=dict(color=c_sim, width=1, dash='dot'), 
+                visible='legendonly',
+                legendgroup="I_sim",
+                showlegend=False
+            ),
+            row=row, col=col
+        )
 
     # set axes properties
     round_mm_d = 20
@@ -187,22 +206,21 @@ def plot_reservoir_timeseries(
     row, col = 2, 1
     size = 2.5
 
-    # find missing outflow dates
-    missing_x_in = ts[ts['inflow_mm'].isnull()].index
-    missing_y_in = [0] * len(missing_x_in)
+    # find missing filling dates
+    missing_x_fill = ts[ts['filling'].isnull()].index
+    missing_y_fill = [20] * len(missing_x_fill)
     fig.add_trace(
         go.Scatter(
-            x=missing_x_in,
-            y=missing_y_in, 
+            x=missing_x_fill,
+            y=missing_y_fill, 
             mode='markers',
             marker=dict(
                 symbol='line-ns-open',
                 size=size,
-                color=c_in,
+                color=c_fill,
                 line_width=1
             ),
-            visible='legendonly',
-            legendgroup="I",
+            legendgroup="F",
             showlegend=False,
             hoverinfo='x'
         ),
@@ -228,21 +246,22 @@ def plot_reservoir_timeseries(
         ),
         row=row, col=col
     )
-    # find missing filling dates
-    missing_x_fill = ts[ts['filling'].isnull()].index
-    missing_y_fill = [20] * len(missing_x_fill)
+    # find missing outflow dates
+    missing_x_in = ts[ts['inflow_mm'].isnull()].index
+    missing_y_in = [0] * len(missing_x_in)
     fig.add_trace(
         go.Scatter(
-            x=missing_x_fill,
-            y=missing_y_fill, 
+            x=missing_x_in,
+            y=missing_y_in, 
             mode='markers',
             marker=dict(
                 symbol='line-ns-open',
                 size=size,
-                color=c_fill,
+                color=c_in,
                 line_width=1
             ),
-            legendgroup="F",
+            visible='legendonly',
+            legendgroup="I",
             showlegend=False,
             hoverinfo='x'
         ),
@@ -269,7 +288,7 @@ def plot_reservoir_timeseries(
     row, col = 3, 1
 
     # compute annual time series
-    ts_y = compute_annual_timeseries(ts)
+    ts_y = compute_annual_timeseries(ts, rule='YS-OCT')
     ts_y.index += pd.DateOffset(months=6) # to adapt labels in the plots
 
     # add traces
@@ -289,15 +308,14 @@ def plot_reservoir_timeseries(
     fig.add_trace(
         go.Scatter(
             x=ts_y.index, 
-            y=ts_y['inflow_mm'], 
-            name="Inflow",
-            line=dict(color=c_in, width=2),
-            legendgroup="I",
-            visible='legendonly',
+            y=ts_y['filling'], 
+            name="Filling",
+            line=dict(color=c_fill, width=2),
+            legendgroup="F",
             showlegend=True,
-            hovertemplate="<b>Year: %{x|%Y}</b><br>I: %{y:.0f} mm<extra></extra>"
+            hovertemplate="<b>Year: %{x|%Y}</b><br>F: %{y:.2f}<extra></extra>"
         ),
-        row=row, col=col
+        row=row, col=col, secondary_y=True
     )
     fig.add_trace(
         go.Scatter(
@@ -314,15 +332,30 @@ def plot_reservoir_timeseries(
     fig.add_trace(
         go.Scatter(
             x=ts_y.index, 
-            y=ts_y['filling'], 
-            name="Filling",
-            line=dict(color=c_fill, width=2),
-            legendgroup="F",
+            y=ts_y['inflow_mm'], 
+            name='Inflow (est)',
+            line=dict(color=c_in, width=2),
+            legendgroup="I",
+            visible='legendonly',
             showlegend=True,
-            hovertemplate="<b>Year: %{x|%Y}</b><br>F: %{y:.2f}<extra></extra>"
+            hovertemplate="<b>Year: %{x|%Y}</b><br>I: %{y:.0f} mm<extra></extra>"
         ),
-        row=row, col=col, secondary_y=True
+        row=row, col=col
     )
+    if has_sim:
+        fig.add_trace(
+            go.Scatter(
+                x=ts_y.index, 
+                y=ts_y['inflow_mm_sim'], 
+                name="Inflow (sim)",
+                line=dict(color=c_sim, width=1.8, dash='dot'),
+                legendgroup="I_sim",
+                visible='legendonly',
+                showlegend=True,
+                hovertemplate="<b>Year: %{x|%Y}</b><br>I: %{y:.0f} mm<extra></extra>"
+            ),
+            row=row, col=col
+        )
 
     # set axes properties
     round_mm_y = 500
@@ -331,7 +364,7 @@ def plot_reservoir_timeseries(
         ts_y, 
         round_mm_y, 
         scale_y,
-        cols_primary=('precip_mm', 'inflow_mm', 'outflow_mm'),
+        cols_primary=('precip_mm', 'outflow_mm', 'inflow_mm'),
         cols_secondary=('filling')
     )
     fig.update_yaxes(
@@ -376,14 +409,13 @@ def plot_reservoir_timeseries(
     fig.add_trace(
         go.Scatter(
             x=ts_m.index, 
-            y=ts_m['inflow_mm'], 
-            name="Inflow", 
-            line=dict(color=c_in, width=2),
-            visible='legendonly',
-            legendgroup="I",
+            y=ts_m['filling'], 
+            name="Filling", 
+            line=dict(color=c_fill, width=2),
+            legendgroup="F",
             showlegend=False
-        ), 
-        row=row, col=col
+        ),
+        row=row, col=col, secondary_y=True
     )
     fig.add_trace(
         go.Scatter(
@@ -399,14 +431,28 @@ def plot_reservoir_timeseries(
     fig.add_trace(
         go.Scatter(
             x=ts_m.index, 
-            y=ts_m['filling'], 
-            name="Filling", 
-            line=dict(color=c_fill, width=2),
-            legendgroup="F",
+            y=ts_m['inflow_mm'], 
+            name='Inflow (est)', 
+            line=dict(color=c_in, width=2),
+            visible='legendonly',
+            legendgroup="I",
             showlegend=False
-        ),
-        row=row, col=col, secondary_y=True
+        ), 
+        row=row, col=col
     )
+    if has_sim:
+        fig.add_trace(
+            go.Scatter(
+                x=ts_m.index, 
+                y=ts_m['inflow_mm_sim'], 
+                name="Inflow", 
+                line=dict(color=c_sim, width=1.8, dash='dot'),
+                visible='legendonly',
+                legendgroup="I_sim",
+                showlegend=False
+            ), 
+            row=row, col=col
+        )
 
     # set axes properties
     round_mm_m = 20
@@ -415,7 +461,7 @@ def plot_reservoir_timeseries(
         ts_m, 
         round_mm_m,
         scale_m,
-        cols_primary=('precip_mm', 'inflow_mm', 'outflow_mm'),
+        cols_primary=('precip_mm', 'outflow_mm', 'inflow_mm'),
         cols_secondary=('filling')
     )
     fig.update_yaxes(
@@ -510,6 +556,25 @@ def plot_reservoir_timeseries(
         row=row, col=col
     )
 
+    # simulated inflow
+    if has_sim:
+        evaporativity_sim = (precip_y - ts_y['inflow_mm_sim']) / precip_y
+        fig.add_trace(
+            go.Scatter(
+                x=aridity,
+                y=evaporativity_sim,
+                mode='markers',
+                name='Budyko',
+                marker=dict(color=c_sim, size=8, line=dict(width=1, color='white')),
+                customdata=aridity.index.year,
+                hovertemplate="<b>Year: %{customdata}</b><br>Arid. Index: %{x:.2f}<br>Evap. Index: %{y:.2f}<extra></extra>",
+                visible='legendonly',
+                legendgroup="I_sim",
+                showlegend=False
+            ),
+            row=row, col=col
+        )
+
     # set axes
     fig.update_xaxes(
         title_text="Aridity Index: PET/P", 
@@ -567,27 +632,6 @@ def plot_reservoir_timeseries(
     # Calculate climatology values
     climatology = compute_climatology(ts)
 
-    # signature_text = (
-    #     "<b>Properties</b><br>"
-    #     f"Capacity: {attributes.cap_mcm:.1f} hm³<br>"
-    #     f"Surface: {attributes.area_skm:.1f} km²<br>"
-    #     f"Catchment: {attributes.catch_skm:.1f} km²<br>"
-    #     f"Deg. Regulation: {attributes.dor_d:.0f} days<br>"
-    #     f"Deg. Disruptivity: {attributes.dod_m * 1000:.0f} mm<br>"
-    #     f"Use: {attributes.main_use}<br>"
-    #     "<br><b>Climatology</b><br>"
-    #     f"Filling: {climatology.filling:.2f}<br>"
-    #     f"Inflow: {climatology.inflow_mm:.0f} mm/year<br>"
-    #     f"Outflow: {climatology.outflow_mm:.0f} mm/year<br>"
-    #     f"Precipitation: {climatology.precip_mm:.0f} mm/year<br>"
-    #     f"PET: {climatology.pet_mm:.0f} mm/year<br>"
-    #     f"Temperature: {climatology.temp_degC:.1f} °C<br>"
-    #     "<br><b>Hydrological Signatures</b>"
-    #     f"Baseflow Index: {bfi:.2f}<br>"
-    #     f"Flashiness Index: {fi:.2f}<br>"
-    #     f"Slope FDC: {slope:.2f}<br>"
-    # )
-
     # add signature annotation
     signature_text = get_signature_text(climatology, attrs, default_suffix)
     fig.add_annotation(
@@ -613,17 +657,21 @@ def plot_reservoir_timeseries(
     # ------------------------------------------------------------------
 
     # Map target trace indices to restyle on meteo change
-    base_annual_idx = 7 #if has_sim else 7
-    base_climo_idx = 11 #if has_sim else 7
-    base_budyko_idx = 18 # if has_sim else 14
+    base_annual_idx = 8 if has_sim else 7
+    base_climo_idx = 13 if has_sim else 11
+    base_budyko_idx = 21 if has_sim else 18
     meteo_target_indices = [
         0,
         base_annual_idx,
         base_climo_idx,
         base_budyko_idx
     ]
+    if has_sim:
+        meteo_target_indices += [base_budyko_idx + 1]
     # if has_sim:
-    #     meteo_target_indices += [base_budyko_idx + 1]
+    #     meteo_target_indices = [0, 8, 13, 21, 22]
+    # else:
+    #     meteo_target_indices = [0, 7, 11, 18]
 
     meteo_buttons = []
     for label, suffix in available_datasets.items():
@@ -636,10 +684,11 @@ def plot_reservoir_timeseries(
 
         x = [ts.index, ts_y.index, ts_m.index, budyko_arid]
         y = [daily_p, annual_p, climo_p, budyko_evap]
-        # if has_sim:
-        #     budyko_evap_sim = (ts_y[f'precip_mm_{suffix}'] - ts_y['outflow_mm_sim']) / ts_y[f'precip_mm_{suffix}']
-        #     x += [budyko_arid]
-        #     y += [budyko_evap_sim]
+
+        if has_sim:
+            budyko_evap_sim = (ts_y[f'precip_mm_{suffix}'] - ts_y['inflow_mm_sim']) / ts_y[f'precip_mm_{suffix}']
+            x += [budyko_arid]
+            y += [budyko_evap_sim]
 
         # signature text
         current_signature_text = get_signature_text(climatology, attrs, suffix)
@@ -665,11 +714,11 @@ def plot_reservoir_timeseries(
     # ------------------------------------------------------------------
 
     # Update Layout & Scale Buttons
-    y_raw = [ts[f'precip_mm_{default_suffix}'], ts['inflow_mm'], ts['outflow_mm']]
-    scale_target_indices = [0, 1, 2]
-    # if has_sim:
-    #     y_raw += [ts['outflow_mm_sim']]
-    #     scale_target_indices += [3]
+    y_raw = [ts[f'precip_mm_{default_suffix}'], ts['outflow_mm'], ts['inflow_mm']]
+    scale_target_indices = [0, 2, 3]
+    if has_sim:
+        y_raw += [ts['inflow_mm_sim']]
+        scale_target_indices += [4]
     y_sqrt = [trace**.5 for trace in y_raw]
 
     scale_buttons = [
