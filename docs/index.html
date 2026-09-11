@@ -536,10 +536,10 @@
         }
 
         function getReservoirColor(props) {
-            if (performanceMetrics.includes(currentVariable)) {
-                return '#3388ff';
-            }
             const val = getActiveProperty(props, currentVariable, currentDataset);
+            if (val === null || val === undefined || isNaN(val)) {
+                return 'transparent';
+            }
             return getStationColor(val, currentVariable);
         }
 
@@ -582,6 +582,9 @@
                 ${makeRow('Outflow', `${props.outflow_mm != null ? Math.round(props.outflow_mm) : 'N/A'} mm/yr`)}
                 ${makeRow('Period', `${props.start || 'N/A'}-${props.end || 'N/A'}`)}
                 ${makeRow('Use', `${props.main_use || 'N/A'}`)}
+                <hr style="margin: 4px 0; border: 0; border-top: 1px solid #ddd;">
+                <small><strong>Performance</strong></small><br>
+                ${makeRow('KGE', `${props.KGE != null ? Number(props.KGE).toFixed(2) : 'N/A'}`)}
                 <hr style="margin: 4px 0; border: 0; border-top: 1px solid #ddd;">
                 <a href="./timeseries/reservoirs/plots/${id}.html" target="_blank" rel="noopener noreferrer" style="
                     display: flex;
