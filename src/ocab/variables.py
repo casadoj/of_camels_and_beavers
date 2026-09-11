@@ -25,6 +25,7 @@ DECIMALS = {
     # reservoir flows
     'inflow_cms': 3,
     'inflow_mm': 6,
+    'inflow_mm_sim': 6,
     'outflow_cms': 3,
     'outflow_mm': 6,
 }
@@ -48,8 +49,8 @@ RENAME = {
     # reservoir storage
     'storage': 'storage_mcm',
     # reservoir level
+    'level': 'level_masl',
+    # reservoir flows
     'inflow': 'inflow_cms',
     'outflow': 'outflow_cms',
-    # reservoir flows
-    'level': 'level_masl',
 }
