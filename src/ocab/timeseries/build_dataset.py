@@ -38,7 +38,6 @@ def combine_periods(row: pd.Series, days: int = 365) -> pd.Series:
 def valid_timeseries(
         answers: pd.DataFrame, 
         column: str ='incorrect_ts', 
-        inplace: bool = False
     ) -> pd.DataFrame | None:
     """Creates a DataFrame with fields of valid time series, based on the answers to the 
     online questionnaire.
@@ -60,6 +59,8 @@ def valid_timeseries(
         * None : If `inplace=True`.
     """
 
+    answers = answers.copy()
+
     # split list of variables
     incorrect_ts = answers[column].str.split(', ').copy()
 
@@ -80,12 +81,7 @@ def valid_timeseries(
         if len(lst) > 0:
             valid_ts.loc[ID, lst] = 0
 
-    if inplace:
-        answers.drop(columns=[column], inplace=True)
-        for col in valid_ts.columns:
-            answers[col] = valid_ts[col]
-    else:
-        return valid_ts
+    return valid_ts
 
 
 def time_encoding(
