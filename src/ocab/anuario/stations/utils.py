@@ -163,6 +163,7 @@ def encode_reservoir_use(
         'Hidroeléctrico': 'Hydroelectricity',
         'Industrial': 'Industrial',
         'Minería': 'Mining',
+        'Recreo': 'Recreation',
         'Regulación': 'Other',
         'Riego': 'Irrigation',
     }
@@ -173,6 +174,7 @@ def encode_reservoir_use(
         'Hidroeléctrico': 'use_elec',
         'Industrial': 'use_ind',
         'Minería': 'use_mine',
+        'Recreo': 'use_recr',
         'Regulación': 'use_othr',
         'Riego': 'use_irri',
     }
