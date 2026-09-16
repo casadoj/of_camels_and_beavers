@@ -40,14 +40,14 @@ def load_MERIT_points(
     --------
     gdf : geopandas.GeoDataFrame
         A GeoDataFrame indexed by 'id' containing the geometry, drainage area 
-        (area_skm), and point category.
+        (catch_skm), and point category.
     """
 
     # load file
     gdf = gpd.read_file(path, columns=['id', 'geometry', 'area_3sec'])
 
     # standardize columns
-    gdf.rename(columns={'area_3sec': 'area_skm'}, inplace=True)
+    gdf.rename(columns={'area_3sec': 'catch_skm'}, inplace=True)
     gdf['kind'] = kind
     gdf.set_index(['id', 'kind'], inplace=True)
 
@@ -118,7 +118,7 @@ def delineate_subbasins(
         A GeoDataFrame of subbasin polygons indexed by the original point IDs. 
         Includes the following columns:
             - 'geometry': The polygon boundary of the subbasin.
-            - 'area_skm': The upstream drainage area value at the outlet pixel.
+            - 'catch_skm': The upstream drainage area value at the outlet pixel.
     """
 
     if 'pixel' not in points.columns:
@@ -150,7 +150,7 @@ def delineate_subbasins(
     subbasins.set_index(['id', 'kind'], drop=True, inplace=True)
 
     # Extract upstream area
-    subbasins['area_skm'] = uparea.ravel()[points.loc[subbasins.index, 'pixel']]#.round(0).astype(int)
+    subbasins['catch_skm'] = uparea.ravel()[points.loc[subbasins.index, 'pixel']]#.round(0).astype(int)
 
     # if save:
     #     subbasins.to_file(save, driver='GeoJSON')
@@ -272,7 +272,7 @@ def find_outlets(
     gpd.GeoDataFrame
         A GeoDataFrame of the unique outlet points. Includes:
         - pixel: The raster index of the outlet.
-        - area_skm: Upstream area at the outlet pixel.
+        - catch_skm: Upstream area at the outlet pixel.
         - geometry: Point geometry in the same CRS as the input.
         - MultiIndex: Indexed by ['id', 'kind'], where kind is 'outlet'.
     """
@@ -294,7 +294,7 @@ def find_outlets(
     outlets = gpd.GeoDataFrame(
         {
             'pixel': outlets_idx,
-            'area_skm': uparea.ravel()[outlets_idx]
+            'catch_skm': uparea.ravel()[outlets_idx]
         },
         geometry=gpd.points_from_xy(*flwdir.xy(idxs=outlets_idx)),
         crs=points.crs
