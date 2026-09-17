@@ -1,4 +1,4 @@
-from typing import Dict, Literal, List, Optional, Union
+from typing import Literal
 from pathlib import Path
 from tqdm.auto import tqdm
 import logging
@@ -9,9 +9,9 @@ import pandas as pd
 
 
 def read_attributes(
-    path: Union[str, Path],
-    ID: Optional[List] = None,
-    index_col: Optional[str] = 'id'
+    path: str | Path,
+    ID: list[int] | None = None,
+    index_col: str = 'id'
 ) -> pd.DataFrame:
     """It reads all the attribute tables from the specified dataset and, if provided, applies filters.
     
@@ -43,18 +43,18 @@ def read_attributes(
                 ID = [ID]
             attributes = attributes.loc[ID]
     except Exception as e:
-        raise ValueError(f'ERROR while reading attribute tables from directory {path}: {e}') from e
+        raise ValueError(f'While reading attribute tables from directory {path}: {e}') from e
         
     return attributes
 
 
 def read_timeseries(
-    path: Union[str, Path],
-    ID: Optional[List[int]] = None,
-    periods: Optional[Dict[int, Dict[str, pd.Timestamp]]] = None,
-    variables: Optional[List[str]] = None,
+    path: str | Path,
+    ID: list[int] | None = None,
+    periods: dict[int, dict[str, pd.Timestamp]] | None = None,
+    variables: list[str] | None = None,
     format: Literal['parquet', 'csv'] = 'parquet'
-) -> Dict[int, pd.DataFrame]:
+) -> dict[int, pd.DataFrame]:
     """It reads the time series in the dataset and saves them in a dictionary.
     
     Parameters:
