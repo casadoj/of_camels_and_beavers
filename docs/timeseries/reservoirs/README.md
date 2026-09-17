@@ -1,4 +1,4 @@
-# Station time series
+# Reservoir time series
 
 Daily time series related to the reservoirs in BEAVERS-ES:
 
