@@ -16,6 +16,7 @@ import plotly.io as pio
 from ocab.plots.utils import compute_annual_timeseries, compute_monthly_climatology, compute_climatology, define_y_limits
 from ocab.signatures import baseflow_index, flashiness_index, slope_fdc, budyko
 import ocab.meteorology as METEO
+from ocab.api.get import download_timeseries
 
 logger = logging.getLogger(__name__)
 
@@ -146,6 +147,12 @@ def plot_station_timeseries(
     c_temp = kwargs.get('c_temp', 'darkred')
     c_pet = kwargs.get('c_pet', 'darkseagreen') #'olivedrab')
     title = kwargs.get('title', None)
+
+    # station ID
+    if attrs.name is not None:
+        ID = attrs.name
+    else:
+        ID = int(title.split()[0])
 
     # detect available meteo datasets
     available_datasets = {
@@ -814,158 +821,71 @@ def plot_station_timeseries(
         row=1, col=1
     )
 
+    # add download time series button
+    post_script = f"""
+    (function() {{
+        var container = document.getElementsByClassName('plotly-graph-div')[0];
+        if (container) {{
+            container.style.position = 'relative';
+            
+            // Create Download Button
+            var btn = document.createElement('button');
+            btn.className = 'download-ts-btn';
+            
+            // Match target button styling
+            btn.style.position = 'absolute';
+            btn.style.bottom = '15px';
+            btn.style.right = '20px';
+            btn.style.zIndex = '1000';
+            btn.style.backgroundColor = '#007bff';
+            btn.style.color = '#ffffff';
+            btn.style.border = 'none';
+            btn.style.borderRadius = '4px';
+            btn.style.padding = '8px 12px';
+            btn.style.cursor = 'pointer';
+            btn.style.fontFamily = 'sans-serif';
+            btn.style.fontSize = '12px';
+            btn.style.fontWeight = 'bold';
+            btn.style.display = 'inline-flex';
+            btn.style.alignItems = 'center';
+            btn.style.gap = '6px';
+            
+            // Inject SVG Icon and Text
+            btn.innerHTML = `
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                </svg>
+                Download Time Series
+            `;
+            
+            // background color when hovering
+            btn.onmouseover = function() {{ this.style.backgroundColor = '#0056b3'; }};
+            btn.onmouseout = function() {{ this.style.backgroundColor = '#007bff'; }};
+            
+            // download function
+            btn.onclick = function() {{
+                var dataset = 'camelses';
+                var stationId = '{ID}';
+                var fileUrl = 'https://raw.githubusercontent.com/casadoj/of_camels_and_beavers/v2.0/docs/timeseries/stations/' + dataset + '_' + stationId + '.parquet';
+                
+                var a = document.createElement('a');
+                a.href = fileUrl;
+                a.download = dataset + '_' + stationId + '.parquet';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }};
+            
+            container.appendChild(btn);
+        }}
+    }})();
+    """
+    fig.layout.meta = {"post_script": post_script}
+
     if save:
         return fig
     else:
         fig.show()
-
-
-# def create_station_html(
-#     fig, 
-#     path: str,
-#     start: str,
-#     end: str
-# ):
-#     """Wraps a Plotly figure into the full validation HTML template.
-    
-#     Parameters:
-#     -----------
-#     fig:
-#         Result of `plot_reservoir_timeseries()`
-#     path: string
-#         Name of the HTML file where the figure wil be saved
-#     start: string
-#         Start date of the time series. Format YYYY-mm-dd
-#     end: string
-#         End date of the time series. Format YYYY-mm-dd
-#     """
-        
-#     fig.update_layout(height=None, width=None, autosize=True)
-
-#     # Convert figure to HTML div string
-#     plotly_html = pio.to_html(
-#         fig, 
-#         full_html=False, 
-#         include_plotlyjs='cdn',
-#         include_mathjax=False,
-#         config={'responsive': True, 'displaylogo': False}
-#     )
-
-#     title = Path(path).stem
-
-#     full_page_html = f"""
-#         <html>
-#         <head>
-#             <!-- Google tag (gtag.js) -->
-#             <script async src="https://www.googletagmanager.com/gtag/js?id=G-E565MB2DE7"></script>
-#             <script>
-#                 window.dataLayer = window.dataLayer || [];
-#                 function gtag(){{dataLayer.push(arguments);}}
-#                 gtag('js', new Date());
-#                 gtag('config', 'G-E565MB2DE7');
-#             </script>
-
-#             <meta charset="utf-8" />
-#             <title>camelses_{title}</title>
-#             <style>
-#                 body {{ 
-#                     margin: 0; padding: 0; height: 100vh; width: 100vw;
-#                     display: flex; 
-#                     flex-direction: row; 
-#                     font-family: sans-serif;
-#                     overflow: hidden;
-#                 }}
-#                 .hydrograph {{ 
-#                     flex: 7; 
-#                     height: 100vh; 
-#                     min-width: 0;
-#                     position: relative; /* Added to anchor the button */
-#                 }}
-#                 .google-form {{ 
-#                     flex: 3; 
-#                     height: 100vh; 
-#                     border-left: 1px solid #ddd;
-#                     display: flex;
-#                 }}
-#                 .hydrograph > .plotly-graph-div {{ height: 100% !important; width: 100% !important; }}
-                
-#                 iframe {{ width: 100%; height: 100%; border: none; }}
-                
-#                 /* Updated: Positioned at bottom right of the plot panel */
-#                 .back-nav {{ 
-#                     position: absolute; 
-#                     bottom: 20px; 
-#                     right: 20px; 
-#                     z-index: 9999; 
-#                 }}
-#                 .back-btn {{
-#                     text-decoration: none; 
-#                     color: white; 
-#                     font-size: 14px; 
-#                     font-weight: bold; 
-#                     background-color: steelblue; /* Solid color looks better at bottom */
-#                     padding: 10px 16px; 
-#                     border-radius: 5px; 
-#                     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-#                     transition: background-color 0.3s;
-#                 }}
-#                 .back-btn:hover {{
-#                     background-color: #2e5d86;
-#                 }}
-#             </style>
-#         </head>
-#         <body>
-#             <div class="hydrograph">
-#                 # <div class="back-nav">
-#                 #     <a href="../../../index.html" class="back-btn">← Back to map</a>
-#                 # </div>
-#                 {plotly_html}
-#             </div>
-            
-#             <div class="google-form" id="form-container"></div>
-
-#             <script>
-#                 (function() {{
-#                     const baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdMDms_IAwkhPwOVqLvU0oVghG9Xti1LMhTsPoujm2w2uXF9A/viewform?embedded=true";
-#                     const emailEntryId = "2010975770";
-#                     const stationEntryId = "1301492004";
-#                     const startEntry1Id = "598747998";
-#                     const endEntry1Id = "2001326573";
-#                     const startEntry2Id = "1136531299";
-#                     const endEntry2Id = "530564783";
-#                     const startEntry3Id = "1646852203";
-#                     const endEntry3Id = "2002260210";
-
-#                     const userEmail = localStorage.getItem('userEmail') || "";
-#                     const filename = window.location.pathname.split('/').pop();
-#                     const stationId = filename.replace('.html', '');
-#                     const start = "{start}";
-#                     const end = "{end}";
-
-#                     const finalUrl = baseUrl + 
-#                         "&entry." + stationEntryId + "=" + stationId + 
-#                         "&entry." + emailEntryId + "=" + encodeURIComponent(userEmail) + 
-#                         "&entry." + startEntry1Id + "=" + start + 
-#                         "&entry." + endEntry1Id + "=" + end +
-#                         "&entry." + startEntry2Id + "=" + start + 
-#                         "&entry." + endEntry2Id + "=" + end +
-#                         "&entry." + startEntry3Id + "=" + start + 
-#                         "&entry." + endEntry3Id + "=" + end;
-
-#                     document.getElementById('form-container').innerHTML = 
-#                         '<iframe src="' + finalUrl + '" frameborder="0">Loading form…</iframe>';
-#                 }})();
-
-#                 window.addEventListener('load', function() {{
-#                     setTimeout(function() {{ window.dispatchEvent(new Event('resize')); }}, 200); 
-#                 }});
-#             </script>
-#         </body>
-#         </html>
-#         """
-    
-#     with open(path, "w", encoding="utf-8") as f:
-#         f.write(full_page_html)
 
 
 def create_station_html(
@@ -978,11 +898,18 @@ def create_station_html(
         
     fig.update_layout(height=None, width=None, autosize=True)
 
+    # Retrieve post_script of download button
+    post_script = []
+    if hasattr(fig.layout, 'meta') and isinstance(fig.layout.meta, dict):
+        if 'post_script' in fig.layout.meta:
+            post_script = [fig.layout.meta['post_script']]
+
     plotly_html = pio.to_html(
         fig, 
         full_html=False, 
         include_plotlyjs='cdn',
         include_mathjax=False,
+        post_script=post_script,
         config={'responsive': True, 'displaylogo': False}
     )
 
@@ -1044,7 +971,7 @@ def create_station_html(
                     left: -42px;
                     top: 5%;
                     transform: translateY(0);
-                    background-color: steelblue;
+                    background-color: #007bff;
                     color: white;
                     border: none;
                     padding: 12px 10px;
@@ -1059,7 +986,7 @@ def create_station_html(
                     z-index: 10001;
                 }}
                 .toggle-btn:hover {{
-                    background-color: #2e5d86;
+                    background-color: #0056b3;
                 }}
 
                 .hydrograph > .plotly-graph-div {{ height: 100% !important; width: 100% !important; }}
