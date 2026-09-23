@@ -16,7 +16,7 @@ import plotly.io as pio
 from ocab.plots.utils import compute_annual_timeseries, compute_monthly_climatology, compute_climatology, define_y_limits
 from ocab.signatures import baseflow_index, flashiness_index, slope_fdc, budyko
 import ocab.meteorology as METEO
-from ocab.api.get import download_timeseries
+# from ocab.api.get import download_timeseries
 
 logger = logging.getLogger(__name__)
 
