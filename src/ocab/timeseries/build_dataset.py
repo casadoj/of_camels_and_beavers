@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 
-def combine_periods(row: pd.Series, days: int = 365) -> pd.Series:
+def combine_periods(row: pd.Series, days: int = 0) -> pd.Series:
     """Combines the study periods defined in the questionnaire.
     
     Parameters
