@@ -1,6 +1,6 @@
 # working paths
 paths:
-    records: /home/casadoj/Data/CEDEX/2020-2021
+    records: /home/casadoj/Data/CEDEX/2021-2022
     dataset: /home/casadoj/Data
     EFAS: /home/casadoj/Data/EFAS5/Iberia
     MERIT: /home/casadoj/Data/MERIT/ES
