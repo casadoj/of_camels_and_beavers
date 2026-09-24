@@ -32,13 +32,13 @@ DECIMALS = {
 
 RENAME = {
     # temperature
-    'ta_mean': 'temp_degC', 
+    # 'ta_mean': 'temp_degC', 
     'avgtemp_mean': 'temp_degC',
     'maxtemp_mean': 'temp_max_degC',
     'mintemp_mean': 'temp_min_degC',
     'rngtemp_mean': 'temp_dtr_degC',
     # precipitation
-    'pr_mean': 'precip_mm', 
+    # 'pr_mean': 'precip_mm', 
     'precipitation_frac': 'precip_frac',
     'precipitation_max': 'precip_max_mm',
     'precipitation_mean': 'precip_mm',
