@@ -399,32 +399,39 @@
                 grades: [400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400],
                 colors: ['#ffffd4', '#feeaa1', '#fed363', '#fdb42f', '#f99214', '#f16e07', '#e14b03', '#c63102', '#a51e01', '#7f0f01', '#540601']
             },
+            NSE: {
+                label: "NSE [-]",
+                grades: [-1.0, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+                colors: ['#9e0142', '#d53e4f', '#f46d43', '#fdae61', '#fee08b', '#ffffbf', '#e6f598', '#abdda4', '#66c2a5', '#3288bd', '#5e4fa2', '#3e2182']
+            },
             KGE: {
                 label: "KGE [-]",
                 grades: [-0.41, -0.2, 0.0, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
-                colors: ['#67000d', '#c1272d', '#e5534b', '#f7847e', '#f9adac', '#edd1d2', '#c9d4ed', '#a6bdff', '#809fff', '#5a77ef', '#4a61d8', '#3b4cc0']
+                // colors: ['#67000d', '#c1272d', '#e5534b', '#f7847e', '#f9adac', '#edd1d2', '#c9d4ed', '#a6bdff', '#809fff', '#5a77ef', '#4a61d8', '#3b4cc0']
+                colors: ['#9e0142', '#d53e4f', '#f46d43', '#fdae61', '#fee08b', '#ffffbf', '#e6f598', '#abdda4', '#66c2a5', '#3288bd', '#5e4fa2', '#3e2182']
             },
             "Beta-KGE": {
                 label: "Bias [-]",
                 grades: [0.0, 0.2, 0.4, 0.6, 0.8, 0.95, 1.05, 1.2, 1.4, 1.6, 1.8, 2.0],
-                colors: ["#b40426", "#ce464a", "#e57a6f", "#f4ac9b", "#fadacb", "#e2e2e2", "#d5e1f9", "#b9caf4", "#90aff1", "#6590e3", "#3b6bc7", "#1a2da3"]
+                colors: ["#b40426", "#ce464a", "#e57a6f", "#f4ac9b", "#fadacb", "#ffffff", "#d5e1f9", "#b9caf4", "#90aff1", "#6590e3", "#3b6bc7", "#1a2da3"]
             },
             "Alpha-NSE": {
                 label: "Variability [-]",
                   grades: [0.0, 0.2, 0.4, 0.6, 0.8, 0.95, 1.05, 1.2, 1.4, 1.6, 1.8, 2.0],
-                colors: ["#b40426", "#ce464a", "#e57a6f", "#f4ac9b", "#fadacb", "#e2e2e2", "#d5e1f9", "#b9caf4", "#90aff1", "#6590e3", "#3b6bc7", "#1a2da3"]
+                colors: ["#b40426", "#ce464a", "#e57a6f", "#f4ac9b", "#fadacb", "#ffffff", "#d5e1f9", "#b9caf4", "#90aff1", "#6590e3", "#3b6bc7", "#1a2da3"]
             },
             "Pearson-r": {
                 label: "Correlation [-]",
                 grades: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-                colors: ["#b40426", "#ce464a", "#e57a6f", "#f4ac9b", "#fadacb", "#e2e2e2", "#b9caf4", "#90aff1", "#6590e3", "#3b6bc7", "#3a4cc0"]
+                // colors: ["#b40426", "#ce464a", "#e57a6f", "#f4ac9b", "#fadacb", "#e2e2e2", "#b9caf4", "#90aff1", "#6590e3", "#3b6bc7", "#3a4cc0"]
+                colors: ['#9e0142', '#d53e4f', '#f46d43', '#fdae61', '#fee08b', '#ffffbf', '#e6f598', '#abdda4', '#66c2a5', '#3288bd', '#5e4fa2']
             }
         };
 
         let currentVariable = 'discharge_mm';
         let currentDataset = 'rocio';
         const meteoVariables = ['precip_mm', 'temp_degC', 'pet_mm'];
-        const performanceMetrics = ['KGE', 'Beta-KGE', 'Alpha-NSE', 'Pearson-r'];
+        const performanceMetrics = ['NSE', 'KGE', 'Beta-KGE', 'Alpha-NSE', 'Pearson-r'];
 
         function getActiveProperty(props, variable = currentVariable, dataset = currentDataset) {
             // Map discharge_mm to outflow_mm for reservoir feature properties
@@ -492,6 +499,7 @@
                 ${makeRow('Regime', `${props.regime}`)}
                 <hr style="margin: 4px 0; border: 0; border-top: 1px solid #ddd;">
                 <small><strong>Performance</strong></small><br>
+                ${makeRow('NSE', `${props.NSE != null ? Number(props.NSE).toFixed(2) : 'N/A'}`)}
                 ${makeRow('KGE', `${props.KGE != null ? Number(props.KGE).toFixed(2) : 'N/A'}`)}
                 <hr style="margin: 4px 0; border: 0; border-top: 1px solid #ddd;">
                 <a href="./timeseries/stations/plots/${id}.html" target="_blank" rel="noopener noreferrer" style="
@@ -584,6 +592,7 @@
                 ${makeRow('Use', `${props.main_use || 'N/A'}`)}
                 <hr style="margin: 4px 0; border: 0; border-top: 1px solid #ddd;">
                 <small><strong>Performance</strong></small><br>
+                ${makeRow('NSE', `${props.NSE != null ? Number(props.NSE).toFixed(2) : 'N/A'}`)}
                 ${makeRow('KGE', `${props.KGE != null ? Number(props.KGE).toFixed(2) : 'N/A'}`)}
                 <hr style="margin: 4px 0; border: 0; border-top: 1px solid #ddd;">
                 <a href="./timeseries/reservoirs/plots/${id}.html" target="_blank" rel="noopener noreferrer" style="
@@ -819,6 +828,7 @@
                 <div class="selector-group">
                     <span style="display: block; font-size: 10px; text-transform: uppercase; color: #666; font-weight: bold; margin-bottom: 2px;">Performance</span>
                     <div class="selector-options">
+                        <label><input type="radio" name="mode" value="NSE" ${currentVariable === 'NSE' ? 'checked' : ''}> <strong>NSE</strong></label>
                         <label><input type="radio" name="mode" value="KGE" ${currentVariable === 'KGE' ? 'checked' : ''}> <strong>KGE</strong></label>
                         <label><input type="radio" name="mode" value="Beta-KGE" ${currentVariable === 'Beta-KGE' ? 'checked' : ''}> <strong>Bias</strong></label>
                         <label><input type="radio" name="mode" value="Alpha-NSE" ${currentVariable === 'Alpha-NSE' ? 'checked' : ''}> <strong>Variability</strong></label>
